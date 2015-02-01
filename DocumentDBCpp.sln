@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30501.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib", "lib\DocumentDBCpp.vcxproj", "{ACBCCE76-0A69-4894-A789-FB0FA116D2D2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test", "test\Test.vcxproj", "{22FD0901-BCBE-4100-A789-5A060457A3B6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{ACBCCE76-0A69-4894-A789-FB0FA116D2D2} = {ACBCCE76-0A69-4894-A789-FB0FA116D2D2}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 3
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://brankokokanovic.visualstudio.com/defaultcollection
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = test\\Test.vcxproj
+		SccProjectName1 = Test
+		SccLocalPath1 = Test
+		SccProjectUniqueName2 = lib\\DocumentDBCpp.vcxproj
+		SccProjectName2 = lib
+		SccLocalPath2 = lib
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ACBCCE76-0A69-4894-A789-FB0FA116D2D2}.Debug|Win32.ActiveCfg = Debug|Win32
+		{ACBCCE76-0A69-4894-A789-FB0FA116D2D2}.Debug|Win32.Build.0 = Debug|Win32
+		{ACBCCE76-0A69-4894-A789-FB0FA116D2D2}.Release|Win32.ActiveCfg = Release|Win32
+		{ACBCCE76-0A69-4894-A789-FB0FA116D2D2}.Release|Win32.Build.0 = Release|Win32
+		{22FD0901-BCBE-4100-A789-5A060457A3B6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{22FD0901-BCBE-4100-A789-5A060457A3B6}.Debug|Win32.Build.0 = Debug|Win32
+		{22FD0901-BCBE-4100-A789-5A060457A3B6}.Release|Win32.ActiveCfg = Release|Win32
+		{22FD0901-BCBE-4100-A789-5A060457A3B6}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
