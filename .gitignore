@@ -1,3 +1,14 @@
+# Debug and Release directories
+Debug/
+Release/
+
+# Browsing database
+*.sdf
+*.opensdf
+
+# NuGet packages directory
+packages/
+
 # Compiled Object files
 *.slo
 *.lo
