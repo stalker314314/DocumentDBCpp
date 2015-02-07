@@ -27,7 +27,7 @@
 
 #include <windows.h>
 
-BYTE* hmac (
+BYTE* hmac(
 	const BYTE* key,
 	DWORD keySize,
 	const BYTE* message,

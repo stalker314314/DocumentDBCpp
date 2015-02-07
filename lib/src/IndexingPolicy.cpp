@@ -32,71 +32,71 @@ using namespace documentdb;
 using namespace std;
 using namespace web::json;
 
-static bool comparei (
+static bool comparei(
 	wstring string1,
 	wstring string2)
 {
-	transform (string1.begin (), string1.end (), string1.begin (), toupper);
-	transform (string2.begin (), string2.end (), string2.begin (), toupper);
+	transform(string1.begin(), string1.end(), string1.begin(), toupper);
+	transform(string2.begin(), string2.end(), string2.begin(), toupper);
 
 	return (string1 == string2);
 }
 
-IndexingPolicy::IndexingPolicy ()
-	: automatic_ (true)
-	, indexing_mode_ (IndexingMode::CONSISTENT)
-	, excluded_paths_ ()
-	, included_paths_ (0)
+IndexingPolicy::IndexingPolicy()
+	: automatic_(true)
+	, indexing_mode_(IndexingMode::CONSISTENT)
+	, excluded_paths_()
+	, included_paths_(0)
 {
-	included_paths_.push_back (make_shared<Index> (IndexType::HASH, 3, 3, L"/"));
-	included_paths_.push_back (make_shared<Index> (IndexType::RANGE, 6, 3, L"/\"_ts\"/?"));
+	included_paths_.push_back(make_shared<Index>(IndexType::HASH, 3, 3, L"/"));
+	included_paths_.push_back(make_shared<Index>(IndexType::RANGE, 6, 3, L"/\"_ts\"/?"));
 }
 
-IndexingPolicy::IndexingPolicy (
-		const bool automatic,
-		const IndexingMode& indexing_mode,
-		const vector<shared_ptr<Index>>& included_paths,
-		const vector<wstring>& excluded_paths)
-	: automatic_ (automatic)
-	, indexing_mode_ (indexing_mode)
-	, included_paths_ (included_paths)
-	, excluded_paths_ (excluded_paths)
+IndexingPolicy::IndexingPolicy(
+	const bool automatic,
+	const IndexingMode& indexing_mode,
+	const vector<shared_ptr<Index>>& included_paths,
+	const vector<wstring>& excluded_paths)
+	: automatic_(automatic)
+	, indexing_mode_(indexing_mode)
+	, included_paths_(included_paths)
+	, excluded_paths_(excluded_paths)
 {
 }
 
-IndexingPolicy::~IndexingPolicy ()
+IndexingPolicy::~IndexingPolicy()
 {}
 
-IndexingPolicy IndexingPolicy::FromJson (
+IndexingPolicy IndexingPolicy::FromJson(
 	const value& json_payload)
 {
-	bool automatic = json_payload.at (RESPONSE_INDEXING_POLICY_AUTOMATIC).as_bool ();
+	bool automatic = json_payload.at(RESPONSE_INDEXING_POLICY_AUTOMATIC).as_bool();
 
-	wstring indexing_mode_str = json_payload.at (RESPONSE_INDEXING_POLICY_INDEXING_MODE).as_string ();
+	wstring indexing_mode_str = json_payload.at(RESPONSE_INDEXING_POLICY_INDEXING_MODE).as_string();
 	IndexingMode indexing_mode = IndexingMode::CONSISTENT;
-	if (comparei (indexing_mode_str, L"LAZY"))
+	if (comparei(indexing_mode_str, L"LAZY"))
 	{
 		indexing_mode = IndexingMode::LAZY;
 	}
 #ifdef _DEBUG
 	else
 	{
-		assert (comparei (indexing_mode_str, L"CONSISTENT"));
+		assert(comparei(indexing_mode_str, L"CONSISTENT"));
 	}
 #endif
 	vector<shared_ptr<Index>> included_paths;
-	auto included_paths_json = json_payload.at (RESPONSE_INDEXING_POLICY_INCLUDED_PATHS).as_array ();
+	auto included_paths_json = json_payload.at(RESPONSE_INDEXING_POLICY_INCLUDED_PATHS).as_array();
 	for (auto jsonIncludePath : included_paths_json)
 	{
-		included_paths.push_back (Index::FromJson (jsonIncludePath));
+		included_paths.push_back(Index::FromJson(jsonIncludePath));
 	}
 
 	vector<wstring> excluded_paths;
-	auto excluded_paths_json = json_payload.at (RESPONSE_INDEXING_POLICY_EXCLUDED_PATHS).as_array ();
+	auto excluded_paths_json = json_payload.at(RESPONSE_INDEXING_POLICY_EXCLUDED_PATHS).as_array();
 	for (auto jsonExcludedPath : excluded_paths_json)
 	{
-		excluded_paths.push_back (jsonExcludedPath.at (RESPONSE_INDEXING_POLICY_PATH).as_string ());
+		excluded_paths.push_back(jsonExcludedPath.at(RESPONSE_INDEXING_POLICY_PATH).as_string());
 	}
 
-	return IndexingPolicy (automatic, indexing_mode, included_paths, excluded_paths);
+	return IndexingPolicy(automatic, indexing_mode, included_paths, excluded_paths);
 }

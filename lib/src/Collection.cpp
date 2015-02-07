@@ -42,7 +42,7 @@ using namespace web::http;
 using namespace web::json;
 using namespace web::http::client;
 
-Collection::Collection (
+Collection::Collection(
 		const shared_ptr<const DocumentDBConfiguration>& document_db_configuration,
 		const wstring& id,
 		const wstring& resource_id,
@@ -55,31 +55,30 @@ Collection::Collection (
 		const wstring& udfs,
 		const wstring& conflicts,
 		const IndexingPolicy& indexing_policy)
-	: DocumentDBEntity (document_db_configuration, id, resource_id, ts, self, etag)
-	, docs_ (docs)
-	, sprocs_ (sprocs)
-	, triggers_ (triggers)
-	, udfs_ (udfs)
-	, conflicts_ (conflicts)
-	, indexing_policy_ (indexing_policy)
-{
-}
-
-Collection::~Collection ()
+	: DocumentDBEntity(document_db_configuration, id, resource_id, ts, self, etag)
+	, docs_(docs)
+	, sprocs_(sprocs)
+	, triggers_(triggers)
+	, udfs_(udfs)
+	, conflicts_(conflicts)
+	, indexing_policy_(indexing_policy)
 {}
 
-shared_ptr<Document> Collection::DocumentFromJson (
+Collection::~Collection()
+{}
+
+shared_ptr<Document> Collection::DocumentFromJson(
 	const value& json_collection) const
 {
-	wstring id = json_collection.at (DOCUMENT_ID).as_string ();
-	wstring rid = json_collection.at (RESPONSE_RESOURCE_RID).as_string ();
-	unsigned long ts = json_collection.at (RESPONSE_RESOURCE_TS).as_integer ();
-	wstring self = json_collection.at (RESPONSE_RESOURCE_SELF).as_string ();
-	wstring etag = json_collection.at (RESPONSE_RESOURCE_ETAG).as_string ();
-	wstring attachments = json_collection.at (RESPONSE_RESOURCE_ATTACHMENTS).as_string ();
+	wstring id = json_collection.at(DOCUMENT_ID).as_string();
+	wstring rid = json_collection.at(RESPONSE_RESOURCE_RID).as_string();
+	unsigned long ts = json_collection.at(RESPONSE_RESOURCE_TS).as_integer();
+	wstring self = json_collection.at(RESPONSE_RESOURCE_SELF).as_string();
+	wstring etag = json_collection.at(RESPONSE_RESOURCE_ETAG).as_string();
+	wstring attachments = json_collection.at(RESPONSE_RESOURCE_ATTACHMENTS).as_string();
 
-	return make_shared<Document> (
-		this->document_db_configuration (),
+	return make_shared<Document>(
+		this->document_db_configuration(),
 		id,
 		rid,
 		ts,
@@ -89,254 +88,254 @@ shared_ptr<Document> Collection::DocumentFromJson (
 		json_collection);
 }
 
-wstring Collection::GenerateGuid ()
+wstring Collection::GenerateGuid()
 {
 	UUID uuid;
-	ZeroMemory (&uuid, sizeof (UUID));
-	RPC_STATUS status = UuidCreate (&uuid);
+	ZeroMemory(&uuid, sizeof(UUID));
+	RPC_STATUS status = UuidCreate(&uuid);
 	if (status != RPC_S_OK)
 	{
-		throw DocumentDBRuntimeException (L"Unable to create UUID");
+		throw DocumentDBRuntimeException(L"Unable to create UUID");
 	}
 
 	wchar_t *str;
-	status = UuidToStringW (&uuid, (RPC_WSTR*)&str);
+	status = UuidToStringW(&uuid, (RPC_WSTR*)&str);
 	if (status == RPC_S_OUT_OF_MEMORY)
 	{
-		throw DocumentDBRuntimeException (L"Out of memory while creating UUID");
+		throw DocumentDBRuntimeException(L"Out of memory while creating UUID");
 	}
 	else if (status != RPC_S_OK)
 	{
-		throw DocumentDBRuntimeException (L"Unknown error while creating UUID");
+		throw DocumentDBRuntimeException(L"Unknown error while creating UUID");
 	}
 
 	wstring guid = str;
-	RpcStringFreeW ((RPC_WSTR*)&str);
+	RpcStringFreeW((RPC_WSTR*)&str);
 
 	return guid;
 }
 
-Concurrency::task<shared_ptr<Document>> Collection::CreateDocumentAsync (
+Concurrency::task<shared_ptr<Document>> Collection::CreateDocumentAsync(
 	const value& document) const
 {
-	http_request request = CreateRequest (
+	http_request request = CreateRequest(
 		methods::POST,
 		RESOURCE_PATH_DOCS,
-		this->resource_id (),
-		this->document_db_configuration ()->master_key ());
-	request.set_request_uri (this->self () + docs_);
+		this->resource_id(),
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + docs_);
 
 	value body = document;
 
-	if (!body.has_field (DOCUMENT_ID))
+	if (!body.has_field(DOCUMENT_ID))
 	{
-		body[DOCUMENT_ID] = value::string (GenerateGuid ());
+		body[DOCUMENT_ID] = value::string(GenerateGuid());
 	}
 
-	request.set_body (body);
+	request.set_body(body);
 
-	return this->document_db_configuration ()->http_client ().request (request).then ([=](http_response response)
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
 	{
-		value json_response = response.extract_json ().get ();
+		value json_response = response.extract_json().get();
 
-		if (response.status_code () == status_codes::Created)
+		if (response.status_code() == status_codes::Created)
 		{
-			return DocumentFromJson (json_response);
+			return DocumentFromJson(json_response);
 		}
 
-		ThrowExceptionFromResponse (response.status_code (), json_response);
+		ThrowExceptionFromResponse(response.status_code(), json_response);
 	});
 }
 
-shared_ptr<Document> Collection::CreateDocument (
+shared_ptr<Document> Collection::CreateDocument(
 	const value& document) const
 {
-	return this->CreateDocumentAsync (document).get ();
+	return this->CreateDocumentAsync(document).get();
 }
 
-Concurrency::task<shared_ptr<Document>> Collection::GetDocumentAsync (
+Concurrency::task<shared_ptr<Document>> Collection::GetDocumentAsync(
 	const wstring& resource_id) const
 {
-	http_request request = CreateRequest (
+	http_request request = CreateRequest(
 		methods::GET,
 		RESOURCE_PATH_DOCS,
 		resource_id,
-		this->document_db_configuration ()->master_key ());
-	request.set_request_uri (this->self () + docs_ + resource_id);
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + docs_ + resource_id);
 
-	return this->document_db_configuration ()->http_client ().request (request).then ([=](http_response response)
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
 	{
-		value json_response = response.extract_json ().get ();
+		value json_response = response.extract_json().get();
 
-		if (response.status_code () == status_codes::OK)
+		if (response.status_code() == status_codes::OK)
 		{
-			return DocumentFromJson (json_response);
+			return DocumentFromJson(json_response);
 		}
 
-		ThrowExceptionFromResponse (response.status_code (), json_response);
+		ThrowExceptionFromResponse(response.status_code(), json_response);
 	});
 }
 
-shared_ptr<Document> Collection::GetDocument (
+shared_ptr<Document> Collection::GetDocument(
 	const wstring& resource_id) const
 {
-	return this->GetDocumentAsync (resource_id).get ();
+	return this->GetDocumentAsync(resource_id).get();
 }
 
-Concurrency::task<vector<shared_ptr<Document>>> Collection::ListDocumentsAsync () const
+Concurrency::task<vector<shared_ptr<Document>>> Collection::ListDocumentsAsync() const
 {
-	http_request request = CreateRequest (
+	http_request request = CreateRequest(
 		methods::GET,
 		RESOURCE_PATH_DOCS,
-		this->resource_id (),
-		this->document_db_configuration ()->master_key ());
-	request.set_request_uri (this->self () + docs_);
-	return this->document_db_configuration ()->http_client ().request (request).then ([=](http_response response)
+		this->resource_id(),
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + docs_);
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
 	{
-		value json_response = response.extract_json ().get ();
+		value json_response = response.extract_json().get();
 
-		if (response.status_code () == status_codes::OK)
+		if (response.status_code() == status_codes::OK)
 		{
-			assert (this->resource_id () == json_response.at (RESPONSE_RESOURCE_RID).as_string ());
+			assert(this->resource_id() == json_response.at(RESPONSE_RESOURCE_RID).as_string());
 			vector<shared_ptr<Document>> documents;
-			documents.reserve (json_response.at (RESPONSE_BODY_COUNT).as_integer ());
-			value json_collections = json_response.at (RESPONSE_QUERY_DOCUMENTS);
+			documents.reserve(json_response.at(RESPONSE_BODY_COUNT).as_integer());
+			value json_collections = json_response.at(RESPONSE_QUERY_DOCUMENTS);
 
-			for (auto iter = json_collections.as_array ().cbegin (); iter != json_collections.as_array ().cend (); ++iter)
+			for (auto iter = json_collections.as_array().cbegin(); iter != json_collections.as_array().cend(); ++iter)
 			{
-				shared_ptr<Document> coll = DocumentFromJson (*iter);
-				documents.push_back (coll);
+				shared_ptr<Document> coll = DocumentFromJson(*iter);
+				documents.push_back(coll);
 			}
 			return documents;
 		}
 
-		ThrowExceptionFromResponse (response.status_code (), json_response);
+		ThrowExceptionFromResponse(response.status_code(), json_response);
 	});
 }
 
-vector<shared_ptr<Document>> Collection::ListDocuments () const
+vector<shared_ptr<Document>> Collection::ListDocuments() const
 {
-	return this->ListDocumentsAsync ().get ();
+	return this->ListDocumentsAsync().get();
 }
 
-Concurrency::task<shared_ptr<Document>> Collection::ReplaceDocumentAsync (
+Concurrency::task<shared_ptr<Document>> Collection::ReplaceDocumentAsync(
 	const wstring& resource_id,
 	const value& document) const
 {
-	http_request request = CreateRequest (
+	http_request request = CreateRequest(
 		methods::PUT,
 		RESOURCE_PATH_DOCS,
 		resource_id,
-		this->document_db_configuration ()->master_key ());
-	request.set_request_uri (this->self () + docs_ + resource_id);
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + docs_ + resource_id);
 
 	value body = document;
-	if (!body.has_field (DOCUMENT_ID))
+	if (!body.has_field(DOCUMENT_ID))
 	{
-		body[DOCUMENT_ID] = value::string (GenerateGuid ());
+		body[DOCUMENT_ID] = value::string(GenerateGuid());
 	}
 
-	request.set_body (body);
+	request.set_body(body);
 
-	return this->document_db_configuration ()->http_client ().request (request).then ([=](http_response response)
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
 	{
-		value json_response = response.extract_json ().get ();
+		value json_response = response.extract_json().get();
 
-		if (response.status_code () == status_codes::OK)
+		if (response.status_code() == status_codes::OK)
 		{
-			assert (resource_id == json_response.at (RESPONSE_RESOURCE_RID).as_string ());
-			return DocumentFromJson (json_response);
+			assert(resource_id == json_response.at(RESPONSE_RESOURCE_RID).as_string());
+			return DocumentFromJson(json_response);
 		}
 
-		ThrowExceptionFromResponse (response.status_code (), json_response);
+		ThrowExceptionFromResponse(response.status_code(), json_response);
 	});
 }
 
-shared_ptr<Document> Collection::ReplaceDocument (
+shared_ptr<Document> Collection::ReplaceDocument(
 	const wstring& resource_id,
 	const value& document) const
 {
-	return this->ReplaceDocumentAsync (resource_id, document).get ();
+	return this->ReplaceDocumentAsync(resource_id, document).get();
 }
 
-Concurrency::task<void> Collection::DeleteDocumentAsync (
+Concurrency::task<void> Collection::DeleteDocumentAsync(
 	const shared_ptr<Document>& document) const
 {
-	return DeleteDocumentAsync (document->resource_id ());
+	return DeleteDocumentAsync(document->resource_id());
 }
 
-void Collection::DeleteDocument (
+void Collection::DeleteDocument(
 	const shared_ptr<Document>& document) const
 {
-	this->DeleteDocumentAsync (document).get ();
+	this->DeleteDocumentAsync(document).get();
 }
 
-Concurrency::task<void> Collection::DeleteDocumentAsync (
+Concurrency::task<void> Collection::DeleteDocumentAsync(
 	const wstring& resource_id) const
 {
-	http_request request = CreateRequest (
+	http_request request = CreateRequest(
 		methods::DEL,
-		RESOURCE_PATH_DOCS, 
+		RESOURCE_PATH_DOCS,
 		resource_id,
-		this->document_db_configuration ()->master_key ());
-	request.set_request_uri (this->self () + docs_ + resource_id);
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + docs_ + resource_id);
 
-	return this->document_db_configuration ()->http_client ().request (request).then ([=](http_response response)
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
 	{
-		if (response.status_code () == status_codes::NoContent)
+		if (response.status_code() == status_codes::NoContent)
 		{
 			return;
 		}
 
-		value json_response = response.extract_json ().get ();
-		ThrowExceptionFromResponse (response.status_code (), json_response);
+		value json_response = response.extract_json().get();
+		ThrowExceptionFromResponse(response.status_code(), json_response);
 	});
 }
 
-void Collection::DeleteDocument (
+void Collection::DeleteDocument(
 	const wstring& resource_id) const
 {
-	this->DeleteDocumentAsync (resource_id).get ();
+	this->DeleteDocumentAsync(resource_id).get();
 }
 
-Concurrency::task<shared_ptr<DocumentIterator>> Collection::QueryDocumentsAsync (
+Concurrency::task<shared_ptr<DocumentIterator>> Collection::QueryDocumentsAsync(
 	const wstring& query,
 	const int page_size) const
 {
-	http_request request = CreateQueryRequest (
+	http_request request = CreateQueryRequest(
 		query,
 		page_size,
 		RESOURCE_PATH_DOCS,
-		this->resource_id (),
-		this->document_db_configuration ()->master_key ());
-	const wstring requestUri = this->self () + docs_;
-	request.set_request_uri (requestUri);
+		this->resource_id(),
+		this->document_db_configuration()->master_key());
+	const wstring requestUri = this->self() + docs_;
+	request.set_request_uri(requestUri);
 
-	return this->document_db_configuration ()->http_client ().request (request).then ([=](http_response response)
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
 	{
-		wstring continuation_id = response.headers ()[HEADER_MS_CONTINUATION];
-		value json_response = response.extract_json ().get ();
+		wstring continuation_id = response.headers()[HEADER_MS_CONTINUATION];
+		value json_response = response.extract_json().get();
 
-		if (response.status_code () == status_codes::OK)
+		if (response.status_code() == status_codes::OK)
 		{
-			assert (this->resource_id () == json_response.at (RESPONSE_RESOURCE_RID).as_string ());
+			assert(this->resource_id() == json_response.at(RESPONSE_RESOURCE_RID).as_string());
 
-			return make_shared<DocumentIterator> (
-				shared_from_this (),
+			return make_shared<DocumentIterator>(
+				shared_from_this(),
 				query,
 				page_size,
 				requestUri,
 				continuation_id,
-				json_response.at (RESPONSE_QUERY_DOCUMENTS));
+				json_response.at(RESPONSE_QUERY_DOCUMENTS));
 		}
 
-		ThrowExceptionFromResponse (response.status_code (), json_response);
+		ThrowExceptionFromResponse(response.status_code(), json_response);
 	});
 }
 
-shared_ptr<DocumentIterator> Collection::QueryDocuments (
+shared_ptr<DocumentIterator> Collection::QueryDocuments(
 	const wstring& query,
 	const int page_size) const
 {
-	return this->QueryDocumentsAsync (query, page_size).get ();
+	return this->QueryDocumentsAsync(query, page_size).get();
 }

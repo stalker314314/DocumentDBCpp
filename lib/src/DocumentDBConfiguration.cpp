@@ -27,16 +27,16 @@
 using namespace std;
 using namespace web::http;
 
-DocumentDBConfiguration::DocumentDBConfiguration (
+DocumentDBConfiguration::DocumentDBConfiguration(
 		wstring url_connection,
 		wstring master_key)
-	: url_connection_ (url_connection)
-	, http_client_ (url_connection)
+	: url_connection_(url_connection)
+	, http_client_(url_connection)
 {
-	master_key_ = utility::conversions::from_base64 (master_key);
+	master_key_ = utility::conversions::from_base64(master_key);
 }
 
 
-DocumentDBConfiguration::~DocumentDBConfiguration ()
+DocumentDBConfiguration::~DocumentDBConfiguration()
 {
 }

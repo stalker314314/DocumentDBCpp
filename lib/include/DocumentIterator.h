@@ -39,18 +39,18 @@ namespace documentdb
 	class DocumentIterator
 	{
 	public:
-		DocumentIterator (
+		DocumentIterator(
 			const std::shared_ptr<const Collection>& collection,
 			const std::wstring& original_query,
 			const int page_size,
 			const std::wstring& original_request_uri,
 			const std::wstring& continuation_id,
 			const web::json::value& buffer);
-		virtual ~DocumentIterator ();
+		virtual ~DocumentIterator();
 
-		bool HasMore ();
+		bool HasMore();
 
-		std::shared_ptr<Document> Next ();
+		std::shared_ptr<Document> Next();
 
 	private:
 		std::shared_ptr<const Collection> collection_;

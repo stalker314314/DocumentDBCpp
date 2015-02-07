@@ -41,7 +41,7 @@ namespace documentdb {
 	class Database : public DocumentDBEntity
 	{
 	public:
-		Database (
+		Database(
 			const std::shared_ptr<const DocumentDBConfiguration>& document_db_configuration,
 			const std::wstring& id,
 			const std::wstring& resource_id,
@@ -51,48 +51,48 @@ namespace documentdb {
 			const std::wstring& colls,
 			const std::wstring& users);
 
-		virtual ~Database ();
+		virtual ~Database();
 
-		Concurrency::task<std::shared_ptr<Collection>> CreateCollectionAsync (
+		Concurrency::task<std::shared_ptr<Collection>> CreateCollectionAsync(
 			const std::wstring& id) const;
 
-		std::shared_ptr<Collection> CreateCollection (
+		std::shared_ptr<Collection> CreateCollection(
 			const std::wstring& id) const;
 
-		Concurrency::task<void> DeleteCollectionAsync (
+		Concurrency::task<void> DeleteCollectionAsync(
 			const std::wstring& resource_id) const;
 
-		void DeleteCollection (
+		void DeleteCollection(
 			const std::wstring& resource_id) const;
 
-		Concurrency::task<void> DeleteCollectionAsync (
+		Concurrency::task<void> DeleteCollectionAsync(
 			const std::shared_ptr<Collection>& collection) const;
 
-		void DeleteCollection (
+		void DeleteCollection(
 			const std::shared_ptr<Collection>& collection) const;
 
-		Concurrency::task<std::shared_ptr<Collection>> GetCollectionAsync (
+		Concurrency::task<std::shared_ptr<Collection>> GetCollectionAsync(
 			const std::wstring& resource_id) const;
 
-		std::shared_ptr<Collection> GetCollection (
+		std::shared_ptr<Collection> GetCollection(
 			const std::wstring& resource_id) const;
 
-		Concurrency::task<std::vector<std::shared_ptr<Collection>>> ListCollectionsAsync () const;
+		Concurrency::task<std::vector<std::shared_ptr<Collection>>> ListCollectionsAsync() const;
 
-		std::vector<std::shared_ptr<Collection>> ListCollections () const;
+		std::vector<std::shared_ptr<Collection>> ListCollections() const;
 
-		std::wstring colls () const
+		std::wstring colls() const
 		{
 			return colls_;
 		}
 
-		std::wstring users () const
+		std::wstring users() const
 		{
 			return users_;
 		}
 
 	private:
-		std::shared_ptr<Collection> CollectionFromJson (const web::json::value* json_collection) const;
+		std::shared_ptr<Collection> CollectionFromJson(const web::json::value* json_collection) const;
 
 		std::wstring colls_;
 		std::wstring users_;

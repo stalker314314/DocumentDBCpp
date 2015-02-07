@@ -35,7 +35,7 @@ namespace documentdb {
 	class Document : public DocumentDBEntity
 	{
 	public:
-		Document (
+		Document(
 			const std::shared_ptr<const DocumentDBConfiguration>& document_db_configuration,
 			const std::wstring& id,
 			const std::wstring& resource_id,
@@ -45,14 +45,14 @@ namespace documentdb {
 			const std::wstring& attachments,
 			const web::json::value& payload);
 
-		virtual ~Document ();
+		virtual ~Document();
 
-		std::wstring attachments () const
+		std::wstring attachments() const
 		{
 			return attachments_;
 		}
 
-		web::json::value payload () const
+		web::json::value payload() const
 		{
 			return payload_;
 		}

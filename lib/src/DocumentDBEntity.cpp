@@ -28,22 +28,22 @@ using namespace documentdb;
 using namespace std;
 
 
-DocumentDBEntity::DocumentDBEntity (
+DocumentDBEntity::DocumentDBEntity(
 		const shared_ptr<const DocumentDBConfiguration>& document_db_configuration,
 		const wstring& id,
 		const wstring& resource_id,
 		const unsigned long ts,
 		const wstring& self,
 		const wstring& etag)
-	: document_db_configuration_ (document_db_configuration)
-	, id_ (id)
-	, resource_id_ (resource_id)
-	, ts_ (ts)
-	, self_ (self)
-	, etag_ (etag)
+	: document_db_configuration_(document_db_configuration)
+	, id_(id)
+	, resource_id_(resource_id)
+	, ts_(ts)
+	, self_(self)
+	, etag_(etag)
 {
 }
 
-DocumentDBEntity::~DocumentDBEntity ()
+DocumentDBEntity::~DocumentDBEntity()
 {
 }

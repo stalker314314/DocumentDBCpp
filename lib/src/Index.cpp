@@ -33,29 +33,29 @@ using namespace documentdb;
 using namespace std;
 using namespace web::json;
 
-static bool comparei (
+static bool comparei(
 	wstring string1,
 	wstring string2)
 {
-	transform (string1.begin (), string1.end (), string1.begin (), toupper);
-	transform (string2.begin (), string2.end (), string2.begin (), toupper);
+	transform(string1.begin(), string1.end(), string1.begin(), toupper);
+	transform(string2.begin(), string2.end(), string2.begin(), toupper);
 
 	return (string1 == string2);
 }
 
-Index::Index (
+Index::Index(
 		IndexType index_type,
 		int numeric_precision,
 		int string_precision,
 		wstring path)
-	: index_type_ (index_type)
-	, numeric_precision_ (numeric_precision)
-	, string_precision_ (string_precision)
-	, path_ (path)
+	: index_type_(index_type)
+	, numeric_precision_(numeric_precision)
+	, string_precision_(string_precision)
+	, path_(path)
 {
 }
 
-Index::~Index ()
+Index::~Index()
 {}
 
 bool Index::operator == (const Index& other) const
@@ -75,34 +75,34 @@ bool Index::operator == (const Index& other) const
 	}
 }
 
-shared_ptr<Index> Index::FromJson (
+shared_ptr<Index> Index::FromJson(
 	const value& json_payload)
 {
 	IndexType index_type = IndexType::HASH;
-	if (comparei (json_payload.at (RESPONSE_INDEX_INDEX_TYPE).as_string (), L"RANGE"))
+	if (comparei(json_payload.at(RESPONSE_INDEX_INDEX_TYPE).as_string(), L"RANGE"))
 	{
 		index_type = IndexType::RANGE;
 	}
 #ifdef _DEBUG
 	else
 	{
-		assert (comparei (json_payload.at (RESPONSE_INDEX_INDEX_TYPE).as_string (), L"HASH"));
+		assert(comparei(json_payload.at(RESPONSE_INDEX_INDEX_TYPE).as_string(), L"HASH"));
 	}
 #endif
 
 	int numeric_precision = 3;
-	if (json_payload.has_field (RESPONSE_INDEX_NUMERIC_PRECISION))
+	if (json_payload.has_field(RESPONSE_INDEX_NUMERIC_PRECISION))
 	{
-		numeric_precision = json_payload.at (RESPONSE_INDEX_NUMERIC_PRECISION).as_integer ();
+		numeric_precision = json_payload.at(RESPONSE_INDEX_NUMERIC_PRECISION).as_integer();
 	}
 
 	int string_precision = 3;
-	if (json_payload.has_field (RESPONSE_INDEX_STRING_PRECISION))
+	if (json_payload.has_field(RESPONSE_INDEX_STRING_PRECISION))
 	{
-		string_precision = json_payload.at (RESPONSE_INDEX_STRING_PRECISION).as_integer ();
+		string_precision = json_payload.at(RESPONSE_INDEX_STRING_PRECISION).as_integer();
 	}
 
-	wstring path = json_payload.at (RESPONSE_INDEX_PATH).as_string ();
+	wstring path = json_payload.at(RESPONSE_INDEX_PATH).as_string();
 
-	return make_shared<Index> (index_type, numeric_precision, string_precision, path);
+	return make_shared<Index>(index_type, numeric_precision, string_precision, path);
 }

@@ -37,7 +37,7 @@
 
 #define STATUS_UNSUCCESSFUL         ((NTSTATUS)0xC0000001L)
 
-BYTE* hmac (const BYTE* key, DWORD keySize, const BYTE* message, DWORD messageSize, DWORD* cbHash)
+BYTE* hmac(const BYTE* key, DWORD keySize, const BYTE* message, DWORD messageSize, DWORD* cbHash)
 {
 	BCRYPT_ALG_HANDLE       hAlg = NULL;
 	BCRYPT_HASH_HANDLE      hHash = NULL;
@@ -48,7 +48,7 @@ BYTE* hmac (const BYTE* key, DWORD keySize, const BYTE* message, DWORD messageSi
 	bool                    error = false;
 
 	//open an algorithm handle
-	if (!NT_SUCCESS (status = BCryptOpenAlgorithmProvider (
+	if (!NT_SUCCESS(status = BCryptOpenAlgorithmProvider(
 		&hAlg,
 		BCRYPT_SHA256_ALGORITHM,
 		NULL,
@@ -59,11 +59,11 @@ BYTE* hmac (const BYTE* key, DWORD keySize, const BYTE* message, DWORD messageSi
 	}
 
 	//calculate the size of the buffer to hold the hash object
-	if (!NT_SUCCESS (status = BCryptGetProperty (
+	if (!NT_SUCCESS(status = BCryptGetProperty(
 		hAlg,
 		BCRYPT_OBJECT_LENGTH,
 		(PBYTE)&cbHashObject,
-		sizeof (DWORD),
+		sizeof(DWORD),
 		&cbData,
 		0)))
 	{
@@ -72,7 +72,7 @@ BYTE* hmac (const BYTE* key, DWORD keySize, const BYTE* message, DWORD messageSi
 	}
 
 	//allocate the hash object on the heap
-	pbHashObject = (PBYTE)HeapAlloc (GetProcessHeap (), 0, cbHashObject);
+	pbHashObject = (PBYTE)HeapAlloc(GetProcessHeap(), 0, cbHashObject);
 	if (NULL == pbHashObject)
 	{
 		error = true;
@@ -80,11 +80,11 @@ BYTE* hmac (const BYTE* key, DWORD keySize, const BYTE* message, DWORD messageSi
 	}
 
 	//calculate the length of the hash
-	if (!NT_SUCCESS (status = BCryptGetProperty (
+	if (!NT_SUCCESS(status = BCryptGetProperty(
 		hAlg,
 		BCRYPT_HASH_LENGTH,
 		(PBYTE)cbHash,
-		sizeof (DWORD),
+		sizeof(DWORD),
 		&cbData,
 		0)))
 	{
@@ -93,7 +93,7 @@ BYTE* hmac (const BYTE* key, DWORD keySize, const BYTE* message, DWORD messageSi
 	}
 
 	//allocate the hash buffer on the heap
-	pbHash = (PBYTE)HeapAlloc (GetProcessHeap (), 0, *cbHash);
+	pbHash = (PBYTE)HeapAlloc(GetProcessHeap(), 0, *cbHash);
 	if (NULL == pbHash)
 	{
 		error = true;
@@ -101,7 +101,7 @@ BYTE* hmac (const BYTE* key, DWORD keySize, const BYTE* message, DWORD messageSi
 	}
 
 	//create a hash
-	if (!NT_SUCCESS (status = BCryptCreateHash (
+	if (!NT_SUCCESS(status = BCryptCreateHash(
 		hAlg,
 		&hHash,
 		pbHashObject,
@@ -115,7 +115,7 @@ BYTE* hmac (const BYTE* key, DWORD keySize, const BYTE* message, DWORD messageSi
 	}
 
 	//hash some data
-	if (!NT_SUCCESS (status = BCryptHashData (
+	if (!NT_SUCCESS(status = BCryptHashData(
 		hHash,
 		(PBYTE)message,
 		messageSize,
@@ -126,7 +126,7 @@ BYTE* hmac (const BYTE* key, DWORD keySize, const BYTE* message, DWORD messageSi
 	}
 
 	//close the hash
-	if (!NT_SUCCESS (status = BCryptFinishHash (
+	if (!NT_SUCCESS(status = BCryptFinishHash(
 		hHash,
 		pbHash,
 		*cbHash,
@@ -140,27 +140,27 @@ Cleanup:
 
 	if (hAlg)
 	{
-		BCryptCloseAlgorithmProvider (hAlg, 0);
+		BCryptCloseAlgorithmProvider(hAlg, 0);
 	}
 
 	if (hHash)
 	{
-		BCryptDestroyHash (hHash);
+		BCryptDestroyHash(hHash);
 	}
 
 	if (pbHashObject)
 	{
-		HeapFree (GetProcessHeap (), 0, pbHashObject);
+		HeapFree(GetProcessHeap(), 0, pbHashObject);
 	}
 
 	if (error)
 	{
 		if (pbHash != nullptr)
 		{
-			HeapFree (GetProcessHeap (), 0, pbHash);
+			HeapFree(GetProcessHeap(), 0, pbHash);
 		}
 
-		throw documentdb::DocumentDBRuntimeException (L"Error during hmac hasing");
+		throw documentdb::DocumentDBRuntimeException(L"Error during hmac hasing");
 	}
 
 	return pbHash;

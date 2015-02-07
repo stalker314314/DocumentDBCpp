@@ -34,9 +34,9 @@ namespace documentdb
 	class DocumentDBRuntimeException
 	{
 	public:
-		DocumentDBRuntimeException (
-				const std::wstring& message)
-			: message_ (message)
+		DocumentDBRuntimeException(
+			const std::wstring& message)
+			: message_(message)
 		{
 		}
 
@@ -47,13 +47,13 @@ namespace documentdb
 	class DocumentDBResponseException : public DocumentDBRuntimeException
 	{
 	public:
-		DocumentDBResponseException (
-				const web::http::status_code& status_code,
-				const std::wstring& code,
-				const std::wstring& message)
-			: DocumentDBRuntimeException (message)
-			, status_code_ (status_code)
-			, code_ (code)
+		DocumentDBResponseException(
+			const web::http::status_code& status_code,
+			const std::wstring& code,
+			const std::wstring& message)
+			: DocumentDBRuntimeException(message)
+			, status_code_(status_code)
+			, code_(code)
 		{
 		}
 
@@ -65,11 +65,11 @@ namespace documentdb
 	class ResourceAlreadyExistsException : public DocumentDBResponseException
 	{
 	public:
-		ResourceAlreadyExistsException (
-				const web::http::status_code& status_code,
-				const std::wstring& code,
-				const std::wstring& message)
-			: DocumentDBResponseException (status_code, code, message)
+		ResourceAlreadyExistsException(
+			const web::http::status_code& status_code,
+			const std::wstring& code,
+			const std::wstring& message)
+			: DocumentDBResponseException(status_code, code, message)
 		{
 		}
 	};
@@ -77,11 +77,11 @@ namespace documentdb
 	class ResourceNotFoundException : public DocumentDBResponseException
 	{
 	public:
-		ResourceNotFoundException (
-				const web::http::status_code& status_code,
-				const std::wstring& code,
-				const std::wstring& message)
-			: DocumentDBResponseException (status_code, code, message)
+		ResourceNotFoundException(
+			const web::http::status_code& status_code,
+			const std::wstring& code,
+			const std::wstring& message)
+			: DocumentDBResponseException(status_code, code, message)
 		{
 		}
 	};
@@ -89,11 +89,11 @@ namespace documentdb
 	class DocumentTooLargeException : public DocumentDBResponseException
 	{
 	public:
-		DocumentTooLargeException (
-				const web::http::status_code& status_code,
-				const std::wstring& code,
-				const std::wstring& message)
-			: DocumentDBResponseException (status_code, code, message)
+		DocumentTooLargeException(
+			const web::http::status_code& status_code,
+			const std::wstring& code,
+			const std::wstring& message)
+			: DocumentDBResponseException(status_code, code, message)
 		{
 		}
 	};

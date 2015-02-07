@@ -37,13 +37,13 @@ namespace documentdb
 	class Index
 	{
 	public:
-		Index (
+		Index(
 			IndexType index_type,
 			int numeric_precision,
 			int string_precision,
 			std::wstring path);
 
-		virtual ~Index ();
+		virtual ~Index();
 
 		bool operator==(const Index& other) const;
 
@@ -52,25 +52,25 @@ namespace documentdb
 			return !(*this == other);
 		}
 
-		static std::shared_ptr<Index> FromJson (
+		static std::shared_ptr<Index> FromJson(
 			const web::json::value& json_payload);
 
-		IndexType index_type () const
+		IndexType index_type() const
 		{
 			return index_type_;
 		}
 
-		int numeric_precision () const
+		int numeric_precision() const
 		{
 			return numeric_precision_;
 		}
 
-		int string_precision () const
+		int string_precision() const
 		{
 			return string_precision_;
 		}
 
-		std::wstring path () const
+		std::wstring path() const
 		{
 			return path_;
 		}

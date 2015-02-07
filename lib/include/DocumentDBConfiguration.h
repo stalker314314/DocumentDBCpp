@@ -33,18 +33,18 @@
 class DocumentDBConfiguration
 {
 public:
-	DocumentDBConfiguration (
+	DocumentDBConfiguration(
 		std::wstring url_connection,
 		std::wstring master_key);
 
-	virtual ~DocumentDBConfiguration ();
+	virtual ~DocumentDBConfiguration();
 
-	std::vector<unsigned char> master_key () const
+	std::vector<unsigned char> master_key() const
 	{
 		return master_key_;
 	}
 
-	web::http::client::http_client http_client () const
+	web::http::client::http_client http_client() const
 	{
 		return http_client_;
 	}

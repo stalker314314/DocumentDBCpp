@@ -37,12 +37,12 @@
 #include "Document.h"
 
 namespace documentdb {
-	class Collection : public DocumentDBEntity, public std::enable_shared_from_this<Collection>
+	class Collection : public DocumentDBEntity, public std::enable_shared_from_this < Collection >
 	{
-	friend class DocumentIterator;
+		friend class DocumentIterator;
 
 	public:
-		Collection (
+		Collection(
 			const std::shared_ptr<const DocumentDBConfiguration>& document_db_configuration,
 			const std::wstring& id,
 			const std::wstring& resource_id,
@@ -56,87 +56,87 @@ namespace documentdb {
 			const std::wstring& conflicts,
 			const IndexingPolicy& indexing_policy);
 
-		virtual ~Collection ();
+		virtual ~Collection();
 
-		Concurrency::task<std::shared_ptr<Document>> CreateDocumentAsync (
+		Concurrency::task<std::shared_ptr<Document>> CreateDocumentAsync(
 			const web::json::value& document) const;
 
-		std::shared_ptr<Document> CreateDocument (
+		std::shared_ptr<Document> CreateDocument(
 			const web::json::value& document) const;
 
-		Concurrency::task<std::shared_ptr<Document>> GetDocumentAsync (
+		Concurrency::task<std::shared_ptr<Document>> GetDocumentAsync(
 			const std::wstring& resource_id) const;
 
-		std::shared_ptr<Document> GetDocument (
+		std::shared_ptr<Document> GetDocument(
 			const std::wstring& resource_id) const;
 
-		Concurrency::task<std::vector<std::shared_ptr<Document>>> ListDocumentsAsync () const;
+		Concurrency::task<std::vector<std::shared_ptr<Document>>> ListDocumentsAsync() const;
 
-		std::vector<std::shared_ptr<Document>> ListDocuments () const;
+		std::vector<std::shared_ptr<Document>> ListDocuments() const;
 
-		Concurrency::task<std::shared_ptr<Document>> ReplaceDocumentAsync (
+		Concurrency::task<std::shared_ptr<Document>> ReplaceDocumentAsync(
 			const std::wstring& resource_id,
 			const web::json::value& document) const;
 
-		std::shared_ptr<Document> ReplaceDocument (
+		std::shared_ptr<Document> ReplaceDocument(
 			const std::wstring& resource_id,
 			const web::json::value& document) const;
 
-		Concurrency::task<void> DeleteDocumentAsync (
+		Concurrency::task<void> DeleteDocumentAsync(
 			const std::shared_ptr<Document>& document) const;
 
-		void DeleteDocument (
+		void DeleteDocument(
 			const std::shared_ptr<Document>& document) const;
 
-		Concurrency::task<void> DeleteDocumentAsync (
+		Concurrency::task<void> DeleteDocumentAsync(
 			const std::wstring& resource_id) const;
 
-		void DeleteDocument (
+		void DeleteDocument(
 			const std::wstring& resource_id) const;
 
-		Concurrency::task<std::shared_ptr<DocumentIterator>> QueryDocumentsAsync (
+		Concurrency::task<std::shared_ptr<DocumentIterator>> QueryDocumentsAsync(
 			const std::wstring& query,
 			const int page_size = 10) const;
 
-		std::shared_ptr<DocumentIterator> QueryDocuments (
+		std::shared_ptr<DocumentIterator> QueryDocuments(
 			const std::wstring& query,
 			const int page_size = 10) const;
 
-		std::wstring docs () const
+		std::wstring docs() const
 		{
 			return docs_;
 		}
 
-		std::wstring sprocs () const
+		std::wstring sprocs() const
 		{
 			return sprocs_;
 		}
 
-		std::wstring triggers () const
+		std::wstring triggers() const
 		{
 			return triggers_;
 		}
 
-		std::wstring udfs () const
+		std::wstring udfs() const
 		{
 			return udfs_;
 		}
 
-		std::wstring conflicts () const
+		std::wstring conflicts() const
 		{
 			return conflicts_;
 		}
 
-		IndexingPolicy indexing_policy () const
+		IndexingPolicy indexing_policy() const
 		{
 			return indexing_policy_;
 		}
 
 	private:
-		std::shared_ptr<Document> DocumentFromJson (
+		std::shared_ptr<Document> DocumentFromJson(
 			const web::json::value& json_collection) const;
 
-		static std::wstring GenerateGuid ();
+		static std::wstring GenerateGuid();
 
 		std::wstring docs_;
 		std::wstring sprocs_;

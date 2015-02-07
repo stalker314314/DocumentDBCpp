@@ -39,50 +39,50 @@ namespace documentdb {
 	class DocumentClient
 	{
 	public:
-		DocumentClient (const DocumentDBConfiguration& document_db_configuration);
+		DocumentClient(const DocumentDBConfiguration& document_db_configuration);
 
-		virtual ~DocumentClient () {}
+		virtual ~DocumentClient() {}
 
-		Concurrency::task<std::shared_ptr<Database>> CreateDatabaseAsync (
+		Concurrency::task<std::shared_ptr<Database>> CreateDatabaseAsync(
 			const std::wstring& id) const;
 
-		std::shared_ptr<Database> CreateDatabase (
+		std::shared_ptr<Database> CreateDatabase(
 			const std::wstring& id) const;
 
-		Concurrency::task<std::shared_ptr<Database>> ReplaceDatabaseAsync (
+		Concurrency::task<std::shared_ptr<Database>> ReplaceDatabaseAsync(
 			const std::wstring& resource_id,
 			const std::wstring& new_id) const;
 
-		std::shared_ptr<Database> ReplaceDatabase (
+		std::shared_ptr<Database> ReplaceDatabase(
 			const std::wstring& resource_id,
 			const std::wstring& new_id) const;
 
-		Concurrency::task<void> DeleteDatabaseAsync (
+		Concurrency::task<void> DeleteDatabaseAsync(
 			const Database& database) const;
 
-		void DeleteDatabase (
+		void DeleteDatabase(
 			const Database& database) const;
 
-		Concurrency::task<void> DeleteDatabaseAsync (
+		Concurrency::task<void> DeleteDatabaseAsync(
 			const std::wstring& resource_id) const;
 
-		void DeleteDatabase (
+		void DeleteDatabase(
 			const std::wstring& resource_id) const;
 
-		Concurrency::task<std::shared_ptr<Database>> GetDatabaseAsync (
+		Concurrency::task<std::shared_ptr<Database>> GetDatabaseAsync(
 			const std::wstring& resource_id) const;
 
-		std::shared_ptr<Database> GetDatabase (
+		std::shared_ptr<Database> GetDatabase(
 			const std::wstring& resource_id) const;
 
-		Concurrency::task<std::vector<std::shared_ptr<Database>>> ListDatabasesAsync () const;
+		Concurrency::task<std::vector<std::shared_ptr<Database>>> ListDatabasesAsync() const;
 
-		std::vector<std::shared_ptr<Database>> ListDatabases () const;
+		std::vector<std::shared_ptr<Database>> ListDatabases() const;
 
 	private:
 		std::shared_ptr<DocumentDBConfiguration> document_db_configuration_;
 
-		std::shared_ptr<Database> DatabaseFromJson (
+		std::shared_ptr<Database> DatabaseFromJson(
 			const web::json::value& json_database) const;
 	};
 

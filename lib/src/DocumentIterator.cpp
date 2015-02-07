@@ -37,76 +37,76 @@ using namespace web::http;
 using namespace web::json;
 using namespace web::http::client;
 
-DocumentIterator::DocumentIterator (
+DocumentIterator::DocumentIterator(
 		const shared_ptr<const Collection>& collection,
 		const wstring& original_query,
 		const int page_size,
 		const wstring& original_request_uri,
 		const wstring& continuation_id,
 		const value& buffer)
-	: collection_ (collection)
-	, original_query_ (original_query)
-	, page_size_ (page_size)
-	, original_request_uri_ (original_request_uri)
-	, continuation_id_ (continuation_id)
-	, buffer_ (buffer)
-	, current_ (0)
+	: collection_(collection)
+	, original_query_(original_query)
+	, page_size_(page_size)
+	, original_request_uri_(original_request_uri)
+	, continuation_id_(continuation_id)
+	, buffer_(buffer)
+	, current_(0)
 {}
 
-DocumentIterator::~DocumentIterator ()
+DocumentIterator::~DocumentIterator()
 {}
 
-bool DocumentIterator::HasMore ()
+bool DocumentIterator::HasMore()
 {
-	if (current_ < buffer_.as_array ().size ())
+	if (current_ < buffer_.as_array().size())
 	{
 		return true;
 	}
 
 
-	if (continuation_id_.empty ())
+	if (continuation_id_.empty())
 	{
 		return false;
 	}
 
 	// Case where we have continuation, but we are not really sure do we have anything more, need to fetch it.
 	//
-	http_request request = CreateQueryRequest (
+	http_request request = CreateQueryRequest(
 		original_query_,
 		page_size_,
 		RESOURCE_PATH_DOCS,
-		collection_->resource_id (),
-		collection_->document_db_configuration ()->master_key (),
+		collection_->resource_id(),
+		collection_->document_db_configuration()->master_key(),
 		continuation_id_);
-	request.set_request_uri (original_request_uri_);
+	request.set_request_uri(original_request_uri_);
 
-	http_response response = collection_->document_db_configuration ()->http_client ().request (request).get ();
-	value json_response = response.extract_json ().get ();
+	http_response response = collection_->document_db_configuration()->http_client().request(request).get();
+	value json_response = response.extract_json().get();
 
-	if (response.status_code () == status_codes::OK)
+	if (response.status_code() == status_codes::OK)
 	{
-		wstring new_continuation_id = response.headers ()[HEADER_MS_CONTINUATION];
-		int count = stoi (response.headers ()[HEADER_MS_MAX_ITEM_COUNT]);
+		wstring new_continuation_id = response.headers()[HEADER_MS_CONTINUATION];
+		int count = stoi(response.headers()[HEADER_MS_MAX_ITEM_COUNT]);
 
-		buffer_ = json_response.at (RESPONSE_QUERY_DOCUMENTS);
+		buffer_ = json_response.at(RESPONSE_QUERY_DOCUMENTS);
 		continuation_id_ = new_continuation_id;
 		current_ = 0;
 		return count > 0;
 	}
 
-	ThrowExceptionFromResponse (response.status_code (), json_response);
+	ThrowExceptionFromResponse(response.status_code(), json_response);
 }
 
-shared_ptr<Document> DocumentIterator::Next ()
+shared_ptr<Document> DocumentIterator::Next()
 {
-	if (current_ < buffer_.as_array ().size ())
+	if (current_ < buffer_.as_array().size())
 	{
-		value document_json = buffer_.as_array ().at (current_++);
-		return collection_->DocumentFromJson (document_json);
+		value document_json = buffer_.as_array().at(current_++);
+		return collection_->DocumentFromJson(document_json);
 	}
 
 	// Did you called hasMore()?
 	//
-	assert (false);
-	throw DocumentDBRuntimeException (wstring (L"Calling Next without checking HasMore before that."));
+	assert(false);
+	throw DocumentDBRuntimeException(wstring(L"Calling Next without checking HasMore before that."));
 }

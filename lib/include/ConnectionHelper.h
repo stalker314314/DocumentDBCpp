@@ -32,23 +32,23 @@
 #include "exceptions.h"
 
 
-web::http::http_request CreateRequest (
+web::http::http_request CreateRequest(
 	const web::http::method& method,
 	const std::wstring& resource_type,
 	const std::wstring& resource_id,
 	const std::vector<unsigned char>& master_key);
 
-web::http::http_request CreateQueryRequest (
+web::http::http_request CreateQueryRequest(
 	const std::wstring& query,
 	const int pageSize,
 	const std::wstring& resource_type,
 	const std::wstring& resource_id,
 	const std::vector<unsigned char>& master_key,
-	const std::wstring& continuation_id = std::wstring ());
+	const std::wstring& continuation_id = std::wstring());
 
 __declspec(noreturn)
-void ThrowExceptionFromResponse (
-	const web::http::status_code& status_code,
-	const web::json::value& json_response);
+void ThrowExceptionFromResponse(
+const web::http::status_code& status_code,
+const web::json::value& json_response);
 
 #endif // !_DOCUMENTDB_CONNECTION_HELPER_H_

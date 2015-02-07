@@ -38,33 +38,33 @@ namespace documentdb
 	class IndexingPolicy
 	{
 	public:
-		IndexingPolicy ();
-		IndexingPolicy (
+		IndexingPolicy();
+		IndexingPolicy(
 			const bool automatic,
 			const IndexingMode& indexing_mode,
 			const std::vector<std::shared_ptr<Index>>& included_paths,
 			const std::vector<std::wstring>& excluded_paths);
 
-		virtual ~IndexingPolicy ();
+		virtual ~IndexingPolicy();
 
-		static IndexingPolicy FromJson (const web::json::value& json_payload);
+		static IndexingPolicy FromJson(const web::json::value& json_payload);
 
-		bool automatic () const
+		bool automatic() const
 		{
 			return automatic_;
 		}
 
-		IndexingMode indexing_mode () const
+		IndexingMode indexing_mode() const
 		{
 			return indexing_mode_;
 		}
 
-		std::vector<std::shared_ptr<Index>> included_paths () const
+		std::vector<std::shared_ptr<Index>> included_paths() const
 		{
 			return included_paths_;
 		}
 
-		std::vector<std::wstring> excluded_paths () const
+		std::vector<std::wstring> excluded_paths() const
 		{
 			return excluded_paths_;
 		}

@@ -31,7 +31,7 @@ using namespace documentdb;
 using namespace std;
 using namespace web::json;
 
-Document::Document (
+Document::Document(
 		const shared_ptr<const DocumentDBConfiguration>& document_db_configuration,
 		const wstring& id,
 		const wstring& resource_id,
@@ -40,12 +40,12 @@ Document::Document (
 		const wstring& etag,
 		const wstring& attachments,
 		const value& payload)
-	: DocumentDBEntity (document_db_configuration, id, resource_id, ts, self, etag)
-	, attachments_ (attachments)
-	, payload_ (payload)
+	: DocumentDBEntity(document_db_configuration, id, resource_id, ts, self, etag)
+	, attachments_(attachments)
+	, payload_(payload)
 {
 }
 
-Document::~Document ()
+Document::~Document()
 {
 }
