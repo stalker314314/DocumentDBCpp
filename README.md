@@ -11,15 +11,15 @@ DocumentDBCpp is C++ wrapper and object model for [DocumentDB ](http://azure.mic
 	// Create your client
 	DocumentClient client (conf);
 	// Create a new database
-	shared_ptr<Database> db = client.CreateDatabase (L"db").get ();
+	shared_ptr<Database> db = client.CreateDatabase (L"db");
 	// Create a collection inside database
-	shared_ptr<Collection> coll = db->CreateCollection (L"coll").get ();
+	shared_ptr<Collection> coll = db->CreateCollection (L"coll");
 	// Insert a document
 	web::json::value doc;
 	doc[L"foo"] = web::json::value::string (L"bar");
-	coll->CreateDocument (doc).get ();
+	coll->CreateDocument (doc);
 	// All of the above is also supported in async fashion
-	coll->CreateDocument (doc).then ([=](shared_ptr<Document> doc)
+	coll->CreateDocumentAsync (doc).then ([=](shared_ptr<Document> doc)
 	{
 		wcout << L"Asynchronously done inserting document";
 	});

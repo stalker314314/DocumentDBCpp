@@ -64,7 +64,7 @@ shared_ptr<Database> DocumentClient::DatabaseFromJson (
 	return make_shared<Database>(document_db_configuration_, id, rid, ts, self, etag, colls, users);
 }
 
-Concurrency::task<shared_ptr<Database>> DocumentClient::CreateDatabase (
+Concurrency::task<shared_ptr<Database>> DocumentClient::CreateDatabaseAsync (
 	const wstring& id) const
 {
 	http_request request = CreateRequest (
@@ -90,7 +90,13 @@ Concurrency::task<shared_ptr<Database>> DocumentClient::CreateDatabase (
 	});
 }
 
-Concurrency::task<shared_ptr<Database>> DocumentClient::ReplaceDatabase (
+shared_ptr<Database> DocumentClient::CreateDatabase (
+	const wstring& id) const
+{
+	return this->CreateDatabaseAsync (id).get ();
+}
+
+Concurrency::task<shared_ptr<Database>> DocumentClient::ReplaceDatabaseAsync (
 	const wstring& resource_id,
 	const wstring& new_id) const
 {
@@ -118,13 +124,26 @@ Concurrency::task<shared_ptr<Database>> DocumentClient::ReplaceDatabase (
 	});
 }
 
-Concurrency::task<void> DocumentClient::DeleteDatabase (
-	const Database& database) const
+shared_ptr<Database> DocumentClient::ReplaceDatabase (
+	const wstring& resource_id,
+	const wstring& new_id) const
 {
-	return DeleteDatabase (database.resource_id());
+	return this->ReplaceDatabaseAsync (resource_id, new_id).get ();
 }
 
-Concurrency::task<void> DocumentClient::DeleteDatabase (
+Concurrency::task<void> DocumentClient::DeleteDatabaseAsync (
+	const Database& database) const
+{
+	return DeleteDatabaseAsync (database.resource_id());
+}
+
+void DocumentClient::DeleteDatabase (
+	const Database& database) const
+{
+	return this->DeleteDatabaseAsync (database).get ();
+}
+
+Concurrency::task<void> DocumentClient::DeleteDatabaseAsync (
 	const wstring& resource_id) const
 {
 	http_request request = CreateRequest (
@@ -146,7 +165,13 @@ Concurrency::task<void> DocumentClient::DeleteDatabase (
 	});
 }
 
-Concurrency::task<shared_ptr<Database>> DocumentClient::GetDatabase (
+void DocumentClient::DeleteDatabase (
+	const wstring& resource_id) const
+{
+	return this->DeleteDatabaseAsync (resource_id).get ();
+}
+
+Concurrency::task<shared_ptr<Database>> DocumentClient::GetDatabaseAsync (
 	const wstring& resource_id) const
 {
 	http_request request = CreateRequest (
@@ -171,7 +196,13 @@ Concurrency::task<shared_ptr<Database>> DocumentClient::GetDatabase (
 	});
 }
 
-Concurrency::task<vector<shared_ptr<Database>>> DocumentClient::ListDatabases () const
+shared_ptr<Database> DocumentClient::GetDatabase (
+	const wstring& resource_id) const
+{
+	return this->GetDatabaseAsync (resource_id).get ();
+}
+
+Concurrency::task<vector<shared_ptr<Database>>> DocumentClient::ListDatabasesAsync () const
 {
 	http_request request = CreateRequest (
 		methods::GET,
@@ -203,4 +234,9 @@ Concurrency::task<vector<shared_ptr<Database>>> DocumentClient::ListDatabases ()
 		ThrowExceptionFromResponse (response.status_code (), json_response);
 		// TODO: document code
 	});
+}
+
+vector<shared_ptr<Database>> DocumentClient::ListDatabases () const
+{
+	return this->ListDatabasesAsync ().get ();
 }

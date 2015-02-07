@@ -116,7 +116,7 @@ wstring Collection::GenerateGuid ()
 	return guid;
 }
 
-Concurrency::task<shared_ptr<Document>> Collection::CreateDocument (
+Concurrency::task<shared_ptr<Document>> Collection::CreateDocumentAsync (
 	const value& document) const
 {
 	http_request request = CreateRequest (
@@ -148,7 +148,13 @@ Concurrency::task<shared_ptr<Document>> Collection::CreateDocument (
 	});
 }
 
-Concurrency::task<shared_ptr<Document>> Collection::GetDocument (
+shared_ptr<Document> Collection::CreateDocument (
+	const value& document) const
+{
+	return this->CreateDocumentAsync (document).get ();
+}
+
+Concurrency::task<shared_ptr<Document>> Collection::GetDocumentAsync (
 	const wstring& resource_id) const
 {
 	http_request request = CreateRequest (
@@ -171,7 +177,13 @@ Concurrency::task<shared_ptr<Document>> Collection::GetDocument (
 	});
 }
 
-Concurrency::task<vector<shared_ptr<Document>>> Collection::ListDocuments () const
+shared_ptr<Document> Collection::GetDocument (
+	const wstring& resource_id) const
+{
+	return this->GetDocumentAsync (resource_id).get ();
+}
+
+Concurrency::task<vector<shared_ptr<Document>>> Collection::ListDocumentsAsync () const
 {
 	http_request request = CreateRequest (
 		methods::GET,
@@ -202,7 +214,12 @@ Concurrency::task<vector<shared_ptr<Document>>> Collection::ListDocuments () con
 	});
 }
 
-Concurrency::task<shared_ptr<Document>> Collection::ReplaceDocument (
+vector<shared_ptr<Document>> Collection::ListDocuments () const
+{
+	return this->ListDocumentsAsync ().get ();
+}
+
+Concurrency::task<shared_ptr<Document>> Collection::ReplaceDocumentAsync (
 	const wstring& resource_id,
 	const value& document) const
 {
@@ -235,13 +252,26 @@ Concurrency::task<shared_ptr<Document>> Collection::ReplaceDocument (
 	});
 }
 
-Concurrency::task<void> Collection::DeleteDocument (
-	const shared_ptr<Document>& document) const
+shared_ptr<Document> Collection::ReplaceDocument (
+	const wstring& resource_id,
+	const value& document) const
 {
-	return DeleteDocument (document->resource_id ());
+	return this->ReplaceDocumentAsync (resource_id, document).get ();
 }
 
-Concurrency::task<void> Collection::DeleteDocument (
+Concurrency::task<void> Collection::DeleteDocumentAsync (
+	const shared_ptr<Document>& document) const
+{
+	return DeleteDocumentAsync (document->resource_id ());
+}
+
+void Collection::DeleteDocument (
+	const shared_ptr<Document>& document) const
+{
+	this->DeleteDocumentAsync (document).get ();
+}
+
+Concurrency::task<void> Collection::DeleteDocumentAsync (
 	const wstring& resource_id) const
 {
 	http_request request = CreateRequest (
@@ -263,7 +293,13 @@ Concurrency::task<void> Collection::DeleteDocument (
 	});
 }
 
-Concurrency::task<shared_ptr<DocumentIterator>> Collection::QueryDocuments (
+void Collection::DeleteDocument (
+	const wstring& resource_id) const
+{
+	this->DeleteDocumentAsync (resource_id).get ();
+}
+
+Concurrency::task<shared_ptr<DocumentIterator>> Collection::QueryDocumentsAsync (
 	const wstring& query,
 	const int page_size) const
 {
@@ -296,4 +332,11 @@ Concurrency::task<shared_ptr<DocumentIterator>> Collection::QueryDocuments (
 
 		ThrowExceptionFromResponse (response.status_code (), json_response);
 	});
+}
+
+shared_ptr<DocumentIterator> Collection::QueryDocuments (
+	const wstring& query,
+	const int page_size) const
+{
+	return this->QueryDocumentsAsync (query, page_size).get ();
 }

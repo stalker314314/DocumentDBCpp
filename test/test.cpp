@@ -65,17 +65,28 @@ void compare_documents (
 void test_databases (
 	const DocumentClient& client)
 {
-	int previous_db_count = client.ListDatabases ().get ().size ();
+	int previous_db_count = client.ListDatabasesAsync ().get ().size ();
+	assert (previous_db_count == client.ListDatabases ().size ());
 
 	// Create database with a random name
 	wstring db_name = generate_random_string (8);
-	shared_ptr<Database> db = client.CreateDatabase (wstring (db_name)).get ();
+	shared_ptr<Database> db = client.CreateDatabaseAsync (wstring (db_name)).get ();
 	assert (db->id () == db_name);
 
 	// We cannot create database with a same ID
 	try
 	{
-		client.CreateDatabase (db->id ()).get ();
+		client.CreateDatabaseAsync (db->id ()).get ();
+		assert (false);
+	}
+	catch (const ResourceAlreadyExistsException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		client.CreateDatabase (db->id ());
 		assert (false);
 	}
 	catch (const ResourceAlreadyExistsException&)
@@ -84,8 +95,10 @@ void test_databases (
 	}
 
 	// Check that newly created database is in list of all databases
-	vector<shared_ptr<Database>> dbs = client.ListDatabases ().get ();
+	vector<shared_ptr<Database>> dbs = client.ListDatabasesAsync ().get ();
 	assert ((previous_db_count + 1) == dbs.size ());
+	assert (dbs.size () == client.ListDatabases ().size ());
+
 	bool found_db = false;
 
 	for (auto db_read : dbs)
@@ -98,7 +111,7 @@ void test_databases (
 	assert (found_db);
 
 	// Try getting newly created database
-	shared_ptr<Database> read_db = client.GetDatabase (db->resource_id ()).get ();
+	shared_ptr<Database> read_db = client.GetDatabaseAsync (db->resource_id ()).get ();
 	assert (db->resource_id () == read_db->resource_id ());
 	assert (db->id () == read_db->id ());
 	assert (db->colls () == read_db->colls ());
@@ -108,17 +121,27 @@ void test_databases (
 
 	// Replace database
 	wstring new_db_name = generate_random_string (8);
-	db = client.ReplaceDatabase (db->resource_id (), wstring (new_db_name)).get ();
+	db = client.ReplaceDatabaseAsync (db->resource_id (), wstring (new_db_name)).get ();
 	assert (db->id () == new_db_name);
 
 	// Delete created database
 	wstring resource_id = db->resource_id ();
-	client.DeleteDatabase (db->resource_id ()).get ();
+	client.DeleteDatabaseAsync (db->resource_id ()).get ();
 
 	// We cannot delete database that does not exist
 	try
 	{
-		client.DeleteDatabase (resource_id).get ();
+		client.DeleteDatabaseAsync (resource_id).get ();
+		assert (false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		client.DeleteDatabase (resource_id);
 		assert (false);
 	}
 	catch (const ResourceNotFoundException&)
@@ -129,7 +152,17 @@ void test_databases (
 	// We cannot get database that does not exist
 	try
 	{
-		client.GetDatabase (resource_id).get ();
+		client.GetDatabaseAsync (resource_id).get ();
+		assert (false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		client.GetDatabase (resource_id);
 		assert (false);
 	}
 	catch (const ResourceNotFoundException&)
@@ -144,21 +177,32 @@ void test_collections (
 	wstring db_name = generate_random_string (8);
 
 	// Create a database on which we are going to test collections
-	shared_ptr<Database> db = client.CreateDatabase (wstring (db_name)).get ();
+	shared_ptr<Database> db = client.CreateDatabase (wstring (db_name));
 
 	// There should be no collections at this point in this database
-	vector<shared_ptr<Collection>> colls = db->ListCollections ().get ();
+	vector<shared_ptr<Collection>> colls = db->ListCollectionsAsync ().get ();
 	assert (colls.size () == 0);
+	assert (colls.size () == db->ListCollections ().size ());
 
 	// Create new test collection
 	wstring coll_name = generate_random_string (8);
-	shared_ptr<Collection> coll = db->CreateCollection (coll_name).get ();
+	shared_ptr<Collection> coll = db->CreateCollectionAsync (coll_name).get ();
 	assert (coll->id () == coll_name);
 
 	// We cannot create collection with same resource ID
 	try
 	{
-		db->CreateCollection (coll_name).get ();
+		db->CreateCollectionAsync (coll_name).get ();
+		assert (false);
+	}
+	catch (const ResourceAlreadyExistsException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		db->CreateCollection (coll_name);
 		assert (false);
 	}
 	catch (const ResourceAlreadyExistsException&)
@@ -167,7 +211,7 @@ void test_collections (
 	}
 
 	// Try getting created collection
-	shared_ptr<Collection> coll2 = db->GetCollection (coll->resource_id ()).get ();
+	shared_ptr<Collection> coll2 = db->GetCollectionAsync (coll->resource_id ()).get ();
 	assert (coll->resource_id () == coll2->resource_id ());
 	assert (coll->id () == coll2->id ());
 	assert (coll->self () == coll2->self ());
@@ -178,7 +222,7 @@ void test_collections (
 	assert (coll->udfs () == coll2->udfs ());
 
 	// Try reading all collections and make sure there is only test one in it
-	colls = db->ListCollections ().get ();
+	colls = db->ListCollectionsAsync ().get ();
 	assert (colls.size () == 1);
 	assert (colls[0]->resource_id () == coll->resource_id ());
 	assert (colls[0]->id () == coll->id ());
@@ -191,12 +235,22 @@ void test_collections (
 
 	// Delete created collection
 	wstring resource_id = coll->resource_id ();
-	db->DeleteCollection (coll).get ();
+	db->DeleteCollectionAsync (coll).get ();
 
 	// We cannot get collection that does not exist
 	try
 	{
-		db->GetCollection (resource_id).get ();
+		db->GetCollectionAsync (resource_id).get ();
+		assert (false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		db->GetCollection (resource_id);
 		assert (false);
 	}
 	catch (const ResourceNotFoundException&)
@@ -207,7 +261,17 @@ void test_collections (
 	// We cannot delete collection that does not exist
 	try
 	{
-		db->DeleteCollection (resource_id).get ();
+		db->DeleteCollectionAsync (resource_id).get ();
+		assert (false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		db->DeleteCollection (resource_id);
 		assert (false);
 	}
 	catch (const ResourceNotFoundException&)
@@ -216,7 +280,7 @@ void test_collections (
 	}
 
 	// Delete database now that we are done testing
-	client.DeleteDatabase (db->resource_id ()).get ();
+	client.DeleteDatabase (db->resource_id ());
 }
 
 void test_documents (
@@ -225,31 +289,43 @@ void test_documents (
 	wstring db_name = generate_random_string (8);
 
 	// Create a database on which we are going to test collections
-	shared_ptr<Database> db = client.CreateDatabase (wstring (db_name)).get ();
+	shared_ptr<Database> db = client.CreateDatabase (wstring (db_name));
 
 	// Create new test collection
 	wstring coll_name = generate_random_string (8);
-	shared_ptr<Collection> coll = db->CreateCollection (coll_name).get ();
+	shared_ptr<Collection> coll = db->CreateCollection (coll_name);
 
 	// Collection should be empty
-	assert (coll->ListDocuments ().get ().size () == 0);
+	assert (coll->ListDocumentsAsync ().get ().size () == 0);
+	assert (coll->ListDocuments ().size () == 0);
 
-	shared_ptr<DocumentIterator> iter = coll->QueryDocuments (wstring (L"SELECT * FROM " + coll_name)).get ();
+	shared_ptr<DocumentIterator> iter = coll->QueryDocumentsAsync (wstring (L"SELECT * FROM " + coll_name)).get ();
 	assert (!iter->HasMore ());
 
 	// Try insering one document with ID set
 	value document1;
 	document1[L"id"] = value::string (L"id");
 	document1[L"foo"] = value::string (L"bar");
-	shared_ptr<Document> doc = coll->CreateDocument (document1).get ();
+	shared_ptr<Document> doc = coll->CreateDocumentAsync (document1).get ();
 	assert (doc->id () == L"id");
 
 	// Try inserting document with same ID
+	value document_conflict;
+	document_conflict[L"id"] = value::string (L"id");
+
 	try
 	{
-		value document_conflict;
-		document_conflict[L"id"] = value::string (L"id");
-		coll->CreateDocument (document_conflict).get ();
+		coll->CreateDocumentAsync (document_conflict).get ();
+		assert (false);
+	}
+	catch (const ResourceAlreadyExistsException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		coll->CreateDocument (document_conflict);
 		assert (false);
 	}
 	catch (const ResourceAlreadyExistsException&)
@@ -258,17 +334,17 @@ void test_documents (
 	}
 
 	// Get document
-	shared_ptr<Document> doc_get = coll->GetDocument (doc->resource_id ()).get ();
+	shared_ptr<Document> doc_get = coll->GetDocumentAsync (doc->resource_id ()).get ();
 	assert (doc_get->payload ().at (L"foo").as_string () == L"bar");
 	compare_documents (doc_get, doc);
 
 	// Query for documents
-	vector <shared_ptr<Document>> doc_list = coll->ListDocuments ().get ();
+	vector <shared_ptr<Document>> doc_list = coll->ListDocumentsAsync ().get ();
 	assert (doc_list.size () == 1);
 	assert (doc_list[0]->payload ().at (L"foo").as_string () == L"bar");
 	compare_documents (doc_list[0], doc);
 
-	iter = coll->QueryDocuments (wstring (L"SELECT * FROM " + coll_name)).get ();
+	iter = coll->QueryDocumentsAsync (wstring (L"SELECT * FROM " + coll_name)).get ();
 	int count = 0;
 	while (iter->HasMore ())
 	{
@@ -282,16 +358,27 @@ void test_documents (
 
 	// Delete document with document
 	wstring resource_id = doc->resource_id ();
-	coll->DeleteDocument (doc).get ();
+	coll->DeleteDocumentAsync (doc).get ();
 
-	assert (coll->ListDocuments ().get ().size () == 0);
-	iter = coll->QueryDocuments (wstring (L"SELECT * FROM " + coll_name)).get ();
+	assert (coll->ListDocumentsAsync ().get ().size () == 0);
+
+	iter = coll->QueryDocuments (wstring (L"SELECT * FROM " + coll_name));
 	assert (!iter->HasMore ());
 
 	// Getting the document that does not exist results in exception
 	try
 	{
-		coll->GetDocument (resource_id).get ();
+		coll->GetDocumentAsync (resource_id).get ();
+		assert (false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		coll->GetDocument (resource_id);
 		assert (false);
 	}
 	catch (const ResourceNotFoundException&)
@@ -302,7 +389,17 @@ void test_documents (
 	// Deleting document that does not exist results in exception
 	try
 	{
-		coll->DeleteDocument (resource_id).get ();
+		coll->DeleteDocumentAsync (resource_id).get ();
+		assert (false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		coll->DeleteDocument (resource_id);
 		assert (false);
 	}
 	catch (const ResourceNotFoundException&)
@@ -313,15 +410,15 @@ void test_documents (
 	// Try inserting one document without ID set
 	value document2;
 	document2[L"foo2"] = value::string (L"bar2");
-	doc = coll->CreateDocument (document2).get ();
+	doc = coll->CreateDocument (document2);
 
 	// Query again for documents
-	doc_list = coll->ListDocuments ().get ();
+	doc_list = coll->ListDocuments ();
 	assert (doc_list.size () == 1);
 	assert (doc_list[0]->payload ().at (L"foo2").as_string () == L"bar2");
 	compare_documents (doc_list[0], doc);
 
-	iter = coll->QueryDocuments (wstring (L"SELECT * FROM " + coll_name)).get ();
+	iter = coll->QueryDocuments (wstring (L"SELECT * FROM " + coll_name));
 	count = 0;
 	while (iter->HasMore ())
 	{
@@ -335,20 +432,20 @@ void test_documents (
 
 	// Replace document
 	document2[L"foo2"] = value::string (L"bar3");
-	shared_ptr<Document> replaced_doc = coll->ReplaceDocument (doc->resource_id (), document2).get ();
+	shared_ptr<Document> replaced_doc = coll->ReplaceDocumentAsync (doc->resource_id (), document2).get ();
 	assert (replaced_doc->payload ().at (L"foo2").as_string () == L"bar3");
 	compare_documents (replaced_doc, doc, true);
 
 	// Delete document with resource ID
-	coll->DeleteDocument (doc->resource_id ()).get ();
-	iter = coll->QueryDocuments (wstring (L"SELECT * FROM " + coll_name)).get ();
+	coll->DeleteDocumentAsync (doc->resource_id ()).get ();
+	iter = coll->QueryDocuments (wstring (L"SELECT * FROM " + coll_name));
 	assert (!iter->HasMore ());
 
 	// Delete collection now that we are done testing
-	db->DeleteCollection (coll).get ();
+	db->DeleteCollection (coll);
 
 	// Delete database now that we are done testing
-	client.DeleteDatabase (db->resource_id ()).get ();
+	client.DeleteDatabase (db->resource_id ());
 }
 
 int main ()

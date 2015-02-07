@@ -58,25 +58,47 @@ namespace documentdb {
 
 		virtual ~Collection ();
 
-		Concurrency::task<std::shared_ptr<Document>> CreateDocument (
+		Concurrency::task<std::shared_ptr<Document>> CreateDocumentAsync (
 			const web::json::value& document) const;
 
-		Concurrency::task<std::shared_ptr<Document>> GetDocument (
+		std::shared_ptr<Document> CreateDocument (
+			const web::json::value& document) const;
+
+		Concurrency::task<std::shared_ptr<Document>> GetDocumentAsync (
 			const std::wstring& resource_id) const;
 
-		Concurrency::task<std::vector<std::shared_ptr<Document>>> ListDocuments () const;
+		std::shared_ptr<Document> GetDocument (
+			const std::wstring& resource_id) const;
 
-		Concurrency::task<std::shared_ptr<Document>> ReplaceDocument (
+		Concurrency::task<std::vector<std::shared_ptr<Document>>> ListDocumentsAsync () const;
+
+		std::vector<std::shared_ptr<Document>> ListDocuments () const;
+
+		Concurrency::task<std::shared_ptr<Document>> ReplaceDocumentAsync (
 			const std::wstring& resource_id,
 			const web::json::value& document) const;
 
-		Concurrency::task<void> DeleteDocument (
+		std::shared_ptr<Document> ReplaceDocument (
+			const std::wstring& resource_id,
+			const web::json::value& document) const;
+
+		Concurrency::task<void> DeleteDocumentAsync (
 			const std::shared_ptr<Document>& document) const;
 
-		Concurrency::task<void> DeleteDocument (
+		void DeleteDocument (
+			const std::shared_ptr<Document>& document) const;
+
+		Concurrency::task<void> DeleteDocumentAsync (
 			const std::wstring& resource_id) const;
 
-		Concurrency::task<std::shared_ptr<DocumentIterator>> QueryDocuments (
+		void DeleteDocument (
+			const std::wstring& resource_id) const;
+
+		Concurrency::task<std::shared_ptr<DocumentIterator>> QueryDocumentsAsync (
+			const std::wstring& query,
+			const int page_size = 10) const;
+
+		std::shared_ptr<DocumentIterator> QueryDocuments (
 			const std::wstring& query,
 			const int page_size = 10) const;
 

@@ -95,7 +95,7 @@ shared_ptr<Collection> Database::CollectionFromJson (
 		indexing_policy);
 }
 
-Concurrency::task<shared_ptr<Collection>> Database::CreateCollection (
+Concurrency::task<shared_ptr<Collection>> Database::CreateCollectionAsync (
 	const wstring& id) const
 {
 	http_request request = CreateRequest (
@@ -122,13 +122,25 @@ Concurrency::task<shared_ptr<Collection>> Database::CreateCollection (
 	});
 }
 
-Concurrency::task<void> Database::DeleteCollection (
-	const shared_ptr<Collection>& collection) const
+shared_ptr<Collection> Database::CreateCollection (
+	const wstring& id) const
 {
-	return DeleteCollection (collection->resource_id ());
+	return this->CreateCollectionAsync (id).get ();
 }
 
-Concurrency::task<void> Database::DeleteCollection (
+Concurrency::task<void> Database::DeleteCollectionAsync (
+	const shared_ptr<Collection>& collection) const
+{
+	return DeleteCollectionAsync (collection->resource_id ());
+}
+
+void Database::DeleteCollection (
+	const shared_ptr<Collection>& collection) const
+{
+	this->DeleteCollectionAsync (collection).get ();
+}
+
+Concurrency::task<void> Database::DeleteCollectionAsync (
 	const wstring& resource_id) const
 {
 	http_request request = CreateRequest (
@@ -150,7 +162,13 @@ Concurrency::task<void> Database::DeleteCollection (
 	});
 }
 
-Concurrency::task<shared_ptr<Collection>> Database::GetCollection (
+void Database::DeleteCollection (
+	const wstring& resource_id) const
+{
+	this->DeleteCollectionAsync (resource_id).get ();
+}
+
+Concurrency::task<shared_ptr<Collection>> Database::GetCollectionAsync (
 	const wstring& resource_id) const
 {
 	http_request request = CreateRequest (
@@ -173,7 +191,13 @@ Concurrency::task<shared_ptr<Collection>> Database::GetCollection (
 	});
 }
 
-Concurrency::task<vector<shared_ptr<Collection>>> Database::ListCollections () const
+shared_ptr<Collection> Database::GetCollection (
+	const wstring& resource_id) const
+{
+	return this->GetCollectionAsync (resource_id).get ();
+}
+
+Concurrency::task<vector<shared_ptr<Collection>>> Database::ListCollectionsAsync () const
 {
 	http_request request = CreateRequest (
 		methods::GET,
@@ -202,4 +226,9 @@ Concurrency::task<vector<shared_ptr<Collection>>> Database::ListCollections () c
 
 		ThrowExceptionFromResponse (response.status_code (), json_response);
 	});
+}
+
+vector<shared_ptr<Collection>> Database::ListCollections () const
+{
+	return this->ListCollectionsAsync ().get ();
 }

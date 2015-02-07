@@ -53,19 +53,33 @@ namespace documentdb {
 
 		virtual ~Database ();
 
-		Concurrency::task<std::shared_ptr<Collection>> CreateCollection (
+		Concurrency::task<std::shared_ptr<Collection>> CreateCollectionAsync (
 			const std::wstring& id) const;
 
-		Concurrency::task<void> DeleteCollection (
+		std::shared_ptr<Collection> CreateCollection (
+			const std::wstring& id) const;
+
+		Concurrency::task<void> DeleteCollectionAsync (
 			const std::wstring& resource_id) const;
 
-		Concurrency::task<void> DeleteCollection (
+		void DeleteCollection (
+			const std::wstring& resource_id) const;
+
+		Concurrency::task<void> DeleteCollectionAsync (
 			const std::shared_ptr<Collection>& collection) const;
 
-		Concurrency::task<std::shared_ptr<Collection>> GetCollection (
+		void DeleteCollection (
+			const std::shared_ptr<Collection>& collection) const;
+
+		Concurrency::task<std::shared_ptr<Collection>> GetCollectionAsync (
 			const std::wstring& resource_id) const;
 
-		Concurrency::task<std::vector<std::shared_ptr<Collection>>> ListCollections () const;
+		std::shared_ptr<Collection> GetCollection (
+			const std::wstring& resource_id) const;
+
+		Concurrency::task<std::vector<std::shared_ptr<Collection>>> ListCollectionsAsync () const;
+
+		std::vector<std::shared_ptr<Collection>> ListCollections () const;
 
 		std::wstring colls () const
 		{

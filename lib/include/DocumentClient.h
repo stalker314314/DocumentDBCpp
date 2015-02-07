@@ -43,23 +43,41 @@ namespace documentdb {
 
 		virtual ~DocumentClient () {}
 
-		Concurrency::task<std::shared_ptr<Database>> CreateDatabase (
+		Concurrency::task<std::shared_ptr<Database>> CreateDatabaseAsync (
 			const std::wstring& id) const;
 
-		Concurrency::task<std::shared_ptr<Database>> ReplaceDatabase (
+		std::shared_ptr<Database> CreateDatabase (
+			const std::wstring& id) const;
+
+		Concurrency::task<std::shared_ptr<Database>> ReplaceDatabaseAsync (
 			const std::wstring& resource_id,
 			const std::wstring& new_id) const;
 
-		Concurrency::task<void> DeleteDatabase (
+		std::shared_ptr<Database> ReplaceDatabase (
+			const std::wstring& resource_id,
+			const std::wstring& new_id) const;
+
+		Concurrency::task<void> DeleteDatabaseAsync (
 			const Database& database) const;
 
-		Concurrency::task<void> DeleteDatabase (
+		void DeleteDatabase (
+			const Database& database) const;
+
+		Concurrency::task<void> DeleteDatabaseAsync (
 			const std::wstring& resource_id) const;
 
-		Concurrency::task<std::shared_ptr<Database>> GetDatabase (
+		void DeleteDatabase (
 			const std::wstring& resource_id) const;
 
-		Concurrency::task<std::vector<std::shared_ptr<Database>>> ListDatabases () const;
+		Concurrency::task<std::shared_ptr<Database>> GetDatabaseAsync (
+			const std::wstring& resource_id) const;
+
+		std::shared_ptr<Database> GetDatabase (
+			const std::wstring& resource_id) const;
+
+		Concurrency::task<std::vector<std::shared_ptr<Database>>> ListDatabasesAsync () const;
+
+		std::vector<std::shared_ptr<Database>> ListDatabases () const;
 
 	private:
 		std::shared_ptr<DocumentDBConfiguration> document_db_configuration_;
