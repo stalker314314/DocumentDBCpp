@@ -64,6 +64,12 @@ namespace documentdb {
 		std::shared_ptr<Document> CreateDocument(
 			const web::json::value& document) const;
 
+		Concurrency::task<std::shared_ptr<Document>> CreateDocumentAsync(
+			const std::wstring& document) const;
+
+		std::shared_ptr<Document> CreateDocument(
+			const std::wstring& document) const;
+
 		Concurrency::task<std::shared_ptr<Document>> GetDocumentAsync(
 			const std::wstring& resource_id) const;
 

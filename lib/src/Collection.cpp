@@ -118,13 +118,6 @@ wstring Collection::GenerateGuid()
 Concurrency::task<shared_ptr<Document>> Collection::CreateDocumentAsync(
 	const value& document) const
 {
-	http_request request = CreateRequest(
-		methods::POST,
-		RESOURCE_PATH_DOCS,
-		this->resource_id(),
-		this->document_db_configuration()->master_key());
-	request.set_request_uri(this->self() + docs_);
-
 	value body = document;
 
 	if (!body.has_field(DOCUMENT_ID))
@@ -132,7 +125,20 @@ Concurrency::task<shared_ptr<Document>> Collection::CreateDocumentAsync(
 		body[DOCUMENT_ID] = value::string(GenerateGuid());
 	}
 
-	request.set_body(body);
+	return this->CreateDocumentAsync(body.serialize());
+}
+
+Concurrency::task<shared_ptr<Document>> Collection::CreateDocumentAsync(
+	const wstring& document) const
+{
+	http_request request = CreateRequest(
+		methods::POST,
+		RESOURCE_PATH_DOCS,
+		this->resource_id(),
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + docs_);
+
+	request.set_body(document);
 
 	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
 	{
@@ -149,6 +155,12 @@ Concurrency::task<shared_ptr<Document>> Collection::CreateDocumentAsync(
 
 shared_ptr<Document> Collection::CreateDocument(
 	const value& document) const
+{
+	return this->CreateDocumentAsync(document).get();
+}
+
+shared_ptr<Document> Collection::CreateDocument(
+	const wstring& document) const
 {
 	return this->CreateDocumentAsync(document).get();
 }

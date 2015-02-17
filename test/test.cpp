@@ -325,7 +325,27 @@ void test_documents(
 
 	try
 	{
+		coll->CreateDocumentAsync(document_conflict.serialize()).get();
+		assert(false);
+	}
+	catch (const ResourceAlreadyExistsException&)
+	{
+		// Pass
+	}
+
+	try
+	{
 		coll->CreateDocument(document_conflict);
+		assert(false);
+	}
+	catch (const ResourceAlreadyExistsException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		coll->CreateDocument(document_conflict.serialize());
 		assert(false);
 	}
 	catch (const ResourceAlreadyExistsException&)
@@ -418,12 +438,20 @@ void test_documents(
 	assert(doc_list[0]->payload().at(L"foo2").as_string() == L"bar2");
 	compare_documents(doc_list[0], doc);
 
+	coll->DeleteDocument(doc->resource_id());
+
+	// Try inserting document as JSON
+	wstring id = generate_random_string(32);
+	wstring json_object = L"{\"id\": \"" + id + L"\", \"foo3\": \"bar3\" }";
+	doc = coll->CreateDocument(json_object);
+
+	// Query again for documents
 	iter = coll->QueryDocuments(wstring(L"SELECT * FROM " + coll_name));
 	count = 0;
 	while (iter->HasMore())
 	{
 		shared_ptr<Document> iter_doc = iter->Next();
-		assert(doc->payload().at(L"foo2").as_string() == L"bar2");
+		assert(doc->payload().at(L"foo3").as_string() == L"bar3");
 		compare_documents(iter_doc, doc);
 
 		count++;
@@ -431,9 +459,9 @@ void test_documents(
 	assert(count == 1);
 
 	// Replace document
-	document2[L"foo2"] = value::string(L"bar3");
+	document2[L"foo3"] = value::string(L"bar4");
 	shared_ptr<Document> replaced_doc = coll->ReplaceDocumentAsync(doc->resource_id(), document2).get();
-	assert(replaced_doc->payload().at(L"foo2").as_string() == L"bar3");
+	assert(replaced_doc->payload().at(L"foo3").as_string() == L"bar4");
 	compare_documents(replaced_doc, doc, true);
 
 	// Delete document with resource ID
