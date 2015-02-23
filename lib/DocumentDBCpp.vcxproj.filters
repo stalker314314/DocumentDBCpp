@@ -52,6 +52,9 @@
     <ClCompile Include="src\User.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\Permission.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Collection.h">
@@ -100,6 +103,9 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="include\User.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Permission.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

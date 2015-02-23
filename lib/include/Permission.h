@@ -22,8 +22,8 @@
 * SOFTWARE.
 ***/
 
-#ifndef _DOCUMENTDB_USER_H_
-#define _DOCUMENTDB_USER_H_
+#ifndef _DOCUMENTDB_PERMISSION_H_
+#define _DOCUMENTDB_PERMISSION_H_
 
 #include <string>
 #include <memory>
@@ -33,68 +33,44 @@
 #include "DocumentDBEntity.h"
 #include "DocumentDBConfiguration.h"
 #include "exceptions.h"
-#include "Permission.h"
 
 namespace documentdb {
-	class User : public DocumentDBEntity 
+	class Permission : public DocumentDBEntity
 	{
 	public:
-		User(
+		Permission(
 			const std::shared_ptr<const DocumentDBConfiguration>& document_db_configuration,
 			const std::wstring& id,
+			const std::wstring& permission_mode,
+			const std::wstring& resource,
 			const std::wstring& resource_id,
 			unsigned long ts,
 			const std::wstring& self,
 			const std::wstring& etag,
-			const std::wstring& permissions);
+			const std::wstring& token);
 
-		virtual ~User();
+		virtual ~Permission();
 
-		Concurrency::task<std::shared_ptr<Permission>> createPermissionAsync(
-			const std::wstring& id) const;
-
-		std::shared_ptr<Permission> CreatePermission(
-			const std::wstring& id) const;
-
-		Concurrency::task<void> DeletePermissionAsync(
-			const std::wstring& resource_id) const;
-
-		void DeletePermission(
-			const std::wstring& resource_id) const;
-
-		Concurrency::task<void> DeletePermissionAsync(
-			const std::shared_ptr<Permission>& permission) const;
-
-		void DeletePermission(
-			const std::shared_ptr<Permission>& permission) const;
-
-		Concurrency::task<std::shared_ptr<Permission>> GetPermissionAsync(
-			const std::wstring& resource_id) const;
-
-		std::shared_ptr<Permission> GetPermission(
-			const std::wstring& resource_id) const;
-
-		Concurrency::task<std::vector<std::shared_ptr<Permission>>> ListPermissionsAsync() const;
-
-		std::vector<std::shared_ptr<Permission>> ListPermissions() const;
-
-		Concurrency::task<std::shared_ptr<Permission>> ReplacePermissionAsync(
-			const std::wstring& resource_id,
-			const std::wstring& new_id) const;
-
-		std::shared_ptr<User> ReplacePermission(
-			const std::wstring& resource_id,
-			const std::wstring& new_id) const;
-
-		std::wstring permissions() const
+		std::wstring permission_mode() const
 		{
-			return permissions_;
+			return permission_mode_;
 		}
-	private:
-		std::shared_ptr<Permission> PermissionFromJson(const web::json::value* json_user) const;
 
-		std::wstring permissions_;
+		std::wstring resource() const
+		{
+			return resource_;
+		}
+
+		std::wstring token() const
+		{
+			return token_;
+		}
+
+	private:
+		std::wstring resource_;
+		std::wstring token_;
+		std::wstring permission_mode_;
 	};
 }
 
-#endif // !_DOCUMENTDB_USER_H_
+#endif // !_DOCUMENTDB_PERMISSION_H_

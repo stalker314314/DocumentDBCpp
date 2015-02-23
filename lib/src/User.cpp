@@ -57,67 +57,136 @@ User::~User()
 {
 }
 
-//std::shared_ptr<Permission> UserPermissionFromJson(
-//	const web::json::value* json_user) const
-//{
-//	wstring id = json_user->at(DOCUMENT_ID).as_string();
-//	wstring rid = json_user->at(RESPONSE_RESOURCE_RID).as_string();
-//	unsigned long ts = json_user->at(RESPONSE_RESOURCE_TS).as_integer();
-//	wstring self = json_user->at(RESPONSE_RESOURCE_SELF).as_string();
-//	wstring etag = json_user->at(RESPONSE_RESOURCE_ETAG).as_string();
-//	wstring docs = json_user->at(RESPONSE_RESOURCE_DOCS).as_string();
-//	wstring mode = json_user->at(RESPONSE_RESOURCE_PERMISSION_MODE).as_string();
-//	wstring resource = json_user->at(RESPONSE_RESOURCE_RESOURCE).as_string();
-//	wstring token = json_user->at(RESPONSE_RESOURCE_TOKEN).as_string();
-//
-//	IndexingPolicy indexing_policy;
-//	if (json_user->has_field(RESPONSE_INDEXING_POLICY))
-//	{
-//		value indexing_policy_json = json_collection->at(RESPONSE_INDEXING_POLICY);
-//		indexing_policy = IndexingPolicy::FromJson(indexing_policy_json);
-//	}
-//
-//	return make_shared<Permission>(
-//		this->document_db_configuration(),
-//		id,
-//		mode,
-//		resource
-//		rid,
-//		ts,
-//		self,
-//		etag,
-//		token);
-//}
-//
-//Concurrency::task<std::shared_ptr<Permission>> User::createPermissionAsync(
-//	const std::wstring& id) const
-//{
-//	http_request request = CreateRequest(
-//		methods::POST,
-//		RESOURCE_PATH_PERMISSIONS,
-//		this->resource_id(),
-//		this->document_db_configuration()->master_key());
-//	request.set_request_uri(this->self() + permissions_);
-//
-//	value body;
-//	body[DOCUMENT_ID] = value::string(id);
-//	request.set_body(body);
-//
-//	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
-//	{
-//		value json_response = response.extract_json().get();
-//
-//		if (response.status_code() == status_codes::Created)
-//		{
-//			return PermissionFromJson(&json_response);
-//		}
-//
-//		ThrowExceptionFromResponse(response.status_code(), json_response);
-//	});
-//}
-//
-//std::shared_ptr<Permission> User::CreatePermission(
-//	const std::wstring& id) const
-//{
-//
-//}
+std::shared_ptr<Permission> User::PermissionFromJson(
+	const web::json::value* json_user) const
+{
+	wstring id = json_user->at(DOCUMENT_ID).as_string();
+	wstring rid = json_user->at(RESPONSE_RESOURCE_RID).as_string();
+	unsigned long ts = json_user->at(RESPONSE_RESOURCE_TS).as_integer();
+	wstring self = json_user->at(RESPONSE_RESOURCE_SELF).as_string();
+	wstring etag = json_user->at(RESPONSE_RESOURCE_ETAG).as_string();
+	wstring docs = json_user->at(RESPONSE_RESOURCE_DOCS).as_string();
+	wstring mode = json_user->at(RESPONSE_RESOURCE_PERMISSION_MODE).as_string();
+	wstring resource = json_user->at(RESPONSE_RESOURCE_RESOURCE).as_string();
+	wstring token = json_user->at(RESPONSE_RESOURCE_TOKEN).as_string();
+
+	IndexingPolicy indexing_policy;
+	if (json_user->has_field(RESPONSE_INDEXING_POLICY))
+	{
+		value indexing_policy_json = json_user->at(RESPONSE_INDEXING_POLICY);
+		indexing_policy = IndexingPolicy::FromJson(indexing_policy_json);
+	}
+
+	return make_shared<Permission>(
+		this->document_db_configuration(),
+		id,
+		mode,
+		resource,
+		rid,
+		ts,
+		self,
+		etag,
+		token);
+}
+
+Concurrency::task<std::shared_ptr<Permission>> User::createPermissionAsync(
+	const std::wstring& id) const
+{
+	http_request request = CreateRequest(
+		methods::POST,
+		RESOURCE_PATH_PERMISSIONS,
+		this->resource_id(),
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + permissions_);
+
+	value body;
+	body[DOCUMENT_ID] = value::string(id);
+	request.set_body(body);
+
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		value json_response = response.extract_json().get();
+
+		if (response.status_code() == status_codes::Created)
+		{
+			return PermissionFromJson(&json_response);
+		}
+
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+std::shared_ptr<Permission> User::CreatePermission(
+	const std::wstring& id) const
+{
+	return createPermissionAsync(id).get();
+}
+
+Concurrency::task<void> User::DeletePermissionAsync(
+	const std::wstring& resource_id) const
+{
+	http_request request = CreateRequest(
+		methods::DEL,
+		RESOURCE_PATH_PERMISSIONS,
+		resource_id,
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + permissions_ + resource_id);
+
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		if (response.status_code() == status_codes::NoContent)
+		{
+			return;
+		}
+
+		value json_response = response.extract_json().get();
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+void User::DeletePermission(
+	const std::wstring& resource_id) const
+{
+	DeletePermissionAsync(resource_id);
+}
+
+Concurrency::task<void> User::DeletePermissionAsync(
+	const std::shared_ptr<Permission>& permission) const
+{
+	return DeletePermissionAsync(permission->resource_id());
+}
+
+void User::DeletePermission(
+	const std::shared_ptr<Permission>& permission) const
+{
+	DeletePermissionAsync(permission->resource_id());
+}
+
+Concurrency::task<std::shared_ptr<Permission>> User::GetPermissionAsync(
+	const std::wstring& resource_id) const
+{
+	http_request request = CreateRequest(
+		methods::GET,
+		RESOURCE_PATH_PERMISSIONS,
+		resource_id,
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + permissions_ + resource_id);
+
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		value json_response = response.extract_json().get();
+
+		if (response.status_code() == status_codes::OK)
+		{
+			return PermissionFromJson(&json_response);
+		}
+
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+std::shared_ptr<Permission> User::GetPermission(
+	const std::wstring& resource_id) const
+{
+	return GetPermissionAsync(resource_id).get();
+}
