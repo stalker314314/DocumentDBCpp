@@ -98,6 +98,7 @@
     <ClCompile Include="src\hmac_bcrypt.cpp" />
     <ClCompile Include="src\Index.cpp" />
     <ClCompile Include="src\IndexingPolicy.cpp" />
+    <ClCompile Include="src\User.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Collection.h" />
@@ -115,6 +116,7 @@
     <ClInclude Include="include\IndexingMode.h" />
     <ClInclude Include="include\IndexingPolicy.h" />
     <ClInclude Include="include\IndexType.h" />
+    <ClInclude Include="include\User.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

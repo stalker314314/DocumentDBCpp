@@ -476,6 +476,116 @@ void test_documents(
 	client.DeleteDatabase(db->resource_id());
 }
 
+void test_users(
+	const DocumentClient& client)
+{
+	wstring db_name = generate_random_string(8);
+
+	// Create a database on which we are going to test users
+	shared_ptr<Database> db = client.CreateDatabase(wstring(db_name));
+
+	// There should be no users at this point in this database
+	vector<shared_ptr<User>> users = db->ListUsersAsync().get();
+	assert(users.size() == 0);
+	assert(users.size() == db->ListUsers().size());
+
+	// Create new test user
+	wstring user_name = generate_random_string(8);
+	shared_ptr<User> user = db->CreateUserAsync(user_name).get();
+	assert(user->id() == user_name);
+
+	// We cannot create user with same resource ID
+	try
+	{
+		db->CreateUserAsync(user_name).get();
+		assert(false);
+	}
+	catch (const ResourceAlreadyExistsException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		db->CreateUser(user_name);
+		assert(false);
+	}
+	catch (const ResourceAlreadyExistsException&)
+	{
+		// Pass
+	}
+
+	// Try getting created user
+	shared_ptr<User> user2 = db->GetUserAsync(user->resource_id()).get();
+	assert(user->resource_id() == user2->resource_id());
+	assert(user->id() == user2->id());
+	assert(user->self() == user2->self());
+	assert(user->permissions() == user2->permissions());
+	
+
+	// Try reading all users and make sure there is only test one in it
+	users = db->ListUsersAsync().get();
+	assert(users.size() == 1);
+	assert(users[0]->resource_id() == user->resource_id());
+	assert(users[0]->id() == user->id());
+	assert(users[0]->self() == user->self());
+	assert(users[0]->permissions() == user->permissions());
+	
+	// Replace user
+	wstring new_user_name = generate_random_string(8);
+	user = db->ReplaceUserAsync(user->resource_id(), wstring(new_user_name)).get();
+	assert(user->id() == new_user_name);
+
+	// Delete created user
+	wstring resource_id = user->resource_id();
+	db->DeleteUserAsync(user).get();
+
+	// We cannot get user that does not exist
+	try
+	{
+		db->GetUserAsync(resource_id).get();
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		db->GetUser(resource_id);
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	// We cannot delete user that does not exist
+	try
+	{
+		db->DeleteUserAsync(resource_id).get();
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		db->DeleteUser(resource_id);
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	// Delete database now that we are done testing
+	client.DeleteDatabase(db->resource_id());
+}
+
 int main()
 {
 	srand((unsigned int)time(nullptr));
@@ -488,6 +598,7 @@ int main()
 	test_databases(client);
 	test_collections(client);
 	test_documents(client);
+	test_users(client);
 
 	return 0;
 }

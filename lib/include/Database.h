@@ -33,6 +33,7 @@
 
 #include "DocumentDBEntity.h"
 #include "Collection.h"
+#include "User.h"
 #include "DocumentDBConfiguration.h"
 #include "exceptions.h"
 
@@ -52,6 +53,8 @@ namespace documentdb {
 			const std::wstring& users);
 
 		virtual ~Database();
+
+		//collections management
 
 		Concurrency::task<std::shared_ptr<Collection>> CreateCollectionAsync(
 			const std::wstring& id) const;
@@ -91,8 +94,46 @@ namespace documentdb {
 			return users_;
 		}
 
+		//users management
+		Concurrency::task<std::shared_ptr<User>> CreateUserAsync(
+			const std::wstring& id) const;
+
+		std::shared_ptr<User> CreateUser(
+			const std::wstring& id) const;
+
+		Concurrency::task<void> DeleteUserAsync(
+			const std::wstring& resource_id) const;
+
+		void DeleteUser(
+			const std::wstring& resource_id) const;
+
+		Concurrency::task<void> DeleteUserAsync(
+			const std::shared_ptr<User>& user) const;
+
+		void DeleteUser(
+			const std::shared_ptr<User>& user) const;
+			
+		Concurrency::task<std::shared_ptr<User>> GetUserAsync(
+			const std::wstring& resource_id) const;
+
+		std::shared_ptr<User> GetUser(
+			const std::wstring& resource_id) const;
+
+		Concurrency::task<std::vector<std::shared_ptr<User>>> ListUsersAsync() const;
+
+		std::vector<std::shared_ptr<User>> ListUsers() const;
+
+		Concurrency::task<std::shared_ptr<User>> ReplaceUserAsync(
+			const std::wstring& resource_id,
+			const std::wstring& new_id) const;
+
+		std::shared_ptr<User> ReplaceUser(
+			const std::wstring& resource_id,
+			const std::wstring& new_id) const;
+
 	private:
 		std::shared_ptr<Collection> CollectionFromJson(const web::json::value* json_collection) const;
+		std::shared_ptr<User> UserFromJson(const web::json::value* json_user) const;
 
 		std::wstring colls_;
 		std::wstring users_;
