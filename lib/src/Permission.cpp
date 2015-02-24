@@ -28,15 +28,15 @@ using namespace documentdb;
 using namespace std;
 
 Permission::Permission(
-	const std::shared_ptr<const DocumentDBConfiguration>& document_db_configuration,
-	const std::wstring& id,
-	const std::wstring& permission_mode,
-	const std::wstring& resource,
-	const std::wstring& resource_id,
+	const shared_ptr<const DocumentDBConfiguration>& document_db_configuration,
+	const wstring& id,
+	const wstring& permission_mode,
+	const wstring& resource,
+	const wstring& resource_id,
 	unsigned long ts,
-	const std::wstring& self,
-	const std::wstring& etag,
-	const std::wstring& token)
+	const wstring& self,
+	const wstring& etag,
+	const wstring& token)
 	: DocumentDBEntity(document_db_configuration, id, resource_id, ts, self, etag)
 	, permission_mode_(permission_mode)
 	, resource_(resource)

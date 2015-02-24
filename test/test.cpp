@@ -586,6 +586,139 @@ void test_users(
 	client.DeleteDatabase(db->resource_id());
 }
 
+void test_permissions(
+	const DocumentClient& client) {
+	wstring db_name = generate_random_string(8);
+
+	// Create a database on which we are going to test permissions
+	shared_ptr<Database> db = client.CreateDatabase(wstring(db_name));
+
+	// There should be no users at this point in this database
+	vector<shared_ptr<User>> users = db->ListUsersAsync().get();
+	assert(users.size() == 0);
+	assert(users.size() == db->ListUsers().size());
+
+	wstring user_name = generate_random_string(8);
+
+	// Create a user on which we are going to test permissions
+	shared_ptr<User> user = db->CreateUser(wstring(user_name));
+
+	// There should be no permissions at this point in this database
+	vector<shared_ptr<Permission>> permissions = user->ListPermissionsAsync().get();
+	assert(permissions.size() == 0);
+	assert(permissions.size() == user->ListPermissions().size());
+
+	wstring coll_name = generate_random_string(8);
+
+	// Create a collection on which we are going to test permissions
+	shared_ptr<Collection> coll = db->CreateCollection(wstring(coll_name));
+
+	// Create new test permission
+	wstring permission_name = generate_random_string(8);
+	shared_ptr<Permission> permission = user->CreatePermissionAsync(permission_name, L"All", coll->self()).get();
+	assert(permission->id() == permission_name);
+
+	// We cannot create permission with same resource ID
+	try
+	{
+		user->CreatePermissionAsync(permission_name, L"All", coll->self()).get();
+		assert(false);
+	}
+	catch (const ResourceAlreadyExistsException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		user->CreatePermission(permission_name, L"All", coll->self());
+		assert(false);
+	}
+	catch (const ResourceAlreadyExistsException&)
+	{
+		// Pass
+	}
+
+	// Try getting created permission
+	shared_ptr<Permission> permission2 = user->GetPermissionAsync(permission->resource_id()).get();
+	assert(permission->resource_id() == permission2->resource_id());
+	assert(permission->id() == permission2->id());
+	assert(permission->self() == permission2->self());
+	assert(permission->permission_mode() == permission2->permission_mode());
+	assert(permission->resource() == permission2->resource());
+	//assert(permission->token() == permission2->token());
+
+	// Try reading all permissions and make sure there is only test one in it
+	permissions = user->ListPermissionsAsync().get();
+	assert(permissions.size() == 1);
+	assert(permissions[0]->resource_id() == permission->resource_id());
+	assert(permissions[0]->id() == permission->id());
+	assert(permissions[0]->self() == permission->self());
+	assert(permissions[0]->permission_mode() == permission->permission_mode());
+	assert(permissions[0]->resource() == permission->resource());
+	//assert(permissions[0]->token() == permission->token());
+
+	// Replace permission
+	wstring new_permission_name = generate_random_string(8);
+	permission = user->ReplacePermissionAsync(permission->resource_id(), wstring(new_permission_name), L"Read", coll->self()).get();
+	assert(permission->id() == new_permission_name);
+
+	// Delete created permission
+	wstring resource_id = permission->resource_id();
+	user->DeletePermissionAsync(permission).get();
+
+	// We cannot get permission that does not exist
+	try
+	{
+		user->GetPermissionAsync(resource_id).get();
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		user->GetPermission(resource_id);
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	// We cannot delete permission that does not exist
+	try
+	{
+		user->DeletePermissionAsync(resource_id).get();
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		user->DeletePermission(resource_id);
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	// Delete user now that we are done testing
+	db->DeleteUser(user->resource_id());
+
+	// Delete collection now that we are done testing
+	db->DeleteCollection(coll->resource_id());
+
+	// Delete database now that we are done testing
+	client.DeleteDatabase(db->resource_id());
+}
+
 int main()
 {
 	srand((unsigned int)time(nullptr));
@@ -599,6 +732,7 @@ int main()
 	test_collections(client);
 	test_documents(client);
 	test_users(client);
+	test_permissions(client);
 
 	return 0;
 }

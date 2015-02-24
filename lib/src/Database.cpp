@@ -95,7 +95,7 @@ shared_ptr<Collection> Database::CollectionFromJson(
 		indexing_policy);
 }
 
-std::shared_ptr<User> Database::UserFromJson(
+shared_ptr<User> Database::UserFromJson(
 	const web::json::value* json_user) const
 {
 	wstring id = json_user->at(DOCUMENT_ID).as_string();
@@ -295,7 +295,7 @@ shared_ptr<User> Database::CreateUser(
 }
 
 Concurrency::task<void> Database::DeleteUserAsync(
-	const std::wstring& resource_id) const
+	const wstring& resource_id) const
 {
 	http_request request = CreateRequest(
 		methods::DEL,
@@ -316,25 +316,25 @@ Concurrency::task<void> Database::DeleteUserAsync(
 }
 
 void Database::DeleteUser(
-	const std::wstring& resource_id) const
+	const wstring& resource_id) const
 {
 	this->DeleteUserAsync(resource_id).get();
 }
 
 Concurrency::task<void> Database::DeleteUserAsync(
-	const std::shared_ptr<User>& user) const
+	const shared_ptr<User>& user) const
 {
 	return this->DeleteUserAsync(user->resource_id());
 }
 
 void Database::DeleteUser(
-	const std::shared_ptr<User>& user) const
+	const shared_ptr<User>& user) const
 {
 	this->DeleteUserAsync(user->resource_id()).get();
 }
 
-Concurrency::task<std::shared_ptr<User>> Database::GetUserAsync(
-	const std::wstring& resource_id) const
+Concurrency::task<shared_ptr<User>> Database::GetUserAsync(
+	const wstring& resource_id) const
 {
 	http_request request = CreateRequest(
 		methods::GET,
@@ -356,13 +356,13 @@ Concurrency::task<std::shared_ptr<User>> Database::GetUserAsync(
 	});
 }
 
-std::shared_ptr<User> Database::GetUser(
-	const std::wstring& resource_id) const
+shared_ptr<User> Database::GetUser(
+	const wstring& resource_id) const
 {
 	return this->GetUserAsync(resource_id).get();
 }
 
-Concurrency::task<std::vector<std::shared_ptr<User>>> Database::ListUsersAsync() const
+Concurrency::task<vector<shared_ptr<User>>> Database::ListUsersAsync() const
 {
 	http_request request = CreateRequest(
 		methods::GET,
@@ -393,9 +393,9 @@ Concurrency::task<std::vector<std::shared_ptr<User>>> Database::ListUsersAsync()
 	});
 }
 
-Concurrency::task<std::shared_ptr<User>> Database::ReplaceUserAsync(
-	const std::wstring& resource_id,
-	const std::wstring& new_id) const
+Concurrency::task<shared_ptr<User>> Database::ReplaceUserAsync(
+	const wstring& resource_id,
+	const wstring& new_id) const
 {
 	http_request request = CreateRequest(
 		methods::PUT,
@@ -421,14 +421,14 @@ Concurrency::task<std::shared_ptr<User>> Database::ReplaceUserAsync(
 	});
 }
 
-std::shared_ptr<User> Database::ReplaceUser(
-	const std::wstring& resource_id,
-	const std::wstring& new_id) const
+shared_ptr<User> Database::ReplaceUser(
+	const wstring& resource_id,
+	const wstring& new_id) const
 {
 	return this->ReplaceUserAsync(resource_id, new_id).get();
 }
 
-std::vector<std::shared_ptr<User>> Database::ListUsers() const
+vector<shared_ptr<User>> Database::ListUsers() const
 {
 	return ListUsersAsync().get();
 }

@@ -26,6 +26,8 @@
 #define _DOCUMENTDB_DOCUMENT_DB_CONSTANTS_H_
 
 #define DOCUMENT_ID (L"id")
+#define PERMISSION_MODE (L"permissionMode")
+#define RESOURCE (L"resource")
 
 // Resource paths
 #define RESOURCE_PATH_DBS (L"dbs")
@@ -61,6 +63,7 @@
 #define RESPONSE_INDEXING_POLICY_PATH (L"Path")
 #define RESPONSE_BODY_COUNT (L"_count")
 #define RESPONSE_USERS (L"Users")
+#define RESPONSE_PERMISSIONS (L"Permissions")
 
 // Response keys
 #define RESPONSE_RESOURCE_RID (L"_rid")

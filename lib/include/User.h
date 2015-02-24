@@ -50,11 +50,15 @@ namespace documentdb {
 
 		virtual ~User();
 
-		Concurrency::task<std::shared_ptr<Permission>> createPermissionAsync(
-			const std::wstring& id) const;
+		Concurrency::task<std::shared_ptr<Permission>> CreatePermissionAsync(
+			const std::wstring& id,
+			const std::wstring& permissionMode,
+			const std::wstring& resource) const;
 
 		std::shared_ptr<Permission> CreatePermission(
-			const std::wstring& id) const;
+			const std::wstring& id,
+			const std::wstring& permissionMode,
+			const std::wstring& resource) const;
 
 		Concurrency::task<void> DeletePermissionAsync(
 			const std::wstring& resource_id) const;
@@ -80,18 +84,22 @@ namespace documentdb {
 
 		Concurrency::task<std::shared_ptr<Permission>> ReplacePermissionAsync(
 			const std::wstring& resource_id,
-			const std::wstring& new_id) const;
+			const std::wstring& new_id,
+			const std::wstring& new_permissionMode,
+			const std::wstring& new_resource) const;
 
-		std::shared_ptr<User> ReplacePermission(
+		std::shared_ptr<Permission> ReplacePermission(
 			const std::wstring& resource_id,
-			const std::wstring& new_id) const;
+			const std::wstring& new_id,
+			const std::wstring& new_permissionMode,
+			const std::wstring& new_resource) const;
 
 		std::wstring permissions() const
 		{
 			return permissions_;
 		}
 	private:
-		std::shared_ptr<Permission> PermissionFromJson(const web::json::value* json_user) const;
+		std::shared_ptr<Permission> PermissionFromJson(const web::json::value* json_permission) const;
 
 		std::wstring permissions_;
 	};
