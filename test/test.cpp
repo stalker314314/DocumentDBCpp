@@ -24,6 +24,7 @@
 
 #include <cstdlib>
 #include <ctime>
+#include <fstream>
 
 #include <cpprest/json.h>
 
@@ -646,7 +647,6 @@ void test_permissions(
 	assert(permission->self() == permission2->self());
 	assert(permission->permission_mode() == permission2->permission_mode());
 	assert(permission->resource() == permission2->resource());
-	//assert(permission->token() == permission2->token());
 
 	// Try reading all permissions and make sure there is only test one in it
 	permissions = user->ListPermissionsAsync().get();
@@ -656,7 +656,6 @@ void test_permissions(
 	assert(permissions[0]->self() == permission->self());
 	assert(permissions[0]->permission_mode() == permission->permission_mode());
 	assert(permissions[0]->resource() == permission->resource());
-	//assert(permissions[0]->token() == permission->token());
 
 	// Replace permission
 	wstring new_permission_name = generate_random_string(8);
@@ -723,9 +722,14 @@ int main()
 {
 	srand((unsigned int)time(nullptr));
 
+	wifstream confFile("account_configuration.txt");
+	wstring account, primaryKey;
+	confFile >> account;
+	confFile >> primaryKey;
+
 	DocumentDBConfiguration conf (
-		L"https://<account>.documents.azure.com",
-		L"<primary_key>");
+		account,
+		primaryKey);
 	DocumentClient client(conf);
 
 	test_databases(client);
