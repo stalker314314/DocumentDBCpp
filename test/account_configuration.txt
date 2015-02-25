@@ -1,2 +1,0 @@
-https://<account>.documents.azure.com
-<primary_key>
