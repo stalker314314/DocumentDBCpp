@@ -594,11 +594,6 @@ void test_permissions(
 	// Create a database on which we are going to test permissions
 	shared_ptr<Database> db = client.CreateDatabase(wstring(db_name));
 
-	// There should be no users at this point in this database
-	vector<shared_ptr<User>> users = db->ListUsersAsync().get();
-	assert(users.size() == 0);
-	assert(users.size() == db->ListUsers().size());
-
 	wstring user_name = generate_random_string(8);
 
 	// Create a user on which we are going to test permissions
