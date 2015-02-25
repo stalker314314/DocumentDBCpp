@@ -1,2 +1,2 @@
 https://{databaseaccount}.documents.azure.com
-{master_key}
+{primary_key}
