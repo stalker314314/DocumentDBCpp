@@ -37,3 +37,6 @@ packages/
 *.exe
 *.out
 *.app
+
+# Configuration file with account name and master key
+/test/account_configuration.txt

@@ -26,11 +26,15 @@
 #define _DOCUMENTDB_DOCUMENT_DB_CONSTANTS_H_
 
 #define DOCUMENT_ID (L"id")
+#define PERMISSION_MODE (L"permissionMode")
+#define RESOURCE (L"resource")
 
 // Resource paths
 #define RESOURCE_PATH_DBS (L"dbs")
 #define RESOURCE_PATH_COLLS (L"colls")
 #define RESOURCE_PATH_DOCS (L"docs")
+#define RESOURCE_PATH_USERS (L"users")
+#define RESOURCE_PATH_PERMISSIONS (L"permissions")
 
 // MIME types
 #define MIME_TYPE_APPLICATION_JSON (L"application/json")
@@ -58,6 +62,8 @@
 #define RESPONSE_INDEXING_POLICY_EXCLUDED_PATHS (L"ExcludedPaths")
 #define RESPONSE_INDEXING_POLICY_PATH (L"Path")
 #define RESPONSE_BODY_COUNT (L"_count")
+#define RESPONSE_USERS (L"Users")
+#define RESPONSE_PERMISSIONS (L"Permissions")
 
 // Response keys
 #define RESPONSE_RESOURCE_RID (L"_rid")
@@ -72,6 +78,10 @@
 #define RESPONSE_RESOURCE_TRIGGERS (L"_triggers")
 #define RESPONSE_RESOURCE_UDFS (L"_udfs")
 #define RESPONSE_RESOURCE_CONFLICTS (L"_conflicts")
+#define RESPONSE_RESOURCE_PERMISSIONS (L"_permissions")
+#define RESPONSE_RESOURCE_PERMISSION_MODE (L"permissionMode")
+#define RESPONSE_RESOURCE_RESOURCE (L"resource")
+#define RESPONSE_RESOURCE_TOKEN (L"_token")
 
 // Response error keys
 #define RESPONSE_ERROR_MESSAGE (L"message")

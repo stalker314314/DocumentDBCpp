@@ -24,6 +24,7 @@
 
 #include <cstdlib>
 #include <ctime>
+#include <fstream>
 
 #include <cpprest/json.h>
 
@@ -476,18 +477,261 @@ void test_documents(
 	client.DeleteDatabase(db->resource_id());
 }
 
+void test_users(
+	const DocumentClient& client)
+{
+	wstring db_name = generate_random_string(8);
+
+	// Create a database on which we are going to test users
+	shared_ptr<Database> db = client.CreateDatabase(wstring(db_name));
+
+	// There should be no users at this point in this database
+	vector<shared_ptr<User>> users = db->ListUsersAsync().get();
+	assert(users.size() == 0);
+	assert(users.size() == db->ListUsers().size());
+
+	// Create new test user
+	wstring user_name = generate_random_string(8);
+	shared_ptr<User> user = db->CreateUserAsync(user_name).get();
+	assert(user->id() == user_name);
+
+	// We cannot create user with same resource ID
+	try
+	{
+		db->CreateUserAsync(user_name).get();
+		assert(false);
+	}
+	catch (const ResourceAlreadyExistsException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		db->CreateUser(user_name);
+		assert(false);
+	}
+	catch (const ResourceAlreadyExistsException&)
+	{
+		// Pass
+	}
+
+	// Try getting created user
+	shared_ptr<User> user2 = db->GetUserAsync(user->resource_id()).get();
+	assert(user->resource_id() == user2->resource_id());
+	assert(user->id() == user2->id());
+	assert(user->self() == user2->self());
+	assert(user->permissions() == user2->permissions());
+	
+
+	// Try reading all users and make sure there is only test one in it
+	users = db->ListUsersAsync().get();
+	assert(users.size() == 1);
+	assert(users[0]->resource_id() == user->resource_id());
+	assert(users[0]->id() == user->id());
+	assert(users[0]->self() == user->self());
+	assert(users[0]->permissions() == user->permissions());
+	
+	// Replace user
+	wstring new_user_name = generate_random_string(8);
+	user = db->ReplaceUserAsync(user->resource_id(), wstring(new_user_name)).get();
+	assert(user->id() == new_user_name);
+
+	// Delete created user
+	wstring resource_id = user->resource_id();
+	db->DeleteUserAsync(user).get();
+
+	// We cannot get user that does not exist
+	try
+	{
+		db->GetUserAsync(resource_id).get();
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		db->GetUser(resource_id);
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	// We cannot delete user that does not exist
+	try
+	{
+		db->DeleteUserAsync(resource_id).get();
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		db->DeleteUser(resource_id);
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	// Delete database now that we are done testing
+	client.DeleteDatabase(db->resource_id());
+}
+
+void test_permissions(
+	const DocumentClient& client) {
+	wstring db_name = generate_random_string(8);
+
+	// Create a database on which we are going to test permissions
+	shared_ptr<Database> db = client.CreateDatabase(wstring(db_name));
+
+	wstring user_name = generate_random_string(8);
+
+	// Create a user on which we are going to test permissions
+	shared_ptr<User> user = db->CreateUser(wstring(user_name));
+
+	// There should be no permissions at this point in this database
+	vector<shared_ptr<Permission>> permissions = user->ListPermissionsAsync().get();
+	assert(permissions.size() == 0);
+	assert(permissions.size() == user->ListPermissions().size());
+
+	wstring coll_name = generate_random_string(8);
+
+	// Create a collection on which we are going to test permissions
+	shared_ptr<Collection> coll = db->CreateCollection(wstring(coll_name));
+
+	// Create new test permission
+	wstring permission_name = generate_random_string(8);
+	shared_ptr<Permission> permission = user->CreatePermissionAsync(permission_name, L"All", coll->self()).get();
+	assert(permission->id() == permission_name);
+
+	// We cannot create permission with same resource ID
+	try
+	{
+		user->CreatePermissionAsync(permission_name, L"All", coll->self()).get();
+		assert(false);
+	}
+	catch (const ResourceAlreadyExistsException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		user->CreatePermission(permission_name, L"All", coll->self());
+		assert(false);
+	}
+	catch (const ResourceAlreadyExistsException&)
+	{
+		// Pass
+	}
+
+	// Try getting created permission
+	shared_ptr<Permission> permission2 = user->GetPermissionAsync(permission->resource_id()).get();
+	assert(permission->resource_id() == permission2->resource_id());
+	assert(permission->id() == permission2->id());
+	assert(permission->self() == permission2->self());
+	assert(permission->permission_mode() == permission2->permission_mode());
+	assert(permission->resource() == permission2->resource());
+
+	// Try reading all permissions and make sure there is only test one in it
+	permissions = user->ListPermissionsAsync().get();
+	assert(permissions.size() == 1);
+	assert(permissions[0]->resource_id() == permission->resource_id());
+	assert(permissions[0]->id() == permission->id());
+	assert(permissions[0]->self() == permission->self());
+	assert(permissions[0]->permission_mode() == permission->permission_mode());
+	assert(permissions[0]->resource() == permission->resource());
+
+	// Replace permission
+	wstring new_permission_name = generate_random_string(8);
+	permission = user->ReplacePermissionAsync(permission->resource_id(), wstring(new_permission_name), L"Read", coll->self()).get();
+	assert(permission->id() == new_permission_name);
+
+	// Delete created permission
+	wstring resource_id = permission->resource_id();
+	user->DeletePermissionAsync(permission).get();
+
+	// We cannot get permission that does not exist
+	try
+	{
+		user->GetPermissionAsync(resource_id).get();
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		user->GetPermission(resource_id);
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	// We cannot delete permission that does not exist
+	try
+	{
+		user->DeletePermissionAsync(resource_id).get();
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		user->DeletePermission(resource_id);
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	// Delete user now that we are done testing
+	db->DeleteUser(user->resource_id());
+
+	// Delete collection now that we are done testing
+	db->DeleteCollection(coll->resource_id());
+
+	// Delete database now that we are done testing
+	client.DeleteDatabase(db->resource_id());
+}
+
 int main()
 {
 	srand((unsigned int)time(nullptr));
 
+	wifstream confFile("account_configuration.txt");
+	wstring account, primaryKey;
+	confFile >> account;
+	confFile >> primaryKey;
+
 	DocumentDBConfiguration conf (
-		L"https://<account>.documents.azure.com",
-		L"<primary_key>");
+		account,
+		primaryKey);
 	DocumentClient client(conf);
 
 	test_databases(client);
 	test_collections(client);
 	test_documents(client);
+	test_users(client);
+	test_permissions(client);
 
 	return 0;
 }

@@ -95,6 +95,33 @@ shared_ptr<Collection> Database::CollectionFromJson(
 		indexing_policy);
 }
 
+shared_ptr<User> Database::UserFromJson(
+	const web::json::value* json_user) const
+{
+	wstring id = json_user->at(DOCUMENT_ID).as_string();
+	wstring rid = json_user->at(RESPONSE_RESOURCE_RID).as_string();
+	unsigned long ts = json_user->at(RESPONSE_RESOURCE_TS).as_integer();
+	wstring self = json_user->at(RESPONSE_RESOURCE_SELF).as_string();
+	wstring etag = json_user->at(RESPONSE_RESOURCE_ETAG).as_string();
+	wstring permissions = json_user->at(RESPONSE_RESOURCE_PERMISSIONS).as_string();
+
+	IndexingPolicy indexing_policy;
+	if (json_user->has_field(RESPONSE_INDEXING_POLICY))
+	{
+		value indexing_policy_json = json_user->at(RESPONSE_INDEXING_POLICY);
+		indexing_policy = IndexingPolicy::FromJson(indexing_policy_json);
+	}
+
+	return make_shared<User>(
+		this->document_db_configuration(),
+		id,
+		rid,
+		ts,
+		self,
+		etag,
+		permissions);
+}
+
 Concurrency::task<shared_ptr<Collection>> Database::CreateCollectionAsync(
 	const wstring& id) const
 {
@@ -231,4 +258,177 @@ Concurrency::task<vector<shared_ptr<Collection>>> Database::ListCollectionsAsync
 vector<shared_ptr<Collection>> Database::ListCollections() const
 {
 	return this->ListCollectionsAsync().get();
+}
+
+Concurrency::task<shared_ptr<User>> Database::CreateUserAsync(
+	const wstring& id) const
+{
+	http_request request = CreateRequest(
+		methods::POST,
+		RESOURCE_PATH_USERS,
+		this->resource_id(),
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + users_);
+
+	value body;
+	body[DOCUMENT_ID] = value::string(id);
+	request.set_body(body);
+
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		value json_response = response.extract_json().get();
+
+		if (response.status_code() == status_codes::Created)
+		{
+			return UserFromJson(&json_response);
+		}
+
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+
+}
+
+shared_ptr<User> Database::CreateUser(
+	const wstring& id) const
+{
+	return this->CreateUserAsync(id).get();
+}
+
+Concurrency::task<void> Database::DeleteUserAsync(
+	const wstring& resource_id) const
+{
+	http_request request = CreateRequest(
+		methods::DEL,
+		RESOURCE_PATH_USERS,
+		resource_id,
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + users_ + resource_id);
+
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		if (response.status_code() == status_codes::NoContent)
+		{
+			return;
+		}
+		value json_response = response.extract_json().get();
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+void Database::DeleteUser(
+	const wstring& resource_id) const
+{
+	this->DeleteUserAsync(resource_id).get();
+}
+
+Concurrency::task<void> Database::DeleteUserAsync(
+	const shared_ptr<User>& user) const
+{
+	return this->DeleteUserAsync(user->resource_id());
+}
+
+void Database::DeleteUser(
+	const shared_ptr<User>& user) const
+{
+	this->DeleteUserAsync(user->resource_id()).get();
+}
+
+Concurrency::task<shared_ptr<User>> Database::GetUserAsync(
+	const wstring& resource_id) const
+{
+	http_request request = CreateRequest(
+		methods::GET,
+		RESOURCE_PATH_USERS,
+		resource_id,
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + users_ + resource_id);
+
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		value json_response = response.extract_json().get();
+
+		if (response.status_code() == status_codes::OK)
+		{
+			return UserFromJson(&json_response);
+		}
+
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+shared_ptr<User> Database::GetUser(
+	const wstring& resource_id) const
+{
+	return this->GetUserAsync(resource_id).get();
+}
+
+Concurrency::task<vector<shared_ptr<User>>> Database::ListUsersAsync() const
+{
+	http_request request = CreateRequest(
+		methods::GET,
+		RESOURCE_PATH_USERS,
+		this->resource_id(),
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + users_);
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		value json_response = response.extract_json().get();
+
+		if (response.status_code() == status_codes::OK)
+		{
+			assert(this->resource_id() == json_response.at(RESPONSE_RESOURCE_RID).as_string());
+			vector<shared_ptr<User>> users;
+			users.reserve(json_response.at(RESPONSE_BODY_COUNT).as_integer());
+			value json_users = json_response.at(RESPONSE_USERS);
+
+			for (auto iter = json_users.as_array().cbegin(); iter != json_users.as_array().cend(); ++iter)
+			{
+				shared_ptr<User> user = UserFromJson(&(*iter));
+				users.push_back(user);
+			}
+			return users;
+		}
+
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+Concurrency::task<shared_ptr<User>> Database::ReplaceUserAsync(
+	const wstring& resource_id,
+	const wstring& new_id) const
+{
+	http_request request = CreateRequest(
+		methods::PUT,
+		RESOURCE_PATH_USERS,
+		resource_id,
+		document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + users_ + resource_id);
+
+	value body;
+	body[DOCUMENT_ID] = value::string(new_id);
+	request.set_body(body);
+
+	return document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		value json_response = response.extract_json().get();
+
+		if (response.status_code() == status_codes::OK)
+		{
+			return UserFromJson(&json_response);
+		}
+
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+shared_ptr<User> Database::ReplaceUser(
+	const wstring& resource_id,
+	const wstring& new_id) const
+{
+	return this->ReplaceUserAsync(resource_id, new_id).get();
+}
+
+vector<shared_ptr<User>> Database::ListUsers() const
+{
+	return ListUsersAsync().get();
 }

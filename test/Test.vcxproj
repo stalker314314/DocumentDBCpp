@@ -17,6 +17,9 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\lib\account_configuration.txt" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{22FD0901-BCBE-4100-A789-5A060457A3B6}</ProjectGuid>
     <SccProjectName>SAK</SccProjectName>
