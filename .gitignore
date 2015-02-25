@@ -39,4 +39,4 @@ packages/
 *.app
 
 # Configuration file with account name and master key
-git rm --cached /test/account_configuration.txt
+/test/account_configuration.txt
