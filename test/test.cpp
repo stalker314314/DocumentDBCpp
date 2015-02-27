@@ -30,10 +30,47 @@
 
 #include "DocumentClient.h"
 #include "exceptions.h"
+#include "TriggerOperation.h"
+#include "TriggerType.h"
 
 using namespace std;
 using namespace documentdb;
 using namespace web::json;
+
+const wstring js_function2 = L"function updateMetadata() {\
+var context = getContext();\
+var collection = context.getCollection();\
+var response = context.getResponse();\
+\
+\
+var createdDocument = response.getBody();\
+\
+// query for metadata document\
+var filterQuery = 'SELECT * FROM root r WHERE r.id = \"_metadata\"';\
+var accept = collection.queryDocuments(collection.getSelfLink(), filterQuery,\
+	updateMetadataCallback);\
+if (!accept) throw \"Unable to update metadata, abort\";\
+\
+function updateMetadataCallback(err, documents, responseOptions) {\
+	if (err) throw new Error(\"Error\" + err.message);\
+	if (documents.length != 1) throw 'Unable to find metadata document';\
+\
+	var metadataDocument = documents[0];\
+\
+	// update metadata\
+	metadataDocument.createdDocuments += 1;\
+	metadataDocument.createdNames += \" \" + createdDocument.id;\
+	var accept = collection.replaceDocument(metadataDocument._self,\
+		metadataDocument, function(err, docReplaced) {\
+		if (err) throw \"Unable to update metadata, abort\";\
+	});\
+	if (!accept) throw \"Unable to update metadata, abort\";\
+	return;\
+}\
+}\
+";
+
+const wstring js_function = L"function() {var x = 10;}";
 
 wstring generate_random_string(
 	size_t length)
@@ -61,6 +98,22 @@ void compare_documents(
 	assert(doc1->resource_id() == doc2->resource_id());
 	assert(doc1->self() == doc2->self());
 	assert(doc1->attachments() == doc2->attachments());
+}
+
+void compare_triggers(
+	const shared_ptr<Trigger>& trigger1,
+	const shared_ptr<Trigger>& trigger2,
+	bool skip_id = false)
+{
+	if (!skip_id)
+	{
+		assert(trigger1->resource_id() == trigger2->resource_id());
+		assert(trigger1->id() == trigger2->id());
+	}
+	assert(trigger1->body() == trigger2->body());
+	assert(trigger1->triggerOperation() == trigger2->triggerOperation());
+	assert(trigger1->triggerType() == trigger2->triggerType());
+	assert(trigger1->self() == trigger2->self());
 }
 
 void test_databases(
@@ -713,6 +766,133 @@ void test_permissions(
 	client.DeleteDatabase(db->resource_id());
 }
 
+void test_triggers(
+	const DocumentClient& client)
+{
+	wstring db_name = generate_random_string(8);
+
+	// Create a database on which we are going to test triggers
+	shared_ptr<Database> db = client.CreateDatabase(wstring(db_name));
+
+	// Create new test collection
+	wstring coll_name = generate_random_string(8);
+	shared_ptr<Collection> coll = db->CreateCollection(coll_name);
+
+	shared_ptr<TriggerIterator> iter = coll->QueryTriggersAsync(wstring(L"SELECT * FROM " + coll_name)).get();
+	assert(!iter->HasMore());
+
+	// Try inserting one trigger with ID set
+	shared_ptr<Trigger> trigger = coll->CreateTriggerAsync(L"id", js_function, TriggerOperation::ALL, TriggerType::PRE).get();
+	assert(trigger->id() == L"id");
+	assert(trigger->body() == js_function);
+	assert(trigger->triggerOperation() == TriggerOperation::ALL);
+	assert(trigger->triggerType() == TriggerType::PRE);
+
+	// Try inserting trigger with same ID
+	try
+	{
+		coll->CreateTriggerAsync(L"id", js_function, TriggerOperation::ALL, TriggerType::PRE).get();
+		assert(false);
+	}
+	catch (const ResourceAlreadyExistsException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		coll->CreateTrigger(L"id", js_function, TriggerOperation::ALL, TriggerType::PRE);
+		assert(false);
+	}
+	catch (const ResourceAlreadyExistsException&)
+	{
+		// Pass
+	}
+
+	// Get trigger
+	shared_ptr<Trigger> trigger_get = coll->GetTriggerAsync(trigger->resource_id()).get();
+	compare_triggers(trigger_get, trigger);
+
+	// Query for triggers
+	vector <shared_ptr<Trigger>> trigger_list = coll->ListTriggersAsync().get();
+	assert(trigger_list.size() == 1);
+	compare_triggers(trigger_list[0], trigger);
+
+	iter = coll->QueryTriggersAsync(wstring(L"SELECT * FROM " + coll_name)).get();
+	int count = 0;
+	while (iter->HasMore())
+	{
+		shared_ptr<Trigger> iter_trigger = iter->Next();
+		compare_triggers(iter_trigger, trigger);
+
+		count++;
+	}
+	assert(count == 1);
+
+	// Replace trigger
+	shared_ptr<Trigger> replaced_trigger = coll->ReplaceTriggerAsync(trigger->resource_id(), L"new_id", js_function, TriggerOperation::UPDATE, TriggerType::POST).get();
+	trigger = coll->GetTrigger(trigger->resource_id());
+	compare_triggers(replaced_trigger, trigger, false);
+	assert(replaced_trigger->id() == L"new_id");
+
+	// Delete trigger
+	wstring resource_id = trigger->resource_id();
+	coll->DeleteTriggerAsync(trigger->resource_id()).get();
+
+	assert(coll->ListTriggersAsync().get().size() == 0);
+
+	iter = coll->QueryTriggers(wstring(L"SELECT * FROM " + coll_name));
+	assert(!iter->HasMore());
+
+	// Getting the trigger that does not exist results in exception
+	try
+	{
+		coll->GetTriggerAsync(resource_id).get();
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		coll->GetTrigger(resource_id);
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	// Deleting document that does not exist results in exception
+	try
+	{
+		coll->DeleteTriggerAsync(resource_id).get();
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		coll->DeleteTrigger(resource_id);
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	// Delete collection now that we are done testing
+	db->DeleteCollection(coll);
+
+	// Delete database now that we are done testing
+	client.DeleteDatabase(db->resource_id());
+}
+
 int main()
 {
 	srand((unsigned int)time(nullptr));
@@ -727,11 +907,12 @@ int main()
 		primaryKey);
 	DocumentClient client(conf);
 
-	test_databases(client);
+	/*test_databases(client);
 	test_collections(client);
 	test_documents(client);
 	test_users(client);
-	test_permissions(client);
+	test_permissions(client);*/
+	test_triggers(client);
 
 	return 0;
 }

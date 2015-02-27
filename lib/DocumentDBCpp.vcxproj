@@ -99,6 +99,8 @@
     <ClCompile Include="src\Index.cpp" />
     <ClCompile Include="src\IndexingPolicy.cpp" />
     <ClCompile Include="src\Permission.cpp" />
+    <ClCompile Include="src\Trigger.cpp" />
+    <ClCompile Include="src\TriggerIterator.cpp" />
     <ClCompile Include="src\User.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -118,6 +120,10 @@
     <ClInclude Include="include\IndexingPolicy.h" />
     <ClInclude Include="include\IndexType.h" />
     <ClInclude Include="include\Permission.h" />
+    <ClInclude Include="include\Trigger.h" />
+    <ClInclude Include="include\TriggerIterator.h" />
+    <ClInclude Include="include\TriggerType.h" />
+    <ClInclude Include="include\TriggerOperation.h" />
     <ClInclude Include="include\User.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

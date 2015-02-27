@@ -55,6 +55,12 @@
     <ClCompile Include="src\Permission.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\Trigger.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TriggerIterator.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Collection.h">
@@ -106,6 +112,18 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="include\Permission.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Trigger.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\TriggerIterator.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\TriggerOperation.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\TriggerType.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

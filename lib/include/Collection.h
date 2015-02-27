@@ -34,12 +34,17 @@
 #include "DocumentDBConfiguration.h"
 #include "IndexingPolicy.h"
 #include "DocumentIterator.h"
+#include "TriggerIterator.h"
 #include "Document.h"
+#include "Trigger.h"
+#include "TriggerOperation.h"
+#include "TriggerType.h"
 
 namespace documentdb {
 	class Collection : public DocumentDBEntity, public std::enable_shared_from_this < Collection >
 	{
 		friend class DocumentIterator;
+		friend class TriggerIterator;
 
 	public:
 		Collection(
@@ -108,6 +113,63 @@ namespace documentdb {
 			const std::wstring& query,
 			const int page_size = 10) const;
 
+		//triggers management
+		Concurrency::task<std::shared_ptr<Trigger>> CreateTriggerAsync(
+			const std::wstring& id,
+			const std::wstring& body,
+			const TriggerOperation& triggerOperation,
+			const TriggerType& triggerType) const;
+
+		std::shared_ptr<Trigger> CreateTrigger(
+			const std::wstring& id,
+			const std::wstring& body,
+			const TriggerOperation& triggerOperation,
+			const TriggerType& triggerType) const;
+
+		Concurrency::task<std::shared_ptr<Trigger>> GetTriggerAsync(
+			const std::wstring& resource_id) const;
+
+		std::shared_ptr<Trigger> GetTrigger(
+			const std::wstring& resource_id) const;
+
+		Concurrency::task<std::vector<std::shared_ptr<Trigger>>> ListTriggersAsync() const;
+
+		std::vector<std::shared_ptr<Trigger>> ListTriggers() const;
+
+		Concurrency::task<std::shared_ptr<Trigger>> ReplaceTriggerAsync(
+			const std::wstring& id,
+			const std::wstring& new_id,
+			const std::wstring& body,
+			const TriggerOperation& triggerOperation,
+			const TriggerType& triggerType) const;
+
+		std::shared_ptr<Trigger> ReplaceTrigger(
+			const std::wstring& id,
+			const std::wstring& new_id,
+			const std::wstring& body,
+			const TriggerOperation& triggerOperation,
+			const TriggerType& triggerType) const;
+
+		Concurrency::task<void> DeleteTriggerAsync(
+			const std::shared_ptr<Trigger>& trigger) const;
+
+		void DeleteTrigger(
+			const std::shared_ptr<Trigger>& trigger) const;
+
+		Concurrency::task<void> DeleteTriggerAsync(
+			const std::wstring& resource_id) const;
+
+		void DeleteTrigger(
+			const std::wstring& resource_id) const;
+
+		Concurrency::task<std::shared_ptr<TriggerIterator>> QueryTriggersAsync(
+			const std::wstring& query,
+			const int page_size = 10) const;
+
+		std::shared_ptr<TriggerIterator> QueryTriggers(
+			const std::wstring& query,
+			const int page_size = 10) const;
+
 		std::wstring docs() const
 		{
 			return docs_;
@@ -141,6 +203,9 @@ namespace documentdb {
 	private:
 		std::shared_ptr<Document> DocumentFromJson(
 			const web::json::value& json_collection) const;
+
+		std::shared_ptr<Trigger> TriggerFromJson(
+			const web::json::value* json_trigger) const;
 
 		static std::wstring GenerateGuid();
 
