@@ -40,6 +40,7 @@
 #define RESOURCE_PATH_PERMISSIONS (L"permissions")
 #define RESOURCE_PATH_TRIGGERS (L"triggers")
 #define RESOURCE_PATH_SPROCS (L"sprocs")
+#define RESOURCE_PATH_UDFS (L"udfs")
 
 // MIME types
 #define MIME_TYPE_APPLICATION_JSON (L"application/json")
@@ -71,6 +72,7 @@
 #define RESPONSE_PERMISSIONS (L"Permissions")
 #define RESPONSE_QUERY_TRIGGERS (L"Triggers")
 #define RESPONSE_QUERY_SPROCS (L"StoredProcedures")
+#define RESPONSE_QUERY_UDFS (L"UserDefinedFunctions")
 
 // Response keys
 #define RESPONSE_RESOURCE_RID (L"_rid")

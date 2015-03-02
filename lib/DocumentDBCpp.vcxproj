@@ -104,6 +104,8 @@
     <ClCompile Include="src\Trigger.cpp" />
     <ClCompile Include="src\TriggerIterator.cpp" />
     <ClCompile Include="src\User.cpp" />
+    <ClCompile Include="src\UserDefinedFunction.cpp" />
+    <ClCompile Include="src\UserDefinedFunctionIterator.cpp" />
     <ClCompile Include="src\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -130,6 +132,8 @@
     <ClInclude Include="include\TriggerType.h" />
     <ClInclude Include="include\TriggerOperation.h" />
     <ClInclude Include="include\User.h" />
+    <ClInclude Include="include\UserDefinedFunction.h" />
+    <ClInclude Include="include\UserDefinedFunctionIterator.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

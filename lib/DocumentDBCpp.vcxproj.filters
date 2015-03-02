@@ -70,6 +70,12 @@
     <ClCompile Include="src\Utils.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\UserDefinedFunction.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UserDefinedFunctionIterator.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Collection.h">
@@ -139,6 +145,12 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="include\StoredProcedureIterator.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\UserDefinedFunction.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\UserDefinedFunctionIterator.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

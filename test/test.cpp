@@ -37,7 +37,7 @@ using namespace std;
 using namespace documentdb;
 using namespace web::json;
 
-const wstring js_function = L"function() {var x = 10;}";
+const wstring js_function = L"function() {var x = 10; return 1; }";
 
 wstring generate_random_string(
 	size_t length)
@@ -95,6 +95,19 @@ void compare_sprocs(
 	}
 	assert(sproc1->body() == sproc2->body());
 	assert(sproc1->self() == sproc2->self());
+}
+
+void compare_udfs(const shared_ptr<UserDefinedFunction>& udf1,
+	const shared_ptr<UserDefinedFunction>& udf2,
+	bool skip_id = false)
+{
+	if (!skip_id)
+	{
+		assert(udf1->resource_id() == udf2->resource_id());
+		assert(udf1->id() == udf2->id());
+	}
+	assert(udf1->body() == udf2->body());
+	assert(udf1->self() == udf2->self());
 }
 
 void test_databases(
@@ -938,6 +951,12 @@ void test_stored_procedures(
 	}
 	assert(count == 1);
 
+	// Execute sproc
+	value input;
+	coll->ExecuteStoredProcedure(sproc->resource_id(), input);
+	coll->ExecuteStoredProcedureAsync(sproc->resource_id(), input).get();
+	
+
 	// Replace sproc
 	wstring new_sproc_name = generate_random_string(8);
 	shared_ptr<StoredProcedure> replaced_sproc = coll->ReplaceStoredProcedureAsync(sproc->resource_id(), new_sproc_name, js_function).get();
@@ -975,7 +994,7 @@ void test_stored_procedures(
 		// Pass
 	}
 
-	// Deleting document that does not exist results in exception
+	// Deleting sproc that does not exist results in exception
 	try
 	{
 		coll->DeleteStoredProcedureAsync(resource_id).get();
@@ -989,6 +1008,142 @@ void test_stored_procedures(
 	try
 	{
 		coll->DeleteStoredProcedure(resource_id);
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	// Delete collection now that we are done testing
+	db->DeleteCollection(coll);
+
+	// Delete database now that we are done testing
+	client.DeleteDatabase(db->resource_id());
+}
+
+void test_user_defined_functions(
+	const DocumentClient& client)
+{
+	wstring db_name = generate_random_string(8);
+
+	// Create a database on which we are going to test udfs
+	shared_ptr<Database> db = client.CreateDatabase(wstring(db_name));
+
+	// Create new test collection
+	wstring coll_name = generate_random_string(8);
+	shared_ptr<Collection> coll = db->CreateCollection(coll_name);
+
+	shared_ptr<UserDefinedFunctionIterator> iter = coll->QueryUserDefinedFunctionsAsync(wstring(L"SELECT * FROM " + coll_name)).get();
+	assert(!iter->HasMore());
+
+	// Try inserting one udf with ID set
+	wstring udf_name = generate_random_string(8);
+	shared_ptr<UserDefinedFunction> udf = coll->CreateUserDefinedFunctionAsync(udf_name, js_function).get();
+	assert(udf->id() == udf_name);
+	assert(udf->body() == js_function);
+
+	// Try inserting udf with same ID
+	try
+	{
+		coll->CreateUserDefinedFunctionAsync(udf_name, js_function).get();
+		assert(false);
+	}
+	catch (const ResourceAlreadyExistsException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		coll->CreateUserDefinedFunction(udf_name, js_function);
+		assert(false);
+	}
+	catch (const ResourceAlreadyExistsException&)
+	{
+		// Pass
+	}
+
+	// Get udf
+	shared_ptr<UserDefinedFunction> udf_get = coll->GetUserDefinedFunctionAsync(udf->resource_id()).get();
+	compare_udfs(udf_get, udf);
+
+	// Query for udfs
+	vector <shared_ptr<UserDefinedFunction>> udf_list = coll->ListUserDefinedFunctionsAsync().get();
+	assert(udf_list.size() == 1);
+	compare_udfs(udf_list[0], udf);
+
+	iter = coll->QueryUserDefinedFunctionsAsync(wstring(L"SELECT * FROM " + coll_name)).get();
+	int count = 0;
+	while (iter->HasMore())
+	{
+		shared_ptr<UserDefinedFunction> iter_udf = iter->Next();
+		compare_udfs(iter_udf, udf);
+
+		count++;
+	}
+	assert(count == 1);
+
+	// Execute udf within a query
+	iter = coll->QueryUserDefinedFunctions(wstring(L"SELECT * FROM " + coll_name + L" WHERE " + udf_name + L"() = '0'"));
+	count = 0;
+	while (iter->HasMore())
+	{
+		count++;
+	}
+	assert(count == 0);
+
+	// Replace udf
+	wstring new_udf_name = generate_random_string(8);
+	shared_ptr<UserDefinedFunction> replaced_udf = coll->ReplaceUserDefinedFunctionAsync(udf->resource_id(), new_udf_name, js_function).get();
+	udf = coll->GetUserDefinedFunction(udf->resource_id());
+	compare_udfs(replaced_udf, udf);
+	assert(replaced_udf->id() == new_udf_name);
+
+	// Delete udf
+	wstring resource_id = udf->resource_id();
+	coll->DeleteUserDefinedFunctionAsync(udf->resource_id()).get();
+
+	assert(coll->ListUserDefinedFunctionsAsync().get().size() == 0);
+
+	iter = coll->QueryUserDefinedFunctions(wstring(L"SELECT * FROM " + coll_name));
+	assert(!iter->HasMore());
+
+	// Getting the udf that does not exist results in exception
+	try
+	{
+		coll->GetUserDefinedFunctionAsync(resource_id).get();
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		coll->GetUserDefinedFunction(resource_id);
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	// Deleting udf that does not exist results in exception
+	try
+	{
+		coll->DeleteUserDefinedFunctionAsync(resource_id).get();
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		coll->DeleteUserDefinedFunction(resource_id);
 		assert(false);
 	}
 	catch (const ResourceNotFoundException&)
@@ -1024,6 +1179,7 @@ int main()
 	test_permissions(client);
 	test_triggers(client);
 	test_stored_procedures(client);
+	test_user_defined_functions(client);
 
 	return 0;
 }
