@@ -22,7 +22,7 @@
 * SOFTWARE.
 ***/
 
-#include "TriggerIterator.h"
+#include "StoredProcedureIterator.h"
 
 #include <cpprest/http_client.h>
 
@@ -37,7 +37,7 @@ using namespace web::http;
 using namespace web::json;
 using namespace web::http::client;
 
-TriggerIterator::TriggerIterator(
+StoredProcedureIterator::StoredProcedureIterator(
 	const shared_ptr<const Collection>& collection,
 	const wstring& original_query,
 	const int page_size,
@@ -53,10 +53,10 @@ TriggerIterator::TriggerIterator(
 	, current_(0)
 {}
 
-TriggerIterator::~TriggerIterator()
+StoredProcedureIterator::~StoredProcedureIterator()
 {}
 
-bool TriggerIterator::HasMore()
+bool StoredProcedureIterator::HasMore()
 {
 	if (current_ < buffer_.as_array().size())
 	{
@@ -74,7 +74,7 @@ bool TriggerIterator::HasMore()
 	http_request request = CreateQueryRequest(
 		original_query_,
 		page_size_,
-		RESOURCE_PATH_TRIGGERS,
+		RESOURCE_PATH_SPROCS,
 		collection_->resource_id(),
 		collection_->document_db_configuration()->master_key(),
 		continuation_id_);
@@ -88,7 +88,7 @@ bool TriggerIterator::HasMore()
 		wstring new_continuation_id = response.headers()[HEADER_MS_CONTINUATION];
 		int count = stoi(response.headers()[HEADER_MS_MAX_ITEM_COUNT]);
 
-		buffer_ = json_response.at(RESPONSE_QUERY_TRIGGERS);
+		buffer_ = json_response.at(RESPONSE_QUERY_SPROCS);
 		continuation_id_ = new_continuation_id;
 		current_ = 0;
 		return count > 0;
@@ -97,12 +97,12 @@ bool TriggerIterator::HasMore()
 	ThrowExceptionFromResponse(response.status_code(), json_response);
 }
 
-shared_ptr<Trigger> TriggerIterator::Next()
+shared_ptr<StoredProcedure> StoredProcedureIterator::Next()
 {
 	if (current_ < buffer_.as_array().size())
 	{
-		value trigger_json = buffer_.as_array().at(current_++);
-		return collection_->TriggerFromJson(&trigger_json);
+		value storedProcedure_json = buffer_.as_array().at(current_++);
+		return collection_->StoredProcedureFromJson(&storedProcedure_json);
 	}
 
 	// Did you called hasMore()?

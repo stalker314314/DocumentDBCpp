@@ -35,6 +35,9 @@
 
 namespace documentdb
 {
+	bool compare(std::wstring string1,
+		std::wstring string2);
+
 	class IndexingPolicy
 	{
 	public:

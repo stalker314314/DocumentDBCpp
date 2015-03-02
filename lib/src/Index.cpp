@@ -33,16 +33,6 @@ using namespace documentdb;
 using namespace std;
 using namespace web::json;
 
-static bool comparei(
-	wstring string1,
-	wstring string2)
-{
-	transform(string1.begin(), string1.end(), string1.begin(), toupper);
-	transform(string2.begin(), string2.end(), string2.begin(), toupper);
-
-	return (string1 == string2);
-}
-
 Index::Index(
 		IndexType index_type,
 		int numeric_precision,
@@ -79,14 +69,14 @@ shared_ptr<Index> Index::FromJson(
 	const value& json_payload)
 {
 	IndexType index_type = IndexType::HASH;
-	if (comparei(json_payload.at(RESPONSE_INDEX_INDEX_TYPE).as_string(), L"RANGE"))
+	if (compare(json_payload.at(RESPONSE_INDEX_INDEX_TYPE).as_string(), L"RANGE"))
 	{
 		index_type = IndexType::RANGE;
 	}
 #ifdef _DEBUG
 	else
 	{
-		assert(comparei(json_payload.at(RESPONSE_INDEX_INDEX_TYPE).as_string(), L"HASH"));
+		assert(compare(json_payload.at(RESPONSE_INDEX_INDEX_TYPE).as_string(), L"HASH"));
 	}
 #endif
 

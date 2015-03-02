@@ -37,39 +37,6 @@ using namespace std;
 using namespace documentdb;
 using namespace web::json;
 
-const wstring js_function2 = L"function updateMetadata() {\
-var context = getContext();\
-var collection = context.getCollection();\
-var response = context.getResponse();\
-\
-\
-var createdDocument = response.getBody();\
-\
-// query for metadata document\
-var filterQuery = 'SELECT * FROM root r WHERE r.id = \"_metadata\"';\
-var accept = collection.queryDocuments(collection.getSelfLink(), filterQuery,\
-	updateMetadataCallback);\
-if (!accept) throw \"Unable to update metadata, abort\";\
-\
-function updateMetadataCallback(err, documents, responseOptions) {\
-	if (err) throw new Error(\"Error\" + err.message);\
-	if (documents.length != 1) throw 'Unable to find metadata document';\
-\
-	var metadataDocument = documents[0];\
-\
-	// update metadata\
-	metadataDocument.createdDocuments += 1;\
-	metadataDocument.createdNames += \" \" + createdDocument.id;\
-	var accept = collection.replaceDocument(metadataDocument._self,\
-		metadataDocument, function(err, docReplaced) {\
-		if (err) throw \"Unable to update metadata, abort\";\
-	});\
-	if (!accept) throw \"Unable to update metadata, abort\";\
-	return;\
-}\
-}\
-";
-
 const wstring js_function = L"function() {var x = 10;}";
 
 wstring generate_random_string(
@@ -114,6 +81,20 @@ void compare_triggers(
 	assert(trigger1->triggerOperation() == trigger2->triggerOperation());
 	assert(trigger1->triggerType() == trigger2->triggerType());
 	assert(trigger1->self() == trigger2->self());
+}
+
+void compare_sprocs(
+	const shared_ptr<StoredProcedure>& sproc1,
+	const shared_ptr<StoredProcedure>& sproc2,
+	bool skip_id = false)
+{
+	if (!skip_id)
+	{
+		assert(sproc1->resource_id() == sproc2->resource_id());
+		assert(sproc1->id() == sproc2->id());
+	}
+	assert(sproc1->body() == sproc2->body());
+	assert(sproc1->self() == sproc2->self());
 }
 
 void test_databases(
@@ -356,7 +337,7 @@ void test_documents(
 	shared_ptr<DocumentIterator> iter = coll->QueryDocumentsAsync(wstring(L"SELECT * FROM " + coll_name)).get();
 	assert(!iter->HasMore());
 
-	// Try insering one document with ID set
+	// Try inserting one document with ID set
 	value document1;
 	document1[L"id"] = value::string(L"id");
 	document1[L"foo"] = value::string(L"bar");
@@ -781,9 +762,10 @@ void test_triggers(
 	shared_ptr<TriggerIterator> iter = coll->QueryTriggersAsync(wstring(L"SELECT * FROM " + coll_name)).get();
 	assert(!iter->HasMore());
 
-	// Try inserting one trigger with ID set
-	shared_ptr<Trigger> trigger = coll->CreateTriggerAsync(L"id", js_function, TriggerOperation::ALL, TriggerType::PRE).get();
-	assert(trigger->id() == L"id");
+	// Try inserting one trigger
+	wstring trigger_name = generate_random_string(8);
+	shared_ptr<Trigger> trigger = coll->CreateTriggerAsync(trigger_name, js_function, TriggerOperation::ALL, TriggerType::PRE).get();
+	assert(trigger->id() == trigger_name);
 	assert(trigger->body() == js_function);
 	assert(trigger->triggerOperation() == TriggerOperation::ALL);
 	assert(trigger->triggerType() == TriggerType::PRE);
@@ -791,7 +773,7 @@ void test_triggers(
 	// Try inserting trigger with same ID
 	try
 	{
-		coll->CreateTriggerAsync(L"id", js_function, TriggerOperation::ALL, TriggerType::PRE).get();
+		coll->CreateTriggerAsync(trigger_name, js_function, TriggerOperation::ALL, TriggerType::PRE).get();
 		assert(false);
 	}
 	catch (const ResourceAlreadyExistsException&)
@@ -801,7 +783,7 @@ void test_triggers(
 
 	try
 	{
-		coll->CreateTrigger(L"id", js_function, TriggerOperation::ALL, TriggerType::PRE);
+		coll->CreateTrigger(trigger_name, js_function, TriggerOperation::ALL, TriggerType::PRE);
 		assert(false);
 	}
 	catch (const ResourceAlreadyExistsException&)
@@ -830,10 +812,11 @@ void test_triggers(
 	assert(count == 1);
 
 	// Replace trigger
-	shared_ptr<Trigger> replaced_trigger = coll->ReplaceTriggerAsync(trigger->resource_id(), L"new_id", js_function, TriggerOperation::UPDATE, TriggerType::POST).get();
+	wstring new_trigger_name = generate_random_string(8);
+	shared_ptr<Trigger> replaced_trigger = coll->ReplaceTriggerAsync(trigger->resource_id(), new_trigger_name, js_function, TriggerOperation::UPDATE, TriggerType::POST).get();
 	trigger = coll->GetTrigger(trigger->resource_id());
 	compare_triggers(replaced_trigger, trigger, false);
-	assert(replaced_trigger->id() == L"new_id");
+	assert(replaced_trigger->id() == new_trigger_name);
 
 	// Delete trigger
 	wstring resource_id = trigger->resource_id();
@@ -893,6 +876,133 @@ void test_triggers(
 	client.DeleteDatabase(db->resource_id());
 }
 
+void test_stored_procedures(
+	const DocumentClient& client)
+{
+	wstring db_name = generate_random_string(8);
+
+	// Create a database on which we are going to test sprocs
+	shared_ptr<Database> db = client.CreateDatabase(wstring(db_name));
+
+	// Create new test collection
+	wstring coll_name = generate_random_string(8);
+	shared_ptr<Collection> coll = db->CreateCollection(coll_name);
+
+	shared_ptr<StoredProcedureIterator> iter = coll->QueryStoredProceduresAsync(wstring(L"SELECT * FROM " + coll_name)).get();
+	assert(!iter->HasMore());
+
+	// Try inserting one sproc with ID set
+	wstring sproc_name = generate_random_string(8);
+	shared_ptr<StoredProcedure> sproc = coll->CreateStoredProcedureAsync(sproc_name, js_function).get();
+	assert(sproc->id() == sproc_name);
+	assert(sproc->body() == js_function);
+
+	// Try inserting sproc with same ID
+	try
+	{
+		coll->CreateStoredProcedureAsync(sproc_name, js_function).get();
+		assert(false);
+	}
+	catch (const ResourceAlreadyExistsException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		coll->CreateStoredProcedure(sproc_name, js_function);
+		assert(false);
+	}
+	catch (const ResourceAlreadyExistsException&)
+	{
+		// Pass
+	}
+
+	// Get sproc
+	shared_ptr<StoredProcedure> sproc_get = coll->GetStoredProcedureAsync(sproc->resource_id()).get();
+	compare_sprocs(sproc_get, sproc);
+
+	// Query for sprocs
+	vector <shared_ptr<StoredProcedure>> sproc_list = coll->ListStoredProceduresAsync().get();
+	assert(sproc_list.size() == 1);
+	compare_sprocs(sproc_list[0], sproc);
+
+	iter = coll->QueryStoredProceduresAsync(wstring(L"SELECT * FROM " + coll_name)).get();
+	int count = 0;
+	while (iter->HasMore())
+	{
+		shared_ptr<StoredProcedure> iter_sproc = iter->Next();
+		compare_sprocs(iter_sproc, sproc);
+
+		count++;
+	}
+	assert(count == 1);
+
+	// Replace sproc
+	wstring new_sproc_name = generate_random_string(8);
+	shared_ptr<StoredProcedure> replaced_sproc = coll->ReplaceStoredProcedureAsync(sproc->resource_id(), new_sproc_name, js_function).get();
+	sproc = coll->GetStoredProcedure(sproc->resource_id());
+	compare_sprocs(replaced_sproc, sproc);
+	assert(replaced_sproc->id() == new_sproc_name);
+
+	// Delete sproc
+	wstring resource_id = sproc->resource_id();
+	coll->DeleteStoredProcedureAsync(sproc->resource_id()).get();
+
+	assert(coll->ListStoredProceduresAsync().get().size() == 0);
+
+	iter = coll->QueryStoredProcedures(wstring(L"SELECT * FROM " + coll_name));
+	assert(!iter->HasMore());
+
+	// Getting the sproc that does not exist results in exception
+	try
+	{
+		coll->GetStoredProcedureAsync(resource_id).get();
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		coll->GetStoredProcedure(resource_id);
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	// Deleting document that does not exist results in exception
+	try
+	{
+		coll->DeleteStoredProcedureAsync(resource_id).get();
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		coll->DeleteStoredProcedure(resource_id);
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	// Delete collection now that we are done testing
+	db->DeleteCollection(coll);
+
+	// Delete database now that we are done testing
+	client.DeleteDatabase(db->resource_id());
+}
+
 int main()
 {
 	srand((unsigned int)time(nullptr));
@@ -907,12 +1017,13 @@ int main()
 		primaryKey);
 	DocumentClient client(conf);
 
-	/*test_databases(client);
+	test_databases(client);
 	test_collections(client);
 	test_documents(client);
 	test_users(client);
-	test_permissions(client);*/
+	test_permissions(client);
 	test_triggers(client);
+	test_stored_procedures(client);
 
 	return 0;
 }

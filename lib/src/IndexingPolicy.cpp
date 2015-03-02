@@ -32,16 +32,6 @@ using namespace documentdb;
 using namespace std;
 using namespace web::json;
 
-static bool comparei(
-	wstring string1,
-	wstring string2)
-{
-	transform(string1.begin(), string1.end(), string1.begin(), toupper);
-	transform(string2.begin(), string2.end(), string2.begin(), toupper);
-
-	return (string1 == string2);
-}
-
 IndexingPolicy::IndexingPolicy()
 	: automatic_(true)
 	, indexing_mode_(IndexingMode::CONSISTENT)
@@ -74,14 +64,14 @@ IndexingPolicy IndexingPolicy::FromJson(
 
 	wstring indexing_mode_str = json_payload.at(RESPONSE_INDEXING_POLICY_INDEXING_MODE).as_string();
 	IndexingMode indexing_mode = IndexingMode::CONSISTENT;
-	if (comparei(indexing_mode_str, L"LAZY"))
+	if (compare(indexing_mode_str, L"LAZY"))
 	{
 		indexing_mode = IndexingMode::LAZY;
 	}
 #ifdef _DEBUG
 	else
 	{
-		assert(comparei(indexing_mode_str, L"CONSISTENT"));
+		assert(compare(indexing_mode_str, L"CONSISTENT"));
 	}
 #endif
 	vector<shared_ptr<Index>> included_paths;
