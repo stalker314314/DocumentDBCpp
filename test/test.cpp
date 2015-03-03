@@ -1158,6 +1158,47 @@ void test_user_defined_functions(
 	client.DeleteDatabase(db->resource_id());
 }
 
+void test_attachments(
+	const DocumentClient& client)
+{
+	wstring db_name = generate_random_string(8);
+
+	// Create a database on which we are going to test collections
+	shared_ptr<Database> db = client.CreateDatabase(wstring(db_name));
+
+	// Create new test collection
+	wstring coll_name = generate_random_string(8);
+	shared_ptr<Collection> coll = db->CreateCollection(coll_name);
+
+	// Create one document with ID set
+	wstring doc_name = generate_random_string(8);
+	value document1;
+	document1[L"id"] = value::string(doc_name);
+	shared_ptr<Document> doc = coll->CreateDocumentAsync(document1).get();
+	assert(doc->id() == doc_name);
+
+
+	wstring attachment_name = generate_random_string(8);
+	vector<unsigned char> content;
+	string content_str = "stream_content";
+	for (auto iter = content_str.cbegin(); iter != content_str.cend(); ++iter)
+	{
+		content.push_back(*iter);
+	}
+
+	shared_ptr<Attachment> attachment1 = doc->CreateAttachmentAsync(attachment_name, L"application/text", content).get();
+	shared_ptr<Attachment> attachment2 = doc->CreateAttachmentAsync(L"Sample3_coverpageimage__v2", L"image / jpg", L"www.bing.com").get();
+
+	// Delete document now that we are done testing
+	coll->DeleteDocument(doc);
+
+	// Delete collection now that we are done testing
+	db->DeleteCollection(coll);
+
+	// Delete database now that we are done testing
+	client.DeleteDatabase(db->resource_id());
+}
+
 int main()
 {
 	srand((unsigned int)time(nullptr));
@@ -1180,6 +1221,7 @@ int main()
 	test_triggers(client);
 	test_stored_procedures(client);
 	test_user_defined_functions(client);
+	test_attachments(client);
 
 	return 0;
 }

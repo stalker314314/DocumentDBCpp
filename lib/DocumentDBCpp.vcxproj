@@ -87,6 +87,8 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Attachment.cpp" />
+    <ClCompile Include="src\AttachmentIterator.cpp" />
     <ClCompile Include="src\Collection.cpp" />
     <ClCompile Include="src\ConnectionHelper.cpp" />
     <ClCompile Include="src\Database.cpp" />
@@ -109,6 +111,8 @@
     <ClCompile Include="src\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\Attachment.h" />
+    <ClInclude Include="include\AttachmentIterator.h" />
     <ClInclude Include="include\Collection.h" />
     <ClInclude Include="include\ConnectionHelper.h" />
     <ClInclude Include="include\Database.h" />
