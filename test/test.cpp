@@ -30,10 +30,14 @@
 
 #include "DocumentClient.h"
 #include "exceptions.h"
+#include "TriggerOperation.h"
+#include "TriggerType.h"
 
 using namespace std;
 using namespace documentdb;
 using namespace web::json;
+
+const wstring js_function = L"function() {var x = 10; return 1; }";
 
 wstring generate_random_string(
 	size_t length)
@@ -61,6 +65,49 @@ void compare_documents(
 	assert(doc1->resource_id() == doc2->resource_id());
 	assert(doc1->self() == doc2->self());
 	assert(doc1->attachments() == doc2->attachments());
+}
+
+void compare_triggers(
+	const shared_ptr<Trigger>& trigger1,
+	const shared_ptr<Trigger>& trigger2,
+	bool skip_id = false)
+{
+	if (!skip_id)
+	{
+		assert(trigger1->resource_id() == trigger2->resource_id());
+		assert(trigger1->id() == trigger2->id());
+	}
+	assert(trigger1->body() == trigger2->body());
+	assert(trigger1->triggerOperation() == trigger2->triggerOperation());
+	assert(trigger1->triggerType() == trigger2->triggerType());
+	assert(trigger1->self() == trigger2->self());
+}
+
+void compare_sprocs(
+	const shared_ptr<StoredProcedure>& sproc1,
+	const shared_ptr<StoredProcedure>& sproc2,
+	bool skip_id = false)
+{
+	if (!skip_id)
+	{
+		assert(sproc1->resource_id() == sproc2->resource_id());
+		assert(sproc1->id() == sproc2->id());
+	}
+	assert(sproc1->body() == sproc2->body());
+	assert(sproc1->self() == sproc2->self());
+}
+
+void compare_udfs(const shared_ptr<UserDefinedFunction>& udf1,
+	const shared_ptr<UserDefinedFunction>& udf2,
+	bool skip_id = false)
+{
+	if (!skip_id)
+	{
+		assert(udf1->resource_id() == udf2->resource_id());
+		assert(udf1->id() == udf2->id());
+	}
+	assert(udf1->body() == udf2->body());
+	assert(udf1->self() == udf2->self());
 }
 
 void test_databases(
@@ -303,7 +350,7 @@ void test_documents(
 	shared_ptr<DocumentIterator> iter = coll->QueryDocumentsAsync(wstring(L"SELECT * FROM " + coll_name)).get();
 	assert(!iter->HasMore());
 
-	// Try insering one document with ID set
+	// Try inserting one document with ID set
 	value document1;
 	document1[L"id"] = value::string(L"id");
 	document1[L"foo"] = value::string(L"bar");
@@ -713,6 +760,404 @@ void test_permissions(
 	client.DeleteDatabase(db->resource_id());
 }
 
+void test_triggers(
+	const DocumentClient& client)
+{
+	wstring db_name = generate_random_string(8);
+
+	// Create a database on which we are going to test triggers
+	shared_ptr<Database> db = client.CreateDatabase(wstring(db_name));
+
+	// Create new test collection
+	wstring coll_name = generate_random_string(8);
+	shared_ptr<Collection> coll = db->CreateCollection(coll_name);
+
+	shared_ptr<TriggerIterator> iter = coll->QueryTriggersAsync(wstring(L"SELECT * FROM " + coll_name)).get();
+	assert(!iter->HasMore());
+
+	// Try inserting one trigger
+	wstring trigger_name = generate_random_string(8);
+	shared_ptr<Trigger> trigger = coll->CreateTriggerAsync(trigger_name, js_function, TriggerOperation::ALL, TriggerType::PRE).get();
+	assert(trigger->id() == trigger_name);
+	assert(trigger->body() == js_function);
+	assert(trigger->triggerOperation() == TriggerOperation::ALL);
+	assert(trigger->triggerType() == TriggerType::PRE);
+
+	// Try inserting trigger with same ID
+	try
+	{
+		coll->CreateTriggerAsync(trigger_name, js_function, TriggerOperation::ALL, TriggerType::PRE).get();
+		assert(false);
+	}
+	catch (const ResourceAlreadyExistsException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		coll->CreateTrigger(trigger_name, js_function, TriggerOperation::ALL, TriggerType::PRE);
+		assert(false);
+	}
+	catch (const ResourceAlreadyExistsException&)
+	{
+		// Pass
+	}
+
+	// Get trigger
+	shared_ptr<Trigger> trigger_get = coll->GetTriggerAsync(trigger->resource_id()).get();
+	compare_triggers(trigger_get, trigger);
+
+	// Query for triggers
+	vector <shared_ptr<Trigger>> trigger_list = coll->ListTriggersAsync().get();
+	assert(trigger_list.size() == 1);
+	compare_triggers(trigger_list[0], trigger);
+
+	iter = coll->QueryTriggersAsync(wstring(L"SELECT * FROM " + coll_name)).get();
+	int count = 0;
+	while (iter->HasMore())
+	{
+		shared_ptr<Trigger> iter_trigger = iter->Next();
+		compare_triggers(iter_trigger, trigger);
+
+		count++;
+	}
+	assert(count == 1);
+
+	// Replace trigger
+	wstring new_trigger_name = generate_random_string(8);
+	shared_ptr<Trigger> replaced_trigger = coll->ReplaceTriggerAsync(trigger->resource_id(), new_trigger_name, js_function, TriggerOperation::UPDATE, TriggerType::POST).get();
+	trigger = coll->GetTrigger(trigger->resource_id());
+	compare_triggers(replaced_trigger, trigger, false);
+	assert(replaced_trigger->id() == new_trigger_name);
+
+	// Delete trigger
+	wstring resource_id = trigger->resource_id();
+	coll->DeleteTriggerAsync(trigger->resource_id()).get();
+
+	assert(coll->ListTriggersAsync().get().size() == 0);
+
+	iter = coll->QueryTriggers(wstring(L"SELECT * FROM " + coll_name));
+	assert(!iter->HasMore());
+
+	// Getting the trigger that does not exist results in exception
+	try
+	{
+		coll->GetTriggerAsync(resource_id).get();
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		coll->GetTrigger(resource_id);
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	// Deleting document that does not exist results in exception
+	try
+	{
+		coll->DeleteTriggerAsync(resource_id).get();
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		coll->DeleteTrigger(resource_id);
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	// Delete collection now that we are done testing
+	db->DeleteCollection(coll);
+
+	// Delete database now that we are done testing
+	client.DeleteDatabase(db->resource_id());
+}
+
+void test_stored_procedures(
+	const DocumentClient& client)
+{
+	wstring db_name = generate_random_string(8);
+
+	// Create a database on which we are going to test sprocs
+	shared_ptr<Database> db = client.CreateDatabase(wstring(db_name));
+
+	// Create new test collection
+	wstring coll_name = generate_random_string(8);
+	shared_ptr<Collection> coll = db->CreateCollection(coll_name);
+
+	shared_ptr<StoredProcedureIterator> iter = coll->QueryStoredProceduresAsync(wstring(L"SELECT * FROM " + coll_name)).get();
+	assert(!iter->HasMore());
+
+	// Try inserting one sproc with ID set
+	wstring sproc_name = generate_random_string(8);
+	shared_ptr<StoredProcedure> sproc = coll->CreateStoredProcedureAsync(sproc_name, js_function).get();
+	assert(sproc->id() == sproc_name);
+	assert(sproc->body() == js_function);
+
+	// Try inserting sproc with same ID
+	try
+	{
+		coll->CreateStoredProcedureAsync(sproc_name, js_function).get();
+		assert(false);
+	}
+	catch (const ResourceAlreadyExistsException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		coll->CreateStoredProcedure(sproc_name, js_function);
+		assert(false);
+	}
+	catch (const ResourceAlreadyExistsException&)
+	{
+		// Pass
+	}
+
+	// Get sproc
+	shared_ptr<StoredProcedure> sproc_get = coll->GetStoredProcedureAsync(sproc->resource_id()).get();
+	compare_sprocs(sproc_get, sproc);
+
+	// Query for sprocs
+	vector <shared_ptr<StoredProcedure>> sproc_list = coll->ListStoredProceduresAsync().get();
+	assert(sproc_list.size() == 1);
+	compare_sprocs(sproc_list[0], sproc);
+
+	iter = coll->QueryStoredProceduresAsync(wstring(L"SELECT * FROM " + coll_name)).get();
+	int count = 0;
+	while (iter->HasMore())
+	{
+		shared_ptr<StoredProcedure> iter_sproc = iter->Next();
+		compare_sprocs(iter_sproc, sproc);
+
+		count++;
+	}
+	assert(count == 1);
+
+	// Execute sproc
+	value input;
+	coll->ExecuteStoredProcedure(sproc->resource_id(), input);
+	coll->ExecuteStoredProcedureAsync(sproc->resource_id(), input).get();
+	
+
+	// Replace sproc
+	wstring new_sproc_name = generate_random_string(8);
+	shared_ptr<StoredProcedure> replaced_sproc = coll->ReplaceStoredProcedureAsync(sproc->resource_id(), new_sproc_name, js_function).get();
+	sproc = coll->GetStoredProcedure(sproc->resource_id());
+	compare_sprocs(replaced_sproc, sproc);
+	assert(replaced_sproc->id() == new_sproc_name);
+
+	// Delete sproc
+	wstring resource_id = sproc->resource_id();
+	coll->DeleteStoredProcedureAsync(sproc->resource_id()).get();
+
+	assert(coll->ListStoredProceduresAsync().get().size() == 0);
+
+	iter = coll->QueryStoredProcedures(wstring(L"SELECT * FROM " + coll_name));
+	assert(!iter->HasMore());
+
+	// Getting the sproc that does not exist results in exception
+	try
+	{
+		coll->GetStoredProcedureAsync(resource_id).get();
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		coll->GetStoredProcedure(resource_id);
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	// Deleting sproc that does not exist results in exception
+	try
+	{
+		coll->DeleteStoredProcedureAsync(resource_id).get();
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		coll->DeleteStoredProcedure(resource_id);
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	// Delete collection now that we are done testing
+	db->DeleteCollection(coll);
+
+	// Delete database now that we are done testing
+	client.DeleteDatabase(db->resource_id());
+}
+
+void test_user_defined_functions(
+	const DocumentClient& client)
+{
+	wstring db_name = generate_random_string(8);
+
+	// Create a database on which we are going to test udfs
+	shared_ptr<Database> db = client.CreateDatabase(wstring(db_name));
+
+	// Create new test collection
+	wstring coll_name = generate_random_string(8);
+	shared_ptr<Collection> coll = db->CreateCollection(coll_name);
+
+	shared_ptr<UserDefinedFunctionIterator> iter = coll->QueryUserDefinedFunctionsAsync(wstring(L"SELECT * FROM " + coll_name)).get();
+	assert(!iter->HasMore());
+
+	// Try inserting one udf with ID set
+	wstring udf_name = generate_random_string(8);
+	shared_ptr<UserDefinedFunction> udf = coll->CreateUserDefinedFunctionAsync(udf_name, js_function).get();
+	assert(udf->id() == udf_name);
+	assert(udf->body() == js_function);
+
+	// Try inserting udf with same ID
+	try
+	{
+		coll->CreateUserDefinedFunctionAsync(udf_name, js_function).get();
+		assert(false);
+	}
+	catch (const ResourceAlreadyExistsException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		coll->CreateUserDefinedFunction(udf_name, js_function);
+		assert(false);
+	}
+	catch (const ResourceAlreadyExistsException&)
+	{
+		// Pass
+	}
+
+	// Get udf
+	shared_ptr<UserDefinedFunction> udf_get = coll->GetUserDefinedFunctionAsync(udf->resource_id()).get();
+	compare_udfs(udf_get, udf);
+
+	// Query for udfs
+	vector <shared_ptr<UserDefinedFunction>> udf_list = coll->ListUserDefinedFunctionsAsync().get();
+	assert(udf_list.size() == 1);
+	compare_udfs(udf_list[0], udf);
+
+	iter = coll->QueryUserDefinedFunctionsAsync(wstring(L"SELECT * FROM " + coll_name)).get();
+	int count = 0;
+	while (iter->HasMore())
+	{
+		shared_ptr<UserDefinedFunction> iter_udf = iter->Next();
+		compare_udfs(iter_udf, udf);
+
+		count++;
+	}
+	assert(count == 1);
+
+	// Execute udf within a query
+	iter = coll->QueryUserDefinedFunctions(wstring(L"SELECT * FROM " + coll_name + L" WHERE " + udf_name + L"() = '0'"));
+	count = 0;
+	while (iter->HasMore())
+	{
+		count++;
+	}
+	assert(count == 0);
+
+	// Replace udf
+	wstring new_udf_name = generate_random_string(8);
+	shared_ptr<UserDefinedFunction> replaced_udf = coll->ReplaceUserDefinedFunctionAsync(udf->resource_id(), new_udf_name, js_function).get();
+	udf = coll->GetUserDefinedFunction(udf->resource_id());
+	compare_udfs(replaced_udf, udf);
+	assert(replaced_udf->id() == new_udf_name);
+
+	// Delete udf
+	wstring resource_id = udf->resource_id();
+	coll->DeleteUserDefinedFunctionAsync(udf->resource_id()).get();
+
+	assert(coll->ListUserDefinedFunctionsAsync().get().size() == 0);
+
+	iter = coll->QueryUserDefinedFunctions(wstring(L"SELECT * FROM " + coll_name));
+	assert(!iter->HasMore());
+
+	// Getting the udf that does not exist results in exception
+	try
+	{
+		coll->GetUserDefinedFunctionAsync(resource_id).get();
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		coll->GetUserDefinedFunction(resource_id);
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	// Deleting udf that does not exist results in exception
+	try
+	{
+		coll->DeleteUserDefinedFunctionAsync(resource_id).get();
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		coll->DeleteUserDefinedFunction(resource_id);
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	// Delete collection now that we are done testing
+	db->DeleteCollection(coll);
+
+	// Delete database now that we are done testing
+	client.DeleteDatabase(db->resource_id());
+}
+
 int main()
 {
 	srand((unsigned int)time(nullptr));
@@ -732,6 +1177,9 @@ int main()
 	test_documents(client);
 	test_users(client);
 	test_permissions(client);
+	test_triggers(client);
+	test_stored_procedures(client);
+	test_user_defined_functions(client);
 
 	return 0;
 }

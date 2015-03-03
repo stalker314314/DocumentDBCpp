@@ -96,7 +96,7 @@ shared_ptr<Collection> Database::CollectionFromJson(
 }
 
 shared_ptr<User> Database::UserFromJson(
-	const web::json::value* json_user) const
+	const value* json_user) const
 {
 	wstring id = json_user->at(DOCUMENT_ID).as_string();
 	wstring rid = json_user->at(RESPONSE_RESOURCE_RID).as_string();

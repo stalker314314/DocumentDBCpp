@@ -99,7 +99,14 @@
     <ClCompile Include="src\Index.cpp" />
     <ClCompile Include="src\IndexingPolicy.cpp" />
     <ClCompile Include="src\Permission.cpp" />
+    <ClCompile Include="src\StoredProcedure.cpp" />
+    <ClCompile Include="src\StoredProcedureIterator.cpp" />
+    <ClCompile Include="src\Trigger.cpp" />
+    <ClCompile Include="src\TriggerIterator.cpp" />
     <ClCompile Include="src\User.cpp" />
+    <ClCompile Include="src\UserDefinedFunction.cpp" />
+    <ClCompile Include="src\UserDefinedFunctionIterator.cpp" />
+    <ClCompile Include="src\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Collection.h" />
@@ -118,7 +125,15 @@
     <ClInclude Include="include\IndexingPolicy.h" />
     <ClInclude Include="include\IndexType.h" />
     <ClInclude Include="include\Permission.h" />
+    <ClInclude Include="include\StoredProcedure.h" />
+    <ClInclude Include="include\StoredProcedureIterator.h" />
+    <ClInclude Include="include\Trigger.h" />
+    <ClInclude Include="include\TriggerIterator.h" />
+    <ClInclude Include="include\TriggerType.h" />
+    <ClInclude Include="include\TriggerOperation.h" />
     <ClInclude Include="include\User.h" />
+    <ClInclude Include="include\UserDefinedFunction.h" />
+    <ClInclude Include="include\UserDefinedFunctionIterator.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

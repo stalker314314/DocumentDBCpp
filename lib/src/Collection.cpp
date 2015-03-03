@@ -88,6 +88,127 @@ shared_ptr<Document> Collection::DocumentFromJson(
 		json_collection);
 }
 
+shared_ptr<Trigger> Collection::TriggerFromJson(
+	const value* json_trigger) const
+{
+	wstring id = json_trigger->at(DOCUMENT_ID).as_string();
+	wstring rid = json_trigger->at(RESPONSE_RESOURCE_RID).as_string();
+	unsigned long ts = json_trigger->at(RESPONSE_RESOURCE_TS).as_integer();
+	wstring self = json_trigger->at(RESPONSE_RESOURCE_SELF).as_string();
+	wstring etag = json_trigger->at(RESPONSE_RESOURCE_ETAG).as_string();
+	wstring body = json_trigger->at(RESPONSE_RESOURCE_BODY).as_string();
+	wstring trigger_operation_str = json_trigger->at(RESPONSE_RESOURCE_TRIGGER_OPERATION).as_string();
+	TriggerOperation triggerOperation = TriggerOperation::ALL;
+	if (compare(trigger_operation_str, L"ALL"))
+	{
+	}
+	else if (compare(trigger_operation_str, L"UPDATE"))
+	{
+		triggerOperation = TriggerOperation::UPDATE;
+	}
+	else if (compare(trigger_operation_str, L"CREATE"))
+	{
+		triggerOperation = TriggerOperation::CREATE;
+	}
+	else if (compare(trigger_operation_str, L"REPLACE"))
+	{
+		triggerOperation = TriggerOperation::REPLACE;
+	}
+	else if (compare(trigger_operation_str, L"DELETE"))
+	{
+		triggerOperation = TriggerOperation::DEL;
+	}
+	else
+	{
+		throw DocumentDBRuntimeException(L"Unsupported trigger operation.");
+	}
+	wstring trigger_type_str = json_trigger->at(RESPONSE_RESOURCE_TRIGGER_TYPE).as_string();
+	TriggerType triggerType = TriggerType::PRE;
+	if (compare(trigger_type_str, L"PRE"))
+	{
+	}
+	else if (compare(trigger_type_str, L"POST"))
+	{
+		triggerType = TriggerType::POST;
+	}
+	else
+	{
+			throw DocumentDBRuntimeException(L"Unsupported trigger type.");
+	}
+
+	IndexingPolicy indexing_policy;
+	if (json_trigger->has_field(RESPONSE_INDEXING_POLICY))
+	{
+		value indexing_policy_json = json_trigger->at(RESPONSE_INDEXING_POLICY);
+		indexing_policy = IndexingPolicy::FromJson(indexing_policy_json);
+	}
+
+	return make_shared<Trigger>(
+		this->document_db_configuration(),
+		id,
+		rid,
+		ts,
+		self,
+		etag,
+		body,
+		triggerOperation,
+		triggerType);
+}
+
+shared_ptr<StoredProcedure> Collection::StoredProcedureFromJson(
+	const value* json_sproc) const
+{
+	wstring id = json_sproc->at(DOCUMENT_ID).as_string();
+	wstring rid = json_sproc->at(RESPONSE_RESOURCE_RID).as_string();
+	unsigned long ts = json_sproc->at(RESPONSE_RESOURCE_TS).as_integer();
+	wstring self = json_sproc->at(RESPONSE_RESOURCE_SELF).as_string();
+	wstring etag = json_sproc->at(RESPONSE_RESOURCE_ETAG).as_string();
+	wstring body = json_sproc->at(RESPONSE_RESOURCE_BODY).as_string();
+
+	IndexingPolicy indexing_policy;
+	if (json_sproc->has_field(RESPONSE_INDEXING_POLICY))
+	{
+		value indexing_policy_json = json_sproc->at(RESPONSE_INDEXING_POLICY);
+		indexing_policy = IndexingPolicy::FromJson(indexing_policy_json);
+	}
+
+	return make_shared<StoredProcedure>(
+		this->document_db_configuration(),
+		id,
+		rid,
+		ts,
+		self,
+		etag,
+		body);
+}
+
+std::shared_ptr<UserDefinedFunction> Collection::UserDefinedFunctionFromJson(
+	const value* json_udf) const
+{
+	wstring id = json_udf->at(DOCUMENT_ID).as_string();
+	wstring rid = json_udf->at(RESPONSE_RESOURCE_RID).as_string();
+	unsigned long ts = json_udf->at(RESPONSE_RESOURCE_TS).as_integer();
+	wstring self = json_udf->at(RESPONSE_RESOURCE_SELF).as_string();
+	wstring etag = json_udf->at(RESPONSE_RESOURCE_ETAG).as_string();
+	wstring body = json_udf->at(RESPONSE_RESOURCE_BODY).as_string();
+
+	IndexingPolicy indexing_policy;
+	if (json_udf->has_field(RESPONSE_INDEXING_POLICY))
+	{
+		value indexing_policy_json = json_udf->at(RESPONSE_INDEXING_POLICY);
+		indexing_policy = IndexingPolicy::FromJson(indexing_policy_json);
+	}
+
+	return make_shared<UserDefinedFunction>(
+		this->document_db_configuration(),
+		id,
+		rid,
+		ts,
+		self,
+		etag,
+		body);
+}
+
 wstring Collection::GenerateGuid()
 {
 	UUID uuid;
@@ -211,9 +332,9 @@ Concurrency::task<vector<shared_ptr<Document>>> Collection::ListDocumentsAsync()
 			assert(this->resource_id() == json_response.at(RESPONSE_RESOURCE_RID).as_string());
 			vector<shared_ptr<Document>> documents;
 			documents.reserve(json_response.at(RESPONSE_BODY_COUNT).as_integer());
-			value json_collections = json_response.at(RESPONSE_QUERY_DOCUMENTS);
+			value json_documents = json_response.at(RESPONSE_QUERY_DOCUMENTS);
 
-			for (auto iter = json_collections.as_array().cbegin(); iter != json_collections.as_array().cend(); ++iter)
+			for (auto iter = json_documents.as_array().cbegin(); iter != json_documents.as_array().cend(); ++iter)
 			{
 				shared_ptr<Document> coll = DocumentFromJson(*iter);
 				documents.push_back(coll);
@@ -350,4 +471,765 @@ shared_ptr<DocumentIterator> Collection::QueryDocuments(
 	const int page_size) const
 {
 	return this->QueryDocumentsAsync(query, page_size).get();
+}
+
+Concurrency::task<shared_ptr<Trigger>> Collection::CreateTriggerAsync(
+	const wstring& id,
+	const wstring& body,
+	const TriggerOperation& triggerOperation,
+	const TriggerType& triggerType) const
+{
+	http_request request = CreateRequest(
+		methods::POST,
+		RESOURCE_PATH_TRIGGERS,
+		this->resource_id(),
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + triggers_);
+	
+	value body_;
+	body_[DOCUMENT_ID] = value::string(id);
+	body_[BODY] = value::string(body);
+	switch (triggerOperation) {
+	case TriggerOperation::ALL:
+		body_[TRIGGER_OPERATION] = value::string(L"All");
+		break;
+	case TriggerOperation::CREATE:
+		body_[TRIGGER_OPERATION] = value::string(L"Create");
+		break;
+	case TriggerOperation::UPDATE:
+		body_[TRIGGER_OPERATION] = value::string(L"Update");
+		break;
+	case TriggerOperation::REPLACE:
+		body_[TRIGGER_OPERATION] = value::string(L"Replace");
+		break;
+	case TriggerOperation::DEL:
+		body_[TRIGGER_OPERATION] = value::string(L"Delete");
+		break;
+	}
+	switch (triggerType) {
+	case TriggerType::PRE:
+		body_[TRIGGER_TYPE] = value::string(L"Pre");
+		break;
+	case TriggerType::POST:
+		body_[TRIGGER_TYPE] = value::string(L"Post");
+		break;
+	}
+	
+	request.set_body(body_);
+
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		value json_response = response.extract_json().get();
+
+		if (response.status_code() == status_codes::Created)
+		{
+			return TriggerFromJson(&json_response);
+		}
+
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+shared_ptr<Trigger> Collection::CreateTrigger(
+	const wstring& id,
+	const wstring& body,
+	const TriggerOperation& triggerOperation,
+	const TriggerType& triggerType) const
+{
+	return CreateTriggerAsync(id, body, triggerOperation, triggerType).get();
+}
+
+Concurrency::task<shared_ptr<Trigger>> Collection::GetTriggerAsync(
+	const wstring& resource_id) const
+{
+	http_request request = CreateRequest(
+		methods::GET,
+		RESOURCE_PATH_TRIGGERS,
+		resource_id,
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + triggers_ + resource_id);
+
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		value json_response = response.extract_json().get();
+
+		if (response.status_code() == status_codes::OK)
+		{
+			return TriggerFromJson(&json_response);
+		}
+
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+shared_ptr<Trigger> Collection::GetTrigger(
+	const wstring& resource_id) const
+{
+	return GetTriggerAsync(resource_id).get();
+}
+
+Concurrency::task<vector<shared_ptr<Trigger>>> Collection::ListTriggersAsync() const
+{
+	http_request request = CreateRequest(
+		methods::GET,
+		RESOURCE_PATH_TRIGGERS,
+		this->resource_id(),
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + triggers_);
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		value json_response = response.extract_json().get();
+
+		if (response.status_code() == status_codes::OK)
+		{
+			assert(this->resource_id() == json_response.at(RESPONSE_RESOURCE_RID).as_string());
+			vector<shared_ptr<Trigger>> triggers;
+			triggers.reserve(json_response.at(RESPONSE_BODY_COUNT).as_integer());
+			value json_documents = json_response.at(RESPONSE_QUERY_TRIGGERS);
+
+			for (auto iter = json_documents.as_array().cbegin(); iter != json_documents.as_array().cend(); ++iter)
+			{
+				shared_ptr<Trigger> coll = TriggerFromJson(&(*iter));
+				triggers.push_back(coll);
+			}
+			return triggers;
+		}
+
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+vector<shared_ptr<Trigger>> Collection::ListTriggers() const
+{
+	return ListTriggersAsync().get();
+}
+
+Concurrency::task<shared_ptr<Trigger>> Collection::ReplaceTriggerAsync(
+	const wstring& id,
+	const wstring& new_id,
+	const wstring& body,
+	const TriggerOperation& triggerOperation,
+	const TriggerType& triggerType) const
+{
+	http_request request = CreateRequest(
+		methods::PUT,
+		RESOURCE_PATH_TRIGGERS,
+		id,
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + triggers_ + id);
+
+	value body_;
+	body_[DOCUMENT_ID] = value::string(new_id);
+	body_[BODY] = value::string(body);
+	switch (triggerOperation) {
+	case TriggerOperation::ALL:
+		body_[TRIGGER_OPERATION] = value::string(L"All");
+		break;
+	case TriggerOperation::CREATE:
+		body_[TRIGGER_OPERATION] = value::string(L"Create");
+		break;
+	case TriggerOperation::UPDATE:
+		body_[TRIGGER_OPERATION] = value::string(L"Update");
+		break;
+	case TriggerOperation::REPLACE:
+		body_[TRIGGER_OPERATION] = value::string(L"Replace");
+		break;
+	case TriggerOperation::DEL:
+		body_[TRIGGER_OPERATION] = value::string(L"Delete");
+		break;
+	}
+	switch (triggerType) {
+	case TriggerType::PRE:
+		body_[TRIGGER_TYPE] = value::string(L"Pre");
+		break;
+	case TriggerType::POST:
+		body_[TRIGGER_TYPE] = value::string(L"Post");
+		break;
+	}
+
+	request.set_body(body_);
+
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		value json_response = response.extract_json().get();
+
+		if (response.status_code() == status_codes::OK)
+		{
+			return TriggerFromJson(&json_response);
+		}
+
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+shared_ptr<Trigger> Collection::ReplaceTrigger(
+	const wstring& id,
+	const wstring& new_id,
+	const wstring& body,
+	const TriggerOperation& triggerOperation,
+	const TriggerType& triggerType) const
+{
+	return this->ReplaceTriggerAsync(id, new_id, body, triggerOperation, triggerType).get();
+}
+
+Concurrency::task<void> Collection::DeleteTriggerAsync(
+	const shared_ptr<Trigger>& trigger) const
+{
+	return DeleteTriggerAsync(trigger->resource_id());
+}
+
+void Collection::DeleteTrigger(
+	const shared_ptr<Trigger>& trigger) const
+{
+	DeleteTriggerAsync(trigger->resource_id()).get();
+}
+
+Concurrency::task<void> Collection::DeleteTriggerAsync(
+	const wstring& resource_id) const
+{
+	http_request request = CreateRequest(
+		methods::DEL,
+		RESOURCE_PATH_TRIGGERS,
+		resource_id,
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + triggers_ + resource_id);
+
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		if (response.status_code() == status_codes::NoContent)
+		{
+			return;
+		}
+
+		value json_response = response.extract_json().get();
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+void Collection::DeleteTrigger(
+	const wstring& resource_id) const
+{
+	DeleteTriggerAsync(resource_id).get();
+}
+
+Concurrency::task<shared_ptr<TriggerIterator>> Collection::QueryTriggersAsync(
+	const wstring& query,
+	const int page_size) const
+{
+	http_request request = CreateQueryRequest(
+		query,
+		page_size,
+		RESOURCE_PATH_TRIGGERS,
+		this->resource_id(),
+		this->document_db_configuration()->master_key());
+	const wstring requestUri = this->self() + triggers_;
+	request.set_request_uri(requestUri);
+
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		wstring continuation_id = response.headers()[HEADER_MS_CONTINUATION];
+		value json_response = response.extract_json().get();
+
+		if (response.status_code() == status_codes::OK)
+		{
+			assert(this->resource_id() == json_response.at(RESPONSE_RESOURCE_RID).as_string());
+
+			return make_shared<TriggerIterator>(
+				shared_from_this(),
+				query,
+				page_size,
+				requestUri,
+				continuation_id,
+				json_response.at(RESPONSE_QUERY_TRIGGERS));
+		}
+
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+shared_ptr<TriggerIterator> Collection::QueryTriggers(
+	const wstring& query,
+	const int page_size) const
+{
+	return QueryTriggersAsync(query, page_size).get();
+}
+
+Concurrency::task<shared_ptr<StoredProcedure>> Collection::CreateStoredProcedureAsync(
+	const wstring& id,
+	const wstring& body) const
+{
+	http_request request = CreateRequest(
+		methods::POST,
+		RESOURCE_PATH_SPROCS,
+		this->resource_id(),
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + sprocs_);
+
+	value body_;
+	body_[DOCUMENT_ID] = value::string(id);
+	body_[BODY] = value::string(body);
+
+	request.set_body(body_);
+
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		value json_response = response.extract_json().get();
+
+		if (response.status_code() == status_codes::Created)
+		{
+			return StoredProcedureFromJson(&json_response);
+		}
+
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+shared_ptr<StoredProcedure> Collection::CreateStoredProcedure(
+	const wstring& id,
+	const wstring& body) const
+{
+	return CreateStoredProcedureAsync(id, body).get();
+}
+
+Concurrency::task<shared_ptr<StoredProcedure>> Collection::GetStoredProcedureAsync(
+	const wstring& resource_id) const
+{
+	http_request request = CreateRequest(
+		methods::GET,
+		RESOURCE_PATH_SPROCS,
+		resource_id,
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + sprocs_ + resource_id);
+
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		value json_response = response.extract_json().get();
+
+		if (response.status_code() == status_codes::OK)
+		{
+			return StoredProcedureFromJson(&json_response);
+		}
+
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+shared_ptr<StoredProcedure> Collection::GetStoredProcedure(
+	const wstring& resource_id) const
+{
+	return GetStoredProcedureAsync(resource_id).get();
+}
+
+Concurrency::task<vector<shared_ptr<StoredProcedure>>> Collection::ListStoredProceduresAsync() const
+{
+	http_request request = CreateRequest(
+		methods::GET,
+		RESOURCE_PATH_SPROCS,
+		this->resource_id(),
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + sprocs_);
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		value json_response = response.extract_json().get();
+
+		if (response.status_code() == status_codes::OK)
+		{
+			assert(this->resource_id() == json_response.at(RESPONSE_RESOURCE_RID).as_string());
+			vector<shared_ptr<StoredProcedure>> storedProcedures;
+			storedProcedures.reserve(json_response.at(RESPONSE_BODY_COUNT).as_integer());
+			value json_sprocs = json_response.at(RESPONSE_QUERY_SPROCS);
+
+			for (auto iter = json_sprocs.as_array().cbegin(); iter != json_sprocs.as_array().cend(); ++iter)
+			{
+				shared_ptr<StoredProcedure> coll = StoredProcedureFromJson(&(*iter));
+				storedProcedures.push_back(coll);
+			}
+			return storedProcedures;
+		}
+
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+vector<shared_ptr<StoredProcedure>> Collection::ListStoredProcedures() const
+{
+	return ListStoredProceduresAsync().get();
+}
+
+Concurrency::task<shared_ptr<StoredProcedure>> Collection::ReplaceStoredProcedureAsync(
+	const wstring& id,
+	const wstring& new_id,
+	const wstring& body) const
+{
+	http_request request = CreateRequest(
+		methods::PUT,
+		RESOURCE_PATH_SPROCS,
+		id,
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + sprocs_ + id);
+
+	value body_;
+	body_[DOCUMENT_ID] = value::string(new_id);
+	body_[BODY] = value::string(body);
+
+	request.set_body(body_);
+
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		value json_response = response.extract_json().get();
+
+		if (response.status_code() == status_codes::OK)
+		{
+			return StoredProcedureFromJson(&json_response);
+		}
+
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+shared_ptr<StoredProcedure> Collection::ReplaceStoredProcedure(
+	const wstring& id,
+	const wstring& new_id,
+	const wstring& body) const
+{
+	return this->ReplaceStoredProcedureAsync(id, new_id, body).get();
+}
+
+Concurrency::task<void> Collection::DeleteStoredProcedureAsync(
+	const shared_ptr<StoredProcedure>& storedProcedure) const
+{
+	return DeleteStoredProcedureAsync(storedProcedure->resource_id());
+}
+
+void Collection::DeleteStoredProcedure(
+	const shared_ptr<StoredProcedure>& storedProcedure) const
+{
+	DeleteStoredProcedureAsync(storedProcedure->resource_id()).get();
+}
+
+Concurrency::task<void> Collection::DeleteStoredProcedureAsync(
+	const wstring& resource_id) const
+{
+	http_request request = CreateRequest(
+		methods::DEL,
+		RESOURCE_PATH_SPROCS,
+		resource_id,
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + sprocs_ + resource_id);
+
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		if (response.status_code() == status_codes::NoContent)
+		{
+			return;
+		}
+
+		value json_response = response.extract_json().get();
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+void Collection::DeleteStoredProcedure(
+	const wstring& resource_id) const
+{
+	DeleteStoredProcedureAsync(resource_id).get();
+}
+
+Concurrency::task<shared_ptr<StoredProcedureIterator>> Collection::QueryStoredProceduresAsync(
+	const wstring& query,
+	const int page_size) const
+{
+	http_request request = CreateQueryRequest(
+		query,
+		page_size,
+		RESOURCE_PATH_SPROCS,
+		this->resource_id(),
+		this->document_db_configuration()->master_key());
+	const wstring requestUri = this->self() + sprocs_;
+	request.set_request_uri(requestUri);
+
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		wstring continuation_id = response.headers()[HEADER_MS_CONTINUATION];
+		value json_response = response.extract_json().get();
+
+		if (response.status_code() == status_codes::OK)
+		{
+			assert(this->resource_id() == json_response.at(RESPONSE_RESOURCE_RID).as_string());
+
+
+			return make_shared<StoredProcedureIterator>(
+				shared_from_this(),
+				query,
+				page_size,
+				requestUri,
+				continuation_id,
+				json_response.at(RESPONSE_QUERY_SPROCS));
+		}
+
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+shared_ptr<StoredProcedureIterator> Collection::QueryStoredProcedures(
+	const wstring& query,
+	const int page_size) const
+{
+	return QueryStoredProceduresAsync(query, page_size).get();
+}
+
+Concurrency::task<void> Collection::ExecuteStoredProcedureAsync(
+	const std::wstring& resource_id,
+	const value& input) const
+{
+	http_request request = CreateRequest(
+		methods::POST,
+		RESOURCE_PATH_SPROCS,
+		resource_id,
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + sprocs_ + resource_id);
+
+	request.set_body(input);
+
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		if (response.status_code() == status_codes::OK)
+		{
+			return;
+		}
+
+		value json_response = response.extract_json().get();
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+void Collection::ExecuteStoredProcedure(
+	const std::wstring& resource_id,
+	const value& input) const
+{
+	ExecuteStoredProcedureAsync(resource_id, input).get();
+}
+
+Concurrency::task<std::shared_ptr<UserDefinedFunction>> Collection::CreateUserDefinedFunctionAsync(
+	const std::wstring& id,
+	const std::wstring& body) const
+{
+	http_request request = CreateRequest(
+		methods::POST,
+		RESOURCE_PATH_UDFS,
+		this->resource_id(),
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + udfs_);
+
+	value body_;
+	body_[DOCUMENT_ID] = value::string(id);
+	body_[BODY] = value::string(body);
+
+	request.set_body(body_);
+
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		value json_response = response.extract_json().get();
+
+		if (response.status_code() == status_codes::Created)
+		{
+			return UserDefinedFunctionFromJson(&json_response);
+		}
+
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+std::shared_ptr<UserDefinedFunction> Collection::CreateUserDefinedFunction(
+	const std::wstring& id,
+	const std::wstring& body) const
+{
+	return CreateUserDefinedFunctionAsync(id, body).get();
+}
+
+Concurrency::task<std::shared_ptr<UserDefinedFunction>> Collection::GetUserDefinedFunctionAsync(
+	const std::wstring& resource_id) const
+{
+	http_request request = CreateRequest(
+		methods::GET,
+		RESOURCE_PATH_UDFS,
+		resource_id,
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + udfs_ + resource_id);
+
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		value json_response = response.extract_json().get();
+
+		if (response.status_code() == status_codes::OK)
+		{
+			return UserDefinedFunctionFromJson(&json_response);
+		}
+
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+std::shared_ptr<UserDefinedFunction> Collection::GetUserDefinedFunction(
+	const std::wstring& resource_id) const
+{
+	return GetUserDefinedFunctionAsync(resource_id).get();
+}
+
+Concurrency::task<std::vector<std::shared_ptr<UserDefinedFunction>>> Collection::ListUserDefinedFunctionsAsync() const
+{
+	http_request request = CreateRequest(
+		methods::GET,
+		RESOURCE_PATH_UDFS,
+		this->resource_id(),
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + udfs_);
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		value json_response = response.extract_json().get();
+
+		if (response.status_code() == status_codes::OK)
+		{
+			assert(this->resource_id() == json_response.at(RESPONSE_RESOURCE_RID).as_string());
+			vector<shared_ptr<UserDefinedFunction>> userDefinedFunctions;
+			userDefinedFunctions.reserve(json_response.at(RESPONSE_BODY_COUNT).as_integer());
+			value json_udfs = json_response.at(RESPONSE_QUERY_UDFS);
+
+			for (auto iter = json_udfs.as_array().cbegin(); iter != json_udfs.as_array().cend(); ++iter)
+			{
+				shared_ptr<UserDefinedFunction> coll = UserDefinedFunctionFromJson(&(*iter));
+				userDefinedFunctions.push_back(coll);
+			}
+			return userDefinedFunctions;
+		}
+
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+std::vector<std::shared_ptr<UserDefinedFunction>> Collection::ListUserDefinedFunctions() const
+{
+	return ListUserDefinedFunctionsAsync().get();
+}
+
+Concurrency::task<std::shared_ptr<UserDefinedFunction>> Collection::ReplaceUserDefinedFunctionAsync(
+	const std::wstring& id,
+	const std::wstring& new_id,
+	const std::wstring& body) const
+{
+	http_request request = CreateRequest(
+		methods::PUT,
+		RESOURCE_PATH_UDFS,
+		id,
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + udfs_ + id);
+
+	value body_;
+	body_[DOCUMENT_ID] = value::string(new_id);
+	body_[BODY] = value::string(body);
+
+	request.set_body(body_);
+
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		value json_response = response.extract_json().get();
+
+		if (response.status_code() == status_codes::OK)
+		{
+			return UserDefinedFunctionFromJson(&json_response);
+		}
+
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+std::shared_ptr<UserDefinedFunction> Collection::ReplaceUserDefinedFunction(
+	const std::wstring& id,
+	const std::wstring& new_id,
+	const std::wstring& body) const
+{
+	return ReplaceUserDefinedFunctionAsync(id, new_id, body).get();
+}
+
+Concurrency::task<void> Collection::DeleteUserDefinedFunctionAsync(
+	const std::shared_ptr<UserDefinedFunction>& userDefinedFunction) const
+{
+	return DeleteUserDefinedFunctionAsync(userDefinedFunction->resource_id());
+}
+
+void Collection::DeleteUserDefinedFunction(
+	const std::shared_ptr<UserDefinedFunction>& userDefinedFunction) const
+{
+	return DeleteUserDefinedFunctionAsync(userDefinedFunction->resource_id()).get();
+}
+
+Concurrency::task<void> Collection::DeleteUserDefinedFunctionAsync(
+	const std::wstring& resource_id) const
+{
+	http_request request = CreateRequest(
+		methods::DEL,
+		RESOURCE_PATH_UDFS,
+		resource_id,
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + udfs_ + resource_id);
+
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		if (response.status_code() == status_codes::NoContent)
+		{
+			return;
+		}
+
+		value json_response = response.extract_json().get();
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+void Collection::DeleteUserDefinedFunction(
+	const std::wstring& resource_id) const
+{
+	return DeleteUserDefinedFunctionAsync(resource_id).get();
+}
+
+Concurrency::task<std::shared_ptr<UserDefinedFunctionIterator>> Collection::QueryUserDefinedFunctionsAsync(
+	const std::wstring& query,
+	const int page_size) const
+{
+	http_request request = CreateQueryRequest(
+		query,
+		page_size,
+		RESOURCE_PATH_UDFS,
+		this->resource_id(),
+		this->document_db_configuration()->master_key());
+	const wstring requestUri = this->self() + udfs_;
+	request.set_request_uri(requestUri);
+
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		wstring continuation_id = response.headers()[HEADER_MS_CONTINUATION];
+		value json_response = response.extract_json().get();
+
+		if (response.status_code() == status_codes::OK)
+		{
+			assert(this->resource_id() == json_response.at(RESPONSE_RESOURCE_RID).as_string());
+
+
+			return make_shared<UserDefinedFunctionIterator>(
+				shared_from_this(),
+				query,
+				page_size,
+				requestUri,
+				continuation_id,
+				json_response.at(RESPONSE_QUERY_UDFS));
+		}
+
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+std::shared_ptr<UserDefinedFunctionIterator> Collection::QueryUserDefinedFunctions(
+	const std::wstring& query,
+	const int page_size) const
+{
+	return QueryUserDefinedFunctionsAsync(query, page_size).get();
 }

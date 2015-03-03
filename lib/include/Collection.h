@@ -34,12 +34,26 @@
 #include "DocumentDBConfiguration.h"
 #include "IndexingPolicy.h"
 #include "DocumentIterator.h"
+#include "TriggerIterator.h"
+#include "StoredProcedureIterator.h"
+#include "UserDefinedFunctionIterator.h"
 #include "Document.h"
+#include "Trigger.h"
+#include "TriggerOperation.h"
+#include "TriggerType.h"
+#include "StoredProcedure.h"
+#include "UserDefinedFunction.h"
 
 namespace documentdb {
+	bool compare(std::wstring string1,
+		std::wstring string2);
+
 	class Collection : public DocumentDBEntity, public std::enable_shared_from_this < Collection >
 	{
 		friend class DocumentIterator;
+		friend class TriggerIterator;
+		friend class StoredProcedureIterator;
+		friend class UserDefinedFunctionIterator;
 
 	public:
 		Collection(
@@ -108,6 +122,169 @@ namespace documentdb {
 			const std::wstring& query,
 			const int page_size = 10) const;
 
+		//triggers management
+		Concurrency::task<std::shared_ptr<Trigger>> CreateTriggerAsync(
+			const std::wstring& id,
+			const std::wstring& body,
+			const TriggerOperation& triggerOperation,
+			const TriggerType& triggerType) const;
+
+		std::shared_ptr<Trigger> CreateTrigger(
+			const std::wstring& id,
+			const std::wstring& body,
+			const TriggerOperation& triggerOperation,
+			const TriggerType& triggerType) const;
+
+		Concurrency::task<std::shared_ptr<Trigger>> GetTriggerAsync(
+			const std::wstring& resource_id) const;
+
+		std::shared_ptr<Trigger> GetTrigger(
+			const std::wstring& resource_id) const;
+
+		Concurrency::task<std::vector<std::shared_ptr<Trigger>>> ListTriggersAsync() const;
+
+		std::vector<std::shared_ptr<Trigger>> ListTriggers() const;
+
+		Concurrency::task<std::shared_ptr<Trigger>> ReplaceTriggerAsync(
+			const std::wstring& id,
+			const std::wstring& new_id,
+			const std::wstring& body,
+			const TriggerOperation& triggerOperation,
+			const TriggerType& triggerType) const;
+
+		std::shared_ptr<Trigger> ReplaceTrigger(
+			const std::wstring& id,
+			const std::wstring& new_id,
+			const std::wstring& body,
+			const TriggerOperation& triggerOperation,
+			const TriggerType& triggerType) const;
+
+		Concurrency::task<void> DeleteTriggerAsync(
+			const std::shared_ptr<Trigger>& trigger) const;
+
+		void DeleteTrigger(
+			const std::shared_ptr<Trigger>& trigger) const;
+
+		Concurrency::task<void> DeleteTriggerAsync(
+			const std::wstring& resource_id) const;
+
+		void DeleteTrigger(
+			const std::wstring& resource_id) const;
+
+		Concurrency::task<std::shared_ptr<TriggerIterator>> QueryTriggersAsync(
+			const std::wstring& query,
+			const int page_size = 10) const;
+
+		std::shared_ptr<TriggerIterator> QueryTriggers(
+			const std::wstring& query,
+			const int page_size = 10) const;
+
+		//stored procedures management
+		Concurrency::task<std::shared_ptr<StoredProcedure>> CreateStoredProcedureAsync(
+			const std::wstring& id,
+			const std::wstring& body) const;
+
+		std::shared_ptr<StoredProcedure> CreateStoredProcedure(
+			const std::wstring& id,
+			const std::wstring& body) const;
+
+		Concurrency::task<std::shared_ptr<StoredProcedure>> GetStoredProcedureAsync(
+			const std::wstring& resource_id) const;
+
+		std::shared_ptr<StoredProcedure> GetStoredProcedure(
+			const std::wstring& resource_id) const;
+
+		Concurrency::task<std::vector<std::shared_ptr<StoredProcedure>>> ListStoredProceduresAsync() const;
+
+		std::vector<std::shared_ptr<StoredProcedure>> ListStoredProcedures() const;
+
+		Concurrency::task<std::shared_ptr<StoredProcedure>> ReplaceStoredProcedureAsync(
+			const std::wstring& id,
+			const std::wstring& new_id,
+			const std::wstring& body) const;
+
+		std::shared_ptr<StoredProcedure> ReplaceStoredProcedure(
+			const std::wstring& id,
+			const std::wstring& new_id,
+			const std::wstring& body) const;
+
+		Concurrency::task<void> DeleteStoredProcedureAsync(
+			const std::shared_ptr<StoredProcedure>& storedProcedure) const;
+
+		void DeleteStoredProcedure(
+			const std::shared_ptr<StoredProcedure>& storedProcedure) const;
+
+		Concurrency::task<void> DeleteStoredProcedureAsync(
+			const std::wstring& resource_id) const;
+
+		void DeleteStoredProcedure(
+			const std::wstring& resource_id) const;
+
+		Concurrency::task<std::shared_ptr<StoredProcedureIterator>> QueryStoredProceduresAsync(
+			const std::wstring& query,
+			const int page_size = 10) const;
+
+		std::shared_ptr<StoredProcedureIterator> QueryStoredProcedures(
+			const std::wstring& query,
+			const int page_size = 10) const;
+
+		Concurrency::task<void> ExecuteStoredProcedureAsync(
+			const std::wstring& resource_id,
+			const web::json::value& input) const;
+
+		void ExecuteStoredProcedure(
+			const std::wstring& resource_id,
+			const web::json::value& input) const;
+
+		// User defined functions management
+		Concurrency::task<std::shared_ptr<UserDefinedFunction>> CreateUserDefinedFunctionAsync(
+			const std::wstring& id,
+			const std::wstring& body) const;
+
+		std::shared_ptr<UserDefinedFunction> CreateUserDefinedFunction(
+			const std::wstring& id,
+			const std::wstring& body) const;
+
+		Concurrency::task<std::shared_ptr<UserDefinedFunction>> GetUserDefinedFunctionAsync(
+			const std::wstring& resource_id) const;
+
+		std::shared_ptr<UserDefinedFunction> GetUserDefinedFunction(
+			const std::wstring& resource_id) const;
+
+		Concurrency::task<std::vector<std::shared_ptr<UserDefinedFunction>>> ListUserDefinedFunctionsAsync() const;
+
+		std::vector<std::shared_ptr<UserDefinedFunction>> ListUserDefinedFunctions() const;
+
+		Concurrency::task<std::shared_ptr<UserDefinedFunction>> ReplaceUserDefinedFunctionAsync(
+			const std::wstring& id,
+			const std::wstring& new_id,
+			const std::wstring& body) const;
+
+		std::shared_ptr<UserDefinedFunction> ReplaceUserDefinedFunction(
+			const std::wstring& id,
+			const std::wstring& new_id,
+			const std::wstring& body) const;
+
+		Concurrency::task<void> DeleteUserDefinedFunctionAsync(
+			const std::shared_ptr<UserDefinedFunction>& userDefinedFunction) const;
+
+		void DeleteUserDefinedFunction(
+			const std::shared_ptr<UserDefinedFunction>& userDefinedFunction) const;
+
+		Concurrency::task<void> DeleteUserDefinedFunctionAsync(
+			const std::wstring& resource_id) const;
+
+		void DeleteUserDefinedFunction(
+			const std::wstring& resource_id) const;
+
+		Concurrency::task<std::shared_ptr<UserDefinedFunctionIterator>> QueryUserDefinedFunctionsAsync(
+			const std::wstring& query,
+			const int page_size = 10) const;
+
+		std::shared_ptr<UserDefinedFunctionIterator> QueryUserDefinedFunctions(
+			const std::wstring& query,
+			const int page_size = 10) const;
+
 		std::wstring docs() const
 		{
 			return docs_;
@@ -141,6 +318,15 @@ namespace documentdb {
 	private:
 		std::shared_ptr<Document> DocumentFromJson(
 			const web::json::value& json_collection) const;
+
+		std::shared_ptr<Trigger> TriggerFromJson(
+			const web::json::value* json_trigger) const;
+
+		std::shared_ptr<StoredProcedure> StoredProcedureFromJson(
+			const web::json::value* json_sproc) const;
+
+		std::shared_ptr<UserDefinedFunction> UserDefinedFunctionFromJson(
+			const web::json::value* json_udf) const;
 
 		static std::wstring GenerateGuid();
 

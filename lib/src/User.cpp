@@ -58,7 +58,7 @@ User::~User()
 }
 
 shared_ptr<Permission> User::PermissionFromJson(
-	const web::json::value* json_permission) const
+	const value* json_permission) const
 {
 	wstring id = json_permission->at(DOCUMENT_ID).as_string();
 	wstring rid = json_permission->at(RESPONSE_RESOURCE_RID).as_string();
