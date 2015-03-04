@@ -74,9 +74,9 @@ void compare_triggers(
 {
 	if (!skip_id)
 	{
-		assert(trigger1->resource_id() == trigger2->resource_id());
 		assert(trigger1->id() == trigger2->id());
 	}
+	assert(trigger1->resource_id() == trigger2->resource_id());
 	assert(trigger1->body() == trigger2->body());
 	assert(trigger1->triggerOperation() == trigger2->triggerOperation());
 	assert(trigger1->triggerType() == trigger2->triggerType());
@@ -90,9 +90,9 @@ void compare_sprocs(
 {
 	if (!skip_id)
 	{
-		assert(sproc1->resource_id() == sproc2->resource_id());
 		assert(sproc1->id() == sproc2->id());
 	}
+	assert(sproc1->resource_id() == sproc2->resource_id());
 	assert(sproc1->body() == sproc2->body());
 	assert(sproc1->self() == sproc2->self());
 }
@@ -103,11 +103,25 @@ void compare_udfs(const shared_ptr<UserDefinedFunction>& udf1,
 {
 	if (!skip_id)
 	{
-		assert(udf1->resource_id() == udf2->resource_id());
 		assert(udf1->id() == udf2->id());
 	}
+	assert(udf1->resource_id() == udf2->resource_id());
 	assert(udf1->body() == udf2->body());
 	assert(udf1->self() == udf2->self());
+}
+
+void compare_attachments(const shared_ptr<Attachment>& attachment1,
+	const shared_ptr<Attachment>& attachment2,
+	bool skip_id = false)
+{
+	if (!skip_id)
+	{
+		assert(attachment1->id() == attachment2->id());
+	}
+	assert(attachment1->resource_id() == attachment2->resource_id());
+	assert(attachment1->media() == attachment2->media());
+	assert(attachment1->contentType() == attachment2->contentType());
+	assert(attachment1->self() == attachment2->self());
 }
 
 void test_databases(
@@ -861,7 +875,7 @@ void test_triggers(
 		// Pass
 	}
 
-	// Deleting document that does not exist results in exception
+	// Deleting trigger that does not exist results in exception
 	try
 	{
 		coll->DeleteTriggerAsync(resource_id).get();
@@ -1177,6 +1191,8 @@ void test_attachments(
 	shared_ptr<Document> doc = coll->CreateDocumentAsync(document1).get();
 	assert(doc->id() == doc_name);
 
+	shared_ptr<AttachmentIterator> iter = doc->QueryAttachmentsAsync(wstring(L"SELECT * FROM " + doc_name)).get();
+	assert(!iter->HasMore());
 
 	wstring attachment_name = generate_random_string(8);
 	vector<unsigned char> content;
@@ -1187,7 +1203,115 @@ void test_attachments(
 	}
 
 	shared_ptr<Attachment> attachment1 = doc->CreateAttachmentAsync(attachment_name, L"application/text", content).get();
+	assert(attachment1->id() == attachment_name);
+	assert(attachment1->contentType() == L"application/text");
+
 	shared_ptr<Attachment> attachment2 = doc->CreateAttachmentAsync(L"Sample3_coverpageimage__v2", L"image / jpg", L"www.bing.com").get();
+	assert(attachment2->id() == L"Sample3_coverpageimage__v2");
+	assert(attachment2->contentType() == L"image / jpg");
+	assert(attachment2->media() == L"www.bing.com");
+
+	doc->DeleteAttachment(attachment2);
+
+	// Try inserting attachment with same ID
+	try
+	{
+		doc->CreateAttachmentAsync(attachment_name, L"application/text", content).get();
+		assert(false);
+	}
+	catch (const ResourceAlreadyExistsException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		doc->CreateAttachment(attachment_name, L"application/text", content).get();
+		assert(false);
+	}
+	catch (const ResourceAlreadyExistsException&)
+	{
+		// Pass
+	}
+
+	// Get attachment
+	shared_ptr<Attachment> attachment1_get = doc->GetAttachmentAsync(attachment1->resource_id()).get();
+	compare_attachments(attachment1_get, attachment1);
+
+	// Query for attachments
+	vector <shared_ptr<Attachment>> attachment_list = doc->ListAttachmentsAsync().get();
+	assert(attachment_list.size() == 1);
+	compare_attachments(attachment_list[0], attachment1);
+
+	iter = doc->QueryAttachmentsAsync(wstring(L"SELECT * FROM " + doc_name)).get();
+	int count = 0;
+	while (iter->HasMore())
+	{
+		shared_ptr<Attachment> iter_attachment = iter->Next();
+		compare_attachments(iter_attachment, attachment1);
+
+		count++;
+	}
+	assert(count == 1);
+
+	// Replace attachments
+	wstring new_attachment_name = generate_random_string(8);
+	shared_ptr<Attachment> replaced_attachment = doc->ReplaceAttachmentAsync(attachment1->resource_id(), new_attachment_name, L"image / jpg", L"www.bing.com").get();
+	attachment1 = doc->GetAttachment(attachment1->resource_id());
+	compare_attachments(replaced_attachment, attachment1, false);
+	assert(replaced_attachment->id() == new_attachment_name);
+
+	// Delete attachment
+	wstring resource_id = attachment1->resource_id();
+	doc->DeleteAttachmentAsync(attachment1->resource_id()).get();
+
+	assert(doc->ListAttachmentsAsync().get().size() == 0);
+
+	iter = doc->QueryAttachments(wstring(L"SELECT * FROM " + coll_name));
+	assert(!iter->HasMore());
+
+	// Getting the attachment that does not exist results in exception
+	try
+	{
+		doc->GetAttachmentAsync(resource_id).get();
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		doc->GetAttachment(resource_id);
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	// Deleting document that does not exist results in exception
+	try
+	{
+		doc->DeleteAttachmentAsync(resource_id).get();
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
+	try
+	{
+		doc->DeleteAttachment(resource_id);
+		assert(false);
+	}
+	catch (const ResourceNotFoundException&)
+	{
+		// Pass
+	}
+
 
 	// Delete document now that we are done testing
 	coll->DeleteDocument(doc);

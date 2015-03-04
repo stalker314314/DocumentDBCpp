@@ -267,7 +267,7 @@ Concurrency::task<shared_ptr<Attachment>> Document::ReplaceAttachmentAsync(
 	request.set_request_uri(this->self() + attachments_ + id);
 
 	request.headers().add(web::http::header_names::content_type, contentType);
-	request.headers().add(L"Slug", id);
+	request.headers().add(L"Slug", new_id);
 	request.set_body(raw_media);
 
 	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)

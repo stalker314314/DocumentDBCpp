@@ -25,6 +25,8 @@
 #ifndef _DOCUMENTDB_TRIGGER_TYPE_H_
 #define _DOCUMENTDB_TRIGGER_TYPE_H_
 
+#include <string>
+
 namespace documentdb
 {
 	enum TriggerType
@@ -32,6 +34,9 @@ namespace documentdb
 		PRE,
 		POST
 	};
+
+	std::wstring triggerTypeToWstring(const TriggerType& trigger_type);
+	TriggerType wstringToTriggerType(const std::wstring& trigger_type_str);
 }
 
 #endif // !_DOCUMENTDB_TRIGGER_TYPE_H_

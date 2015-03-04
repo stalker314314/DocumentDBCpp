@@ -25,6 +25,8 @@
 #ifndef _DOCUMENTDB_TRIGGER_OPERATION_H_
 #define _DOCUMENTDB_TRIGGER_OPERATION_H_
 
+#include <string>
+
 namespace documentdb
 {
 	enum TriggerOperation
@@ -35,6 +37,9 @@ namespace documentdb
 		DEL,
 		CREATE
 	};
+
+	std::wstring triggerOperationToWstring(const TriggerOperation& trigger_operation);
+	TriggerOperation wstringToTriggerOperation(const std::wstring& trigger_operation_str);
 }
 
 #endif // !_DOCUMENTDB_TRIGGER_OPERATION_H_
