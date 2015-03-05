@@ -253,36 +253,6 @@ Concurrency::task<shared_ptr<Attachment>> Document::ReplaceAttachmentAsync(
 	});
 }
 
-Concurrency::task<shared_ptr<Attachment>> Document::ReplaceAttachmentAsync(
-	const wstring& id,
-	const wstring& new_id,
-	const wstring& contentType,
-	const vector<unsigned char>& raw_media) const
-{
-	http_request request = CreateRequest(
-		methods::PUT,
-		RESOURCE_PATH_ATTACHMENTS,
-		id,
-		this->document_db_configuration()->master_key());
-	request.set_request_uri(this->self() + attachments_ + id);
-
-	request.headers().add(web::http::header_names::content_type, contentType);
-	request.headers().add(L"Slug", new_id);
-	request.set_body(raw_media);
-
-	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
-	{
-		value json_response = response.extract_json().get();
-
-		if (response.status_code() == status_codes::OK)
-		{
-			return AttachmentFromJson(json_response);
-		}
-
-		ThrowExceptionFromResponse(response.status_code(), json_response);
-	});
-}
-
 shared_ptr<Attachment> Document::ReplaceAttachment(
 	const wstring& id,
 	const wstring& new_id,
@@ -290,15 +260,6 @@ shared_ptr<Attachment> Document::ReplaceAttachment(
 	const wstring& media) const
 {
 	return ReplaceAttachmentAsync(id, new_id, contentType, media).get();
-}
-
-shared_ptr<Attachment> Document::ReplaceAttachment(
-	const wstring& id,
-	const wstring& new_id,
-	const wstring& contentType,
-	const vector<unsigned char>& raw_media) const
-{
-	return ReplaceAttachmentAsync(id, new_id, contentType, raw_media).get();
 }
 
 Concurrency::task<void> Document::DeleteAttachmentAsync(

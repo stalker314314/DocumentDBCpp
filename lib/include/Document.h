@@ -87,23 +87,11 @@ namespace documentdb {
 			const std::wstring& contentType,
 			const std::wstring& media) const;
 
-		Concurrency::task<std::shared_ptr<Attachment>> ReplaceAttachmentAsync(
-			const std::wstring& id,
-			const std::wstring& new_id,
-			const std::wstring& contentType,
-			const std::vector<unsigned char>& raw_media) const;
-
 		std::shared_ptr<Attachment> ReplaceAttachment(
 			const std::wstring& id,
 			const std::wstring& new_id,
 			const std::wstring& contentType,
 			const std::wstring& media) const;
-
-		std::shared_ptr<Attachment> ReplaceAttachment(
-			const std::wstring& id,
-			const std::wstring& new_id,
-			const std::wstring& contentType,
-			const std::vector<unsigned char>& raw_media) const;
 
 		Concurrency::task<void> DeleteAttachmentAsync(
 			const std::shared_ptr<Attachment>& attachment) const;
