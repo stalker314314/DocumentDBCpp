@@ -22,24 +22,45 @@
 * SOFTWARE.
 ***/
 
-#ifndef _DOCUMENTDB_TRIGGER_OPERATION_H_
-#define _DOCUMENTDB_TRIGGER_OPERATION_H_
+#ifndef _DOCUMENTDB_ATTACHMENT_ITERATOR_H_
+#define _DOCUMENTDB_ATTACHMENT_ITERATOR_H_
 
-#include <string>
+#include <memory>
+
+#include <cpprest/json.h>
+
+#include "DocumentDBConfiguration.h"
+#include "Attachment.h"
 
 namespace documentdb
 {
-	enum TriggerOperation
-	{
-		ALL,
-		UPDATE,
-		REPLACE,
-		DEL,
-		CREATE
-	};
+	class Document; // forward declaration
 
-	std::wstring triggerOperationToWstring(const TriggerOperation& trigger_operation);
-	TriggerOperation wstringToTriggerOperation(const std::wstring& trigger_operation_str);
+	class AttachmentIterator
+	{
+	public:
+		AttachmentIterator(
+			const std::shared_ptr<const Document>& document,
+			const std::wstring& original_query,
+			const int page_size,
+			const std::wstring& original_request_uri,
+			const std::wstring& continuation_id,
+			const web::json::value& buffer);
+		virtual ~AttachmentIterator();
+
+		bool HasMore();
+
+		std::shared_ptr<Attachment> Next();
+
+	private:
+		std::shared_ptr<const Document> document_;
+		std::wstring original_query_;
+		int page_size_;
+		std::wstring original_request_uri_;
+		std::wstring continuation_id_;
+		web::json::value buffer_;
+		unsigned int current_;
+	};
 }
 
-#endif // !_DOCUMENTDB_TRIGGER_OPERATION_H_
+#endif // !_DOCUMENTDB_ATTACHMENT_ITERATOR_H_

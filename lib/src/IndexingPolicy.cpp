@@ -27,6 +27,7 @@
 #include <cpprest/json.h>
 
 #include "DocumentDBConstants.h"
+#include "exceptions.h"
 
 using namespace documentdb;
 using namespace std;
@@ -63,17 +64,20 @@ IndexingPolicy IndexingPolicy::FromJson(
 	bool automatic = json_payload.at(RESPONSE_INDEXING_POLICY_AUTOMATIC).as_bool();
 
 	wstring indexing_mode_str = json_payload.at(RESPONSE_INDEXING_POLICY_INDEXING_MODE).as_string();
-	IndexingMode indexing_mode = IndexingMode::CONSISTENT;
-	if (compare(indexing_mode_str, L"LAZY"))
+	IndexingMode indexing_mode;
+	if (comparei(indexing_mode_str, L"CONSISTENT"))
+	{
+		indexing_mode = IndexingMode::CONSISTENT;
+	}
+	else if (comparei(indexing_mode_str, L"LAZY"))
 	{
 		indexing_mode = IndexingMode::LAZY;
 	}
-#ifdef _DEBUG
 	else
 	{
-		assert(compare(indexing_mode_str, L"CONSISTENT"));
+		throw DocumentDBRuntimeException(L"Unsupported indexing policy: " + indexing_mode_str);
 	}
-#endif
+
 	vector<shared_ptr<Index>> included_paths;
 	auto included_paths_json = json_payload.at(RESPONSE_INDEXING_POLICY_INCLUDED_PATHS).as_array();
 	for (auto jsonIncludePath : included_paths_json)

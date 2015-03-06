@@ -26,11 +26,14 @@
 #define _DOCUMENTDB_DOCUMENT_DB_CONSTANTS_H_
 
 #define DOCUMENT_ID (L"id")
+#define ATTACHMENT_ID (L"id")
 #define PERMISSION_MODE (L"permissionMode")
 #define RESOURCE (L"resource")
 #define BODY (L"body")
 #define TRIGGER_OPERATION (L"triggerOperation")
 #define TRIGGER_TYPE (L"triggerType")
+#define CONTENT_TYPE (L"contentType")
+#define MEDIA (L"media")
 
 // Resource paths
 #define RESOURCE_PATH_DBS (L"dbs")
@@ -41,6 +44,7 @@
 #define RESOURCE_PATH_TRIGGERS (L"triggers")
 #define RESOURCE_PATH_SPROCS (L"sprocs")
 #define RESOURCE_PATH_UDFS (L"udfs")
+#define RESOURCE_PATH_ATTACHMENTS (L"attachments")
 
 // MIME types
 #define MIME_TYPE_APPLICATION_JSON (L"application/json")
@@ -73,6 +77,7 @@
 #define RESPONSE_QUERY_TRIGGERS (L"Triggers")
 #define RESPONSE_QUERY_SPROCS (L"StoredProcedures")
 #define RESPONSE_QUERY_UDFS (L"UserDefinedFunctions")
+#define RESPONSE_QUERY_ATTACHMENTS (L"Attachments")
 
 // Response keys
 #define RESPONSE_RESOURCE_RID (L"_rid")
@@ -94,6 +99,8 @@
 #define RESPONSE_RESOURCE_BODY (L"body")
 #define RESPONSE_RESOURCE_TRIGGER_OPERATION (L"triggerOperation")
 #define RESPONSE_RESOURCE_TRIGGER_TYPE (L"triggerType")
+#define RESPONSE_RESOURCE_CONTENT_TYPE (L"contentType")
+#define RESPONSE_RESOURCE_MEDIA (L"media")
 
 // Response error keys
 #define RESPONSE_ERROR_MESSAGE (L"message")

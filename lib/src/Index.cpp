@@ -69,14 +69,14 @@ shared_ptr<Index> Index::FromJson(
 	const value& json_payload)
 {
 	IndexType index_type = IndexType::HASH;
-	if (compare(json_payload.at(RESPONSE_INDEX_INDEX_TYPE).as_string(), L"RANGE"))
+	if (comparei(json_payload.at(RESPONSE_INDEX_INDEX_TYPE).as_string(), L"RANGE"))
 	{
 		index_type = IndexType::RANGE;
 	}
 #ifdef _DEBUG
 	else
 	{
-		assert(compare(json_payload.at(RESPONSE_INDEX_INDEX_TYPE).as_string(), L"HASH"));
+		assert(comparei(json_payload.at(RESPONSE_INDEX_INDEX_TYPE).as_string(), L"HASH"));
 	}
 #endif
 

@@ -22,24 +22,48 @@
 * SOFTWARE.
 ***/
 
-#ifndef _DOCUMENTDB_TRIGGER_OPERATION_H_
-#define _DOCUMENTDB_TRIGGER_OPERATION_H_
+#ifndef _DOCUMENTDB_ATTACHMENT_H_
+#define _DOCUMENTDB_ATTACHMENT_H_
 
 #include <string>
+#include <memory>
 
-namespace documentdb
-{
-	enum TriggerOperation
+#include <cpprest/http_client.h>
+
+#include "DocumentDBEntity.h"
+#include "DocumentDBConfiguration.h"
+#include "exceptions.h"
+
+namespace documentdb {
+	class Attachment : public DocumentDBEntity
 	{
-		ALL,
-		UPDATE,
-		REPLACE,
-		DEL,
-		CREATE
-	};
+	public:
+		Attachment(
+			const std::shared_ptr<const DocumentDBConfiguration>& document_db_configuration,
+			const std::wstring& id,
+			const std::wstring& resource_id,
+			unsigned long ts,
+			const std::wstring& self,
+			const std::wstring& etag,
+			const std::wstring& contentType,
+			const std::wstring& media);
 
-	std::wstring triggerOperationToWstring(const TriggerOperation& trigger_operation);
-	TriggerOperation wstringToTriggerOperation(const std::wstring& trigger_operation_str);
+		virtual ~Attachment();
+
+		std::wstring contentType()
+		{
+			return contentType_;
+		}
+
+		std::wstring media()
+		{
+			return media_;
+		}
+
+	private:
+		std::wstring contentType_;
+		std::wstring media_;
+	};
 }
 
-#endif // !_DOCUMENTDB_TRIGGER_OPERATION_H_
+#endif // !_DOCUMENTDB_USER_H_

@@ -24,11 +24,16 @@
 
 #include <string>
 #include <cpprest/json.h>
-using namespace std;
 
+#include "exceptions.h"
+#include "TriggerOperation.h"
+#include "TriggerType.h"
+
+using namespace std;
 namespace documentdb
 {
-	bool compare(
+
+	bool comparei(
 		wstring string1,
 		wstring string2)
 	{
@@ -36,5 +41,83 @@ namespace documentdb
 		transform(string2.begin(), string2.end(), string2.begin(), toupper);
 
 		return (string1 == string2);
+	}
+
+	wstring triggerOperationToWstring(const TriggerOperation& trigger_operation)
+	{
+		switch (trigger_operation) {
+		case TriggerOperation::ALL:
+			return L"ALL";
+		case TriggerOperation::CREATE:
+			return L"CREATE";
+		case TriggerOperation::UPDATE:
+			return L"UPDATE";
+		case TriggerOperation::REPLACE:
+			return L"REPLACE";
+		case TriggerOperation::DEL:
+			return L"DELETE";
+		default:
+			throw DocumentDBRuntimeException(L"Unsupported trigger operation.");
+		}
+	}
+
+	TriggerOperation wstringToTriggerOperation(const std::wstring& trigger_operation_str)
+	{
+		TriggerOperation triggerOperation;
+		if (comparei(trigger_operation_str, L"ALL"))
+		{
+			triggerOperation = TriggerOperation::ALL;
+		}
+		else if (comparei(trigger_operation_str, L"UPDATE"))
+		{
+			triggerOperation = TriggerOperation::UPDATE;
+		}
+		else if (comparei(trigger_operation_str, L"CREATE"))
+		{
+			triggerOperation = TriggerOperation::CREATE;
+		}
+		else if (comparei(trigger_operation_str, L"REPLACE"))
+		{
+			triggerOperation = TriggerOperation::REPLACE;
+		}
+		else if (comparei(trigger_operation_str, L"DELETE"))
+		{
+			triggerOperation = TriggerOperation::DEL;
+		}
+		else
+		{
+			throw DocumentDBRuntimeException(L"Unsupported trigger operation: " + trigger_operation_str);
+		}
+		return triggerOperation;
+	}
+
+	wstring triggerTypeToWstring(const TriggerType& trigger_type)
+	{
+		switch (trigger_type) {
+		case TriggerType::PRE:
+			return L"Pre";
+		case TriggerType::POST:
+			return L"POST";
+		default:
+			throw DocumentDBRuntimeException(L"Unsupported trigger type.");
+		}
+	}
+
+	TriggerType wstringToTriggerType(const wstring& trigger_type_str)
+	{
+		TriggerType triggerType;
+		if (comparei(trigger_type_str, L"PRE"))
+		{
+			triggerType = TriggerType::PRE;
+		}
+		else if (comparei(trigger_type_str, L"POST"))
+		{
+			triggerType = TriggerType::POST;
+		}
+		else
+		{
+			throw DocumentDBRuntimeException(L"Unsupported trigger type: " + trigger_type_str);
+		}
+		return triggerType;
 	}
 }

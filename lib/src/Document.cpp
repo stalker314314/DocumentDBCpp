@@ -25,11 +25,18 @@
 #include "Document.h"
 
 #include <cpprest/http_client.h>
+#include <cpprest/filestream.h>
 #include <cpprest/json.h>
+
+#include "DocumentDBConstants.h"
+#include "ConnectionHelper.h"
+#include "exceptions.h"
 
 using namespace documentdb;
 using namespace std;
+using namespace web::http;
 using namespace web::json;
+using namespace web::http::client;
 
 Document::Document(
 		const shared_ptr<const DocumentDBConfiguration>& document_db_configuration,
@@ -48,4 +55,291 @@ Document::Document(
 
 Document::~Document()
 {
+}
+
+shared_ptr<Attachment> Document::AttachmentFromJson(
+	const value& json_attachment) const
+{
+	wstring id = json_attachment.at(DOCUMENT_ID).as_string();
+	wstring rid = json_attachment.at(RESPONSE_RESOURCE_RID).as_string();
+	unsigned long ts = json_attachment.at(RESPONSE_RESOURCE_TS).as_integer();
+	wstring self = json_attachment.at(RESPONSE_RESOURCE_SELF).as_string();
+	wstring etag = json_attachment.at(RESPONSE_RESOURCE_ETAG).as_string();
+	wstring contentType = json_attachment.at(RESPONSE_RESOURCE_CONTENT_TYPE).as_string();
+	wstring media = json_attachment.at(RESPONSE_RESOURCE_MEDIA).as_string();
+
+	return make_shared<Attachment>(
+		this->document_db_configuration(),
+		id,
+		rid,
+		ts,
+		self,
+		etag,
+		contentType,
+		media);
+}
+
+Concurrency::task<shared_ptr<Attachment>> Document::CreateAttachmentAsync(
+	const wstring& id,
+	const wstring& contentType,
+	const wstring& media) const
+{
+	http_request request = CreateRequest(
+		methods::POST,
+		RESOURCE_PATH_ATTACHMENTS,
+		this->resource_id(),
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + attachments_);
+
+	value body;
+	body[ATTACHMENT_ID] = value::string(id);
+	body[CONTENT_TYPE] = value::string(contentType);
+	body[MEDIA] = value::string(media);
+	request.set_body(body);
+
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		value json_response = response.extract_json().get();
+
+		if (response.status_code() == status_codes::Created)
+		{
+			return AttachmentFromJson(json_response);
+		}
+
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+Concurrency::task<shared_ptr<Attachment>> Document::CreateAttachmentAsync(
+	const wstring& id,
+	const wstring& contentType,
+	const vector<unsigned char>& raw_media) const
+{
+	http_request request = CreateRequest(
+		methods::POST,
+		RESOURCE_PATH_ATTACHMENTS,
+		this->resource_id(),
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + attachments_);
+
+	request.headers().add(web::http::header_names::content_type, contentType);
+	request.headers().add(L"Slug", id);
+	request.set_body(raw_media);
+
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		value json_response = response.extract_json().get();
+
+		if (response.status_code() == status_codes::Created)
+		{
+			return AttachmentFromJson(json_response);
+		}
+
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+shared_ptr<Attachment> Document::CreateAttachment(
+	const wstring& id,
+	const wstring& contentType,
+	const wstring& media) const
+{
+	return CreateAttachmentAsync(id, contentType, media).get();
+}
+
+shared_ptr<Attachment> Document::CreateAttachment(
+	const wstring& id,
+	const wstring& contentType,
+	const vector<unsigned char>& raw_media) const
+{
+	return CreateAttachmentAsync(id, contentType, raw_media).get();
+}
+
+Concurrency::task<shared_ptr<Attachment>> Document::GetAttachmentAsync(
+	const wstring& resource_id) const
+{
+	http_request request = CreateRequest(
+		methods::GET,
+		RESOURCE_PATH_ATTACHMENTS,
+		resource_id,
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + attachments_ + resource_id);
+
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		value json_response = response.extract_json().get();
+
+		if (response.status_code() == status_codes::OK)
+		{
+			return AttachmentFromJson(json_response);
+		}
+
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+shared_ptr<Attachment> Document::GetAttachment(
+	const wstring& resource_id) const
+{
+	return GetAttachmentAsync(resource_id).get();
+}
+
+Concurrency::task<vector<shared_ptr<Attachment>>> Document::ListAttachmentsAsync() const
+{
+	http_request request = CreateRequest(
+		methods::GET,
+		RESOURCE_PATH_ATTACHMENTS,
+		this->resource_id(),
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + attachments_);
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		value json_response = response.extract_json().get();
+
+		if (response.status_code() == status_codes::OK)
+		{
+			assert(this->resource_id() == json_response.at(RESPONSE_RESOURCE_RID).as_string());
+			vector<shared_ptr<Attachment>> attachments;
+			attachments.reserve(json_response.at(RESPONSE_BODY_COUNT).as_integer());
+			value json_attachments = json_response.at(RESPONSE_QUERY_ATTACHMENTS);
+
+			for (auto iter = json_attachments.as_array().cbegin(); iter != json_attachments.as_array().cend(); ++iter)
+			{
+				shared_ptr<Attachment> coll = AttachmentFromJson(*iter);
+				attachments.push_back(coll);
+			}
+			return attachments;
+		}
+
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+vector<shared_ptr<Attachment>> Document::ListAttachments() const
+{
+	return ListAttachmentsAsync().get();
+}
+
+Concurrency::task<shared_ptr<Attachment>> Document::ReplaceAttachmentAsync(
+	const wstring& id,
+	const wstring& new_id,
+	const wstring& contentType,
+	const wstring& media) const
+{
+	http_request request = CreateRequest(
+		methods::PUT,
+		RESOURCE_PATH_ATTACHMENTS,
+		id,
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + attachments_ + id);
+
+	value body_;
+	body_[DOCUMENT_ID] = value::string(new_id);
+	body_[MEDIA] = value::string(media);
+	body_[CONTENT_TYPE] = value::string(contentType);
+
+	request.set_body(body_);
+
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		value json_response = response.extract_json().get();
+
+		if (response.status_code() == status_codes::OK)
+		{
+			return AttachmentFromJson(json_response);
+		}
+
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+shared_ptr<Attachment> Document::ReplaceAttachment(
+	const wstring& id,
+	const wstring& new_id,
+	const wstring& contentType,
+	const wstring& media) const
+{
+	return ReplaceAttachmentAsync(id, new_id, contentType, media).get();
+}
+
+Concurrency::task<void> Document::DeleteAttachmentAsync(
+	const shared_ptr<Attachment>& attachment) const
+{
+	return DeleteAttachmentAsync(attachment->resource_id());
+}
+
+void Document::DeleteAttachment(
+	const shared_ptr<Attachment>& attachment) const
+{
+	DeleteAttachmentAsync(attachment->resource_id()).get();
+}
+
+Concurrency::task<void> Document::DeleteAttachmentAsync(
+	const wstring& resource_id) const
+{
+	http_request request = CreateRequest(
+		methods::DEL,
+		RESOURCE_PATH_ATTACHMENTS,
+		resource_id,
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + attachments_ + resource_id);
+
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		if (response.status_code() == status_codes::NoContent)
+		{
+			return;
+		}
+
+		value json_response = response.extract_json().get();
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+void Document::DeleteAttachment(
+	const wstring& resource_id) const
+{
+	DeleteAttachmentAsync(resource_id).get();
+}
+
+Concurrency::task<shared_ptr<AttachmentIterator>> Document::QueryAttachmentsAsync(
+	const wstring& query,
+	const int page_size) const
+{
+	http_request request = CreateQueryRequest(
+		query,
+		page_size,
+		RESOURCE_PATH_ATTACHMENTS,
+		this->resource_id(),
+		this->document_db_configuration()->master_key());
+	const wstring requestUri = this->self() + attachments_;
+	request.set_request_uri(requestUri);
+
+	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
+	{
+		wstring continuation_id = response.headers()[HEADER_MS_CONTINUATION];
+		value json_response = response.extract_json().get();
+
+		if (response.status_code() == status_codes::OK)
+		{
+			assert(this->resource_id() == json_response.at(RESPONSE_RESOURCE_RID).as_string());
+			
+			return make_shared<AttachmentIterator>(
+				shared_from_this(),
+				query,
+				page_size,
+				requestUri,
+				continuation_id,
+				json_response.at(RESPONSE_QUERY_ATTACHMENTS));
+		}
+
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	});
+}
+
+shared_ptr<AttachmentIterator> Document::QueryAttachments(
+	const wstring& query,
+	const int page_size) const
+{
+	return QueryAttachmentsAsync(query, page_size).get();
 }

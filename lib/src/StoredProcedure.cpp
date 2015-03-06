@@ -38,7 +38,6 @@ StoredProcedure::StoredProcedure(
 	: DocumentDBEntity(document_db_configuration, id, resource_id, ts, self, etag)
 	, body_(body)
 {
-	//TODO : deal with body...
 }
 
 StoredProcedure::~StoredProcedure()

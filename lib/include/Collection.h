@@ -45,7 +45,18 @@
 #include "UserDefinedFunction.h"
 
 namespace documentdb {
-	bool compare(std::wstring string1,
+	std::wstring triggerOperationToWstring(
+		const TriggerOperation& trigger_operation);
+	TriggerOperation wstringToTriggerOperation(
+		const std::wstring& trigger_operation_str);
+
+	std::wstring triggerTypeToWstring(
+		const TriggerType& trigger_type);
+	TriggerType wstringToTriggerType
+		(const std::wstring& trigger_type_str);
+
+	bool comparei(
+		std::wstring string1,
 		std::wstring string2);
 
 	class Collection : public DocumentDBEntity, public std::enable_shared_from_this < Collection >

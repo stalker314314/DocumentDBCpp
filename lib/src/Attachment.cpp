@@ -22,24 +22,26 @@
 * SOFTWARE.
 ***/
 
-#ifndef _DOCUMENTDB_TRIGGER_OPERATION_H_
-#define _DOCUMENTDB_TRIGGER_OPERATION_H_
+#include "Attachment.h"
 
-#include <string>
+using namespace std;
+using namespace documentdb;
 
-namespace documentdb
+Attachment::Attachment(
+	const shared_ptr<const DocumentDBConfiguration>& document_db_configuration,
+	const wstring& id,
+	const wstring& resource_id,
+	unsigned long ts,
+	const wstring& self,
+	const wstring& etag,
+	const wstring& contentType,
+	const wstring& media)
+	: DocumentDBEntity(document_db_configuration, id, resource_id, ts, self, etag)
+	, contentType_(contentType)
+	, media_(media)
 {
-	enum TriggerOperation
-	{
-		ALL,
-		UPDATE,
-		REPLACE,
-		DEL,
-		CREATE
-	};
-
-	std::wstring triggerOperationToWstring(const TriggerOperation& trigger_operation);
-	TriggerOperation wstringToTriggerOperation(const std::wstring& trigger_operation_str);
 }
 
-#endif // !_DOCUMENTDB_TRIGGER_OPERATION_H_
+Attachment::~Attachment()
+{
+}

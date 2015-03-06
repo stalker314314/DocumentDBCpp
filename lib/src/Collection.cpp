@@ -98,43 +98,9 @@ shared_ptr<Trigger> Collection::TriggerFromJson(
 	wstring etag = json_trigger->at(RESPONSE_RESOURCE_ETAG).as_string();
 	wstring body = json_trigger->at(RESPONSE_RESOURCE_BODY).as_string();
 	wstring trigger_operation_str = json_trigger->at(RESPONSE_RESOURCE_TRIGGER_OPERATION).as_string();
-	TriggerOperation triggerOperation = TriggerOperation::ALL;
-	if (compare(trigger_operation_str, L"ALL"))
-	{
-	}
-	else if (compare(trigger_operation_str, L"UPDATE"))
-	{
-		triggerOperation = TriggerOperation::UPDATE;
-	}
-	else if (compare(trigger_operation_str, L"CREATE"))
-	{
-		triggerOperation = TriggerOperation::CREATE;
-	}
-	else if (compare(trigger_operation_str, L"REPLACE"))
-	{
-		triggerOperation = TriggerOperation::REPLACE;
-	}
-	else if (compare(trigger_operation_str, L"DELETE"))
-	{
-		triggerOperation = TriggerOperation::DEL;
-	}
-	else
-	{
-		throw DocumentDBRuntimeException(L"Unsupported trigger operation.");
-	}
+	TriggerOperation triggerOperation = wstringToTriggerOperation(trigger_operation_str);
 	wstring trigger_type_str = json_trigger->at(RESPONSE_RESOURCE_TRIGGER_TYPE).as_string();
-	TriggerType triggerType = TriggerType::PRE;
-	if (compare(trigger_type_str, L"PRE"))
-	{
-	}
-	else if (compare(trigger_type_str, L"POST"))
-	{
-		triggerType = TriggerType::POST;
-	}
-	else
-	{
-			throw DocumentDBRuntimeException(L"Unsupported trigger type.");
-	}
+	TriggerType triggerType = wstringToTriggerType(trigger_type_str);
 
 	IndexingPolicy indexing_policy;
 	if (json_trigger->has_field(RESPONSE_INDEXING_POLICY))
@@ -489,31 +455,8 @@ Concurrency::task<shared_ptr<Trigger>> Collection::CreateTriggerAsync(
 	value body_;
 	body_[DOCUMENT_ID] = value::string(id);
 	body_[BODY] = value::string(body);
-	switch (triggerOperation) {
-	case TriggerOperation::ALL:
-		body_[TRIGGER_OPERATION] = value::string(L"All");
-		break;
-	case TriggerOperation::CREATE:
-		body_[TRIGGER_OPERATION] = value::string(L"Create");
-		break;
-	case TriggerOperation::UPDATE:
-		body_[TRIGGER_OPERATION] = value::string(L"Update");
-		break;
-	case TriggerOperation::REPLACE:
-		body_[TRIGGER_OPERATION] = value::string(L"Replace");
-		break;
-	case TriggerOperation::DEL:
-		body_[TRIGGER_OPERATION] = value::string(L"Delete");
-		break;
-	}
-	switch (triggerType) {
-	case TriggerType::PRE:
-		body_[TRIGGER_TYPE] = value::string(L"Pre");
-		break;
-	case TriggerType::POST:
-		body_[TRIGGER_TYPE] = value::string(L"Post");
-		break;
-	}
+	body_[TRIGGER_OPERATION] = value::string(triggerOperationToWstring(triggerOperation));
+	body_[TRIGGER_TYPE] = value::string(triggerTypeToWstring(triggerType));
 	
 	request.set_body(body_);
 
@@ -621,31 +564,8 @@ Concurrency::task<shared_ptr<Trigger>> Collection::ReplaceTriggerAsync(
 	value body_;
 	body_[DOCUMENT_ID] = value::string(new_id);
 	body_[BODY] = value::string(body);
-	switch (triggerOperation) {
-	case TriggerOperation::ALL:
-		body_[TRIGGER_OPERATION] = value::string(L"All");
-		break;
-	case TriggerOperation::CREATE:
-		body_[TRIGGER_OPERATION] = value::string(L"Create");
-		break;
-	case TriggerOperation::UPDATE:
-		body_[TRIGGER_OPERATION] = value::string(L"Update");
-		break;
-	case TriggerOperation::REPLACE:
-		body_[TRIGGER_OPERATION] = value::string(L"Replace");
-		break;
-	case TriggerOperation::DEL:
-		body_[TRIGGER_OPERATION] = value::string(L"Delete");
-		break;
-	}
-	switch (triggerType) {
-	case TriggerType::PRE:
-		body_[TRIGGER_TYPE] = value::string(L"Pre");
-		break;
-	case TriggerType::POST:
-		body_[TRIGGER_TYPE] = value::string(L"Post");
-		break;
-	}
+	body_[TRIGGER_OPERATION] = value::string(triggerOperationToWstring(triggerOperation));
+	body_[TRIGGER_TYPE] = value::string(triggerTypeToWstring(triggerType));
 
 	request.set_body(body_);
 
