@@ -1,7 +1,7 @@
 # DocumentDBCpp
 
 ## Introduction
-DocumentDBCpp is C++ wrapper and object model for [DocumentDB ](http://azure.microsoft.com/en-us/services/documentdb/) NoSQL database. It is built on top of [Casablanca](https://casablanca.codeplex.com/) C++ Rest SDK framework, so all the goodies like [Task Parallelism](https://msdn.microsoft.com/en-us/library/dd492427.aspx) are included. There is no other dependencies except Casablanca.
+DocumentDBCpp is C++ wrapper and object model for [DocumentDB ](http://azure.microsoft.com/en-us/services/documentdb/) NoSQL database. It is built on top of [C++ REST SDK](https://github.com/Microsoft/cpprestsdk) framework, so all the goodies like [Task Parallelism](https://msdn.microsoft.com/en-us/library/dd492427.aspx) are included. There is no other dependencies except C++ REST SDK.
 
 ## Usage
 
@@ -41,4 +41,6 @@ Test your new changes by running Test.exe. Couple of notes before you fire it up
 1. Extend object model with users, triggers, UDFs, conflicts and the rest of supported DocumentDB entities
 2. Support for TCP protocol
 3. Support working with secondary keys
-4. Support Linux and all other platforms where Casablanca is supported
+4. Support Linux and all other platforms where C++ REST SDK is supported
+5. Support x64
+6. Support v140 toolset
