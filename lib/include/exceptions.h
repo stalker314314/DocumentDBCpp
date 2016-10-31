@@ -40,6 +40,11 @@ namespace documentdb
 		{
 		}
 
+		std::wstring message() const
+		{
+			return message_;
+		}
+
 	private:
 		std::wstring message_;
 	};
