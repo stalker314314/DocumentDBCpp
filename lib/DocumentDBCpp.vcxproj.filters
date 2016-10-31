@@ -14,6 +14,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="..\DocumentDbCpp.v120.nuspec" />
+    <None Include="..\DocumentDbCpp.v120.targets" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Collection.cpp">

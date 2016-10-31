@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>DocumentDbCpp.v120</id>
+    <version>0.1</version>
+    <authors>Branko Kokanovic</authors>
+    <owners>branko</owners>
+    <licenseUrl>https://opensource.org/licenses/MIT</licenseUrl>
+    <projectUrl>https://github.com/stalker314314/DocumentDBCpp</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>DocumentDBCpp is C++ wrapper and object model for DocumentDB NoSQL database. It is built on top of Casablanca C++ Rest SDK framework, so all the goodies like Task Parallelism are included. There is no other dependencies except Casablanca.</description>
+    <copyright>Copyright ©2016 Branko Kokanovic</copyright>
+    <tags>documentdb docdb C++ library wrapper</tags>
+    <dependencies>
+      <dependency id="cpprestsdk" version="2.4.0.1" />
+    </dependencies>
+  </metadata>
+
+  <files>
+    <file src="DocumentDbCpp.v120.targets" target="build\native" />
+    <file src="lib\include\*.h" target="lib\native\include\documentdbcpp" />
+    <file src="Debug\DocumentDBCpp.lib" target="lib\native\v120\Win32\Debug" />
+  </files>
+</package>
