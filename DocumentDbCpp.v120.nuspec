@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>DocumentDbCpp.v120</id>
-    <version>0.1</version>
+    <version>0.2</version>
     <authors>Branko Kokanovic</authors>
     <owners>branko</owners>
     <licenseUrl>https://opensource.org/licenses/MIT</licenseUrl>
@@ -19,6 +19,9 @@
   <files>
     <file src="DocumentDbCpp.v120.targets" target="build\native" />
     <file src="lib\include\*.h" target="lib\native\include\documentdbcpp" />
-    <file src="Debug\DocumentDBCpp.lib" target="lib\native\v120\Win32\Debug" />
+    <file src="v120\Win32\Debug\DocumentDBCpp.lib" target="lib\native\v120\Win32\Debug" />
+    <file src="v120\Win32\Release\DocumentDBCpp.lib" target="lib\native\v120\Win32\Release" />
+    <file src="v120\x64\Debug\DocumentDBCpp.lib" target="lib\native\v120\x64\Debug" />
+    <file src="v120\x64\Release\DocumentDBCpp.lib" target="lib\native\v120\x64\Release" />
   </files>
 </package>

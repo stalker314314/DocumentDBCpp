@@ -9,8 +9,8 @@
     <Link>
       <AdditionalDependencies Condition="'$(Configuration)' == 'Debug' And '$(Platform)' == 'x64'">Wininet.lib;$(MSBuildThisFileDirectory)..\..\lib\native\v120\x64\Debug\DocumentDBCpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(Configuration)' == 'Release' And '$(Platform)' == 'x64'">Wininet.lib;$(MSBuildThisFileDirectory)..\..\lib\native\v120\x64\Release\DocumentDBCpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalDependencies Condition="'$(Configuration)' == 'Debug' And ('$(Platform)' == 'Win32' Or '$(Platform)' == 'x86')">Wininet.lib;$(MSBuildThisFileDirectory)..\..\lib\native\v120\Win32\Debug\DocumentDBCpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalDependencies Condition="'$(Configuration)' == 'Release' And ('$(Platform)' == 'Win32' Or '$(Platform)' == 'x86')">Wininet.lib;$(MSBuildThisFileDirectory)..\..\lib\native\v120\Win32\Release\DocumentDBCpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Configuration)' == 'Debug' And ('$(Platform)' == 'Win32' Or '$(Platform)' == 'x86')">Wininet.lib;$(MSBuildThisFileDirectory)..\..\lib\native\v120\x64\Debug\DocumentDBCpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Configuration)' == 'Release' And ('$(Platform)' == 'Win32' Or '$(Platform)' == 'x86')">Wininet.lib;$(MSBuildThisFileDirectory)..\..\lib\native\v120\x64\Release\DocumentDBCpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ClCompile>
       <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)..\..\lib\native\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
