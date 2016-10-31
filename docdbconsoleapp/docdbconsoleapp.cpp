@@ -1,12 +1,10 @@
-// hellodocumentdbcpp.cpp : Defines the entry point for the console application.
-//
-
 #include "stdafx.h"
 #include <cpprest/json.h>
-#include "DocumentClient.h"
-#include "exceptions.h"
-#include "TriggerOperation.h"
-#include "TriggerType.h"
+
+#include "documentdbcpp\DocumentClient.h"
+#include "documentdbcpp\exceptions.h"
+#include "documentdbcpp\TriggerOperation.h"
+#include "documentdbcpp\TriggerType.h"
 
 using namespace std;
 using namespace documentdb;
