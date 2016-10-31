@@ -23,7 +23,10 @@ shared_ptr<Database> createdbandcoll(const DocumentClient& client, const wstring
 	catch (DocumentDBRuntimeException ex) {
 		wcout << ex.message();
 	}
+
+	return nullptr;
 }
+
 void replacedocument(const DocumentClient& client, const wstring dbresourceid, const wstring collresourceid,
 	const wstring docresourceid) {
 	try {
