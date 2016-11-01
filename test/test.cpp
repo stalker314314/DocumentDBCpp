@@ -25,6 +25,8 @@
 #include <cstdlib>
 #include <ctime>
 #include <fstream>
+#include <chrono>
+#include <thread>
 
 #include <cpprest/json.h>
 
@@ -34,6 +36,7 @@
 #include "TriggerType.h"
 
 using namespace std;
+using namespace std::chrono;
 using namespace documentdb;
 using namespace web::json;
 
@@ -1327,24 +1330,31 @@ int main()
 {
 	srand((unsigned int)time(nullptr));
 
-	wifstream confFile("account_configuration.txt");
 	wstring account, primaryKey;
-	confFile >> account;
-	confFile >> primaryKey;
+	account = L"";
+	primaryKey = L"";
 
 	DocumentDBConfiguration conf (
 		account,
 		primaryKey);
 	DocumentClient client(conf);
 
-	test_databases(client);
+	//test_databases(client);
+	std::this_thread::sleep_for(std::chrono::seconds(10));
 	test_collections(client);
+	std::this_thread::sleep_for(std::chrono::seconds(10));
 	test_documents(client);
+	std::this_thread::sleep_for(std::chrono::seconds(10));
 	test_users(client);
+	std::this_thread::sleep_for(std::chrono::seconds(10));
 	test_permissions(client);
+	std::this_thread::sleep_for(std::chrono::seconds(10));
 	test_triggers(client);
+	std::this_thread::sleep_for(std::chrono::seconds(10));
 	test_stored_procedures(client);
-	test_user_defined_functions(client);
+	std::this_thread::sleep_for(std::chrono::seconds(10));
+	//test_user_defined_functions(client);
+	std::this_thread::sleep_for(std::chrono::seconds(10));
 	test_attachments(client);
 
 	return 0;
