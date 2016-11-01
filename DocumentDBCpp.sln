@@ -10,7 +10,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test", "test\Test.vcxproj",
 		{ACBCCE76-0A69-4894-A789-FB0FA116D2D2} = {ACBCCE76-0A69-4894-A789-FB0FA116D2D2}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "docdbconsoleapp", "docdbconsoleapp\docdbconsoleapp.vcxproj", "{667494AE-7457-4847-9395-43B2904D351C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hellodocumentdb", "hellodocumentdb\hellodocumentdb.vcxproj", "{667494AE-7457-4847-9395-43B2904D351C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

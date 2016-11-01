@@ -26,7 +26,7 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="docdbconsoleapp.cpp">
+    <ClCompile Include="hellodocumentdb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
