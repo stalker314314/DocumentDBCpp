@@ -1,5 +1,6 @@
 # User solutions
 *.suo
+*.user
 
 # Debug and Release directories
 Debug/
@@ -9,6 +10,7 @@ Release/
 *.sdf
 *.opensdf
 DocumentDBCpp.VC.db
+DocumentDBCpp.VC.VC.opendb
 
 # NuGet packages directory
 packages/
