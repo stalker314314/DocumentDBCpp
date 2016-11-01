@@ -9,8 +9,8 @@ Release/
 # Browsing database
 *.sdf
 *.opensdf
-DocumentDBCpp.VC.db
-DocumentDBCpp.VC.VC.opendb
+DocumentDBCpp.v120.VC.db
+DocumentDBCpp.v120.VC.VC.opendb
 
 # NuGet packages directory
 packages/
