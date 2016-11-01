@@ -25,8 +25,6 @@
 #include <cstdlib>
 #include <ctime>
 #include <fstream>
-#include <chrono>
-#include <thread>
 
 #include <cpprest/json.h>
 
@@ -36,7 +34,6 @@
 #include "TriggerType.h"
 
 using namespace std;
-using namespace std::chrono;
 using namespace documentdb;
 using namespace web::json;
 
@@ -586,7 +583,7 @@ void test_users(
 	assert(user->id() == user2->id());
 	assert(user->self() == user2->self());
 	assert(user->permissions() == user2->permissions());
-	
+
 
 	// Try reading all users and make sure there is only test one in it
 	users = db->ListUsersAsync().get();
@@ -595,7 +592,7 @@ void test_users(
 	assert(users[0]->id() == user->id());
 	assert(users[0]->self() == user->self());
 	assert(users[0]->permissions() == user->permissions());
-	
+
 	// Replace user
 	wstring new_user_name = generate_random_string(8);
 	user = db->ReplaceUserAsync(user->resource_id(), wstring(new_user_name)).get();
@@ -972,7 +969,7 @@ void test_stored_procedures(
 	value input;
 	coll->ExecuteStoredProcedure(sproc->resource_id(), input);
 	coll->ExecuteStoredProcedureAsync(sproc->resource_id(), input).get();
-	
+
 
 	// Replace sproc
 	wstring new_sproc_name = generate_random_string(8);
@@ -1330,31 +1327,24 @@ int main()
 {
 	srand((unsigned int)time(nullptr));
 
+	wifstream confFile("account_configuration.txt");
 	wstring account, primaryKey;
-	account = L"";
-	primaryKey = L"";
+	confFile >> account;
+	confFile >> primaryKey;
 
-	DocumentDBConfiguration conf (
+	DocumentDBConfiguration conf(
 		account,
 		primaryKey);
 	DocumentClient client(conf);
 
-	//test_databases(client);
-	std::this_thread::sleep_for(std::chrono::seconds(10));
+	test_databases(client);
 	test_collections(client);
-	std::this_thread::sleep_for(std::chrono::seconds(10));
 	test_documents(client);
-	std::this_thread::sleep_for(std::chrono::seconds(10));
 	test_users(client);
-	std::this_thread::sleep_for(std::chrono::seconds(10));
 	test_permissions(client);
-	std::this_thread::sleep_for(std::chrono::seconds(10));
 	test_triggers(client);
-	std::this_thread::sleep_for(std::chrono::seconds(10));
 	test_stored_procedures(client);
-	std::this_thread::sleep_for(std::chrono::seconds(10));
-	//test_user_defined_functions(client);
-	std::this_thread::sleep_for(std::chrono::seconds(10));
+	test_user_defined_functions(client);
 	test_attachments(client);
 
 	return 0;
