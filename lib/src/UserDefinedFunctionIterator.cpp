@@ -22,10 +22,10 @@
 * SOFTWARE.
 ***/
 
-#include "UserDefinedFunctionIterator.h"
-
+#include <assert.h>
 #include <cpprest/http_client.h>
 
+#include "UserDefinedFunctionIterator.h"
 #include "Collection.h"
 #include "ConnectionHelper.h"
 #include "DocumentDBConstants.h"

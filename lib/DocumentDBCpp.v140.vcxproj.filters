@@ -1,0 +1,171 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{61eca1f6-f38e-41e3-b62a-63be5d2cb24c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include">
+      <UniqueIdentifier>{62f7d2fb-d17a-484c-80c3-6c7d957d6d00}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="..\DocumentDbCpp.v140.nuspec" />
+    <None Include="..\DocumentDbCpp.v140.targets" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Collection.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Database.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ConnectionHelper.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DocumentClient.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DocumentDBConfiguration.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DocumentIterator.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hmac_bcrypt.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Index.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\IndexingPolicy.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DocumentDBEntity.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Document.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\User.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Permission.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Trigger.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TriggerIterator.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StoredProcedure.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StoredProcedureIterator.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Utils.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UserDefinedFunction.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UserDefinedFunctionIterator.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Attachment.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\AttachmentIterator.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\Collection.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ConnectionHelper.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Database.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\DocumentClient.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\DocumentDBConfiguration.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\DocumentDBConstants.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\DocumentIterator.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\exceptions.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\hmac_bcrypt.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Index.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\IndexingMode.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\IndexingPolicy.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\IndexType.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\DocumentDBEntity.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Document.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\User.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Permission.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Trigger.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\TriggerIterator.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\TriggerOperation.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\TriggerType.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\StoredProcedure.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\StoredProcedureIterator.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\UserDefinedFunction.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\UserDefinedFunctionIterator.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Attachment.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\AttachmentIterator.h">
+      <Filter>include</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

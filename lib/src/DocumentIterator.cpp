@@ -22,10 +22,10 @@
 * SOFTWARE.
 ***/
 
-#include "DocumentIterator.h"
-
+#include <assert.h>
 #include <cpprest/http_client.h>
 
+#include "DocumentIterator.h"
 #include "Collection.h"
 #include "ConnectionHelper.h"
 #include "DocumentDBConstants.h"

@@ -11,6 +11,8 @@ Release/
 *.opensdf
 DocumentDBCpp.v120.VC.db
 DocumentDBCpp.v120.VC.VC.opendb
+DocumentDBCpp.v140.VC.db
+DocumentDBCpp.v140.VC.VC.opendb
 
 # NuGet packages directory
 packages/

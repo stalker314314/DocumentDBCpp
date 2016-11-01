@@ -22,10 +22,10 @@
 * SOFTWARE.
 ***/
 
-#include "TriggerIterator.h"
-
+#include <assert.h>
 #include <cpprest/http_client.h>
 
+#include "TriggerIterator.h"
 #include "Collection.h"
 #include "ConnectionHelper.h"
 #include "DocumentDBConstants.h"

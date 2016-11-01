@@ -22,11 +22,11 @@
 * SOFTWARE.
 ***/
 
-#include "Index.h"
-
+#include <assert.h>
 #include <string>
 #include <cpprest/json.h>
 
+#include "Index.h"
 #include "DocumentDBConstants.h"
 
 using namespace documentdb;
