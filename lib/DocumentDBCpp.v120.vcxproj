@@ -75,21 +75,25 @@
     <TargetExt>.lib</TargetExt>
     <TargetName>DocumentDBCpp</TargetName>
     <OutDir>$(SolutionDir)$(PlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(PlatformToolset)\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetExt>.lib</TargetExt>
     <TargetName>DocumentDBCpp</TargetName>
     <OutDir>$(SolutionDir)$(PlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(PlatformToolset)\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <TargetExt>.lib</TargetExt>
     <TargetName>DocumentDBCpp</TargetName>
     <OutDir>$(SolutionDir)$(PlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(PlatformToolset)\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetExt>.lib</TargetExt>
     <TargetName>DocumentDBCpp</TargetName>
     <OutDir>$(SolutionDir)$(PlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(PlatformToolset)\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

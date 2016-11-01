@@ -2,7 +2,8 @@
 <package>
   <metadata>
     <id>DocumentDbCpp.v120</id>
-    <version>0.4</version>
+    <version>0.5</version>
+    <title>C++ wrapper and object model for DocumentDB NoSQL database</title>
     <authors>Branko Kokanovic</authors>
     <owners>branko</owners>
     <licenseUrl>https://opensource.org/licenses/MIT</licenseUrl>

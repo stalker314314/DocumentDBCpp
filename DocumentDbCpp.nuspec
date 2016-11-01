@@ -2,8 +2,8 @@
 <package >
   <metadata>
     <id>DocumentDbCpp</id>
-    <version>0.4</version>
-    <title>Microsoft Azure Storage Client Library for C++</title>
+    <version>0.5</version>
+    <title>C++ wrapper and object model for DocumentDB NoSQL database</title>
     <authors>Branko Kokanovic</authors>
     <owners>branko</owners>
     <licenseUrl>https://opensource.org/licenses/MIT</licenseUrl>
@@ -14,8 +14,8 @@
     <copyright>Copyright ©2016 Branko Kokanovic</copyright>
     <tags>documentdb docdb C++ library wrapper</tags>
     <dependencies>
-      <dependency id="DocumentDbCpp.v120" version="0.4" />
-      <dependency id="DocumentDbCpp.v140" version="0.4" />
+      <dependency id="DocumentDbCpp.v120" version="0.5" />
+      <dependency id="DocumentDbCpp.v140" version="0.5" />
     </dependencies>
   </metadata>
   <files>
