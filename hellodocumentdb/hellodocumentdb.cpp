@@ -1,31 +1,45 @@
+// hellodocumentdb.cpp : Defines the entry point for the console application.
+//
+
 #include "stdafx.h"
 #include <cpprest/json.h>
-
-#include "documentdbcpp\DocumentClient.h"
-#include "documentdbcpp\exceptions.h"
-#include "documentdbcpp\TriggerOperation.h"
-#include "documentdbcpp\TriggerType.h"
-
-using namespace std;
+#include <documentdbcpp\DocumentClient.h>
+#include <documentdbcpp\exceptions.h>
+#include <documentdbcpp\TriggerOperation.h>
+#include <documentdbcpp\TriggerType.h>
 using namespace documentdb;
 using namespace web::json;
+using namespace std;
 
-shared_ptr<Database> createdbandcoll(const DocumentClient& client, const wstring dbname, const wstring collname) {
+void executesimplequery(const DocumentClient &client,
+	const wstring dbresourceid,
+	const wstring collresourceid) {
 	try {
-		// Create a new database (say dbname=FamilyRegistry)
-		shared_ptr<Database> db = client.CreateDatabase(dbname);
-		// Create a collection inside database (say collname=FamilyCollection)
-		shared_ptr<Collection> coll = db->CreateCollection(collname);
-		return db;
+		client.GetDatabase(dbresourceid).get();
+		shared_ptr<Database> db = client.GetDatabase(dbresourceid);
+		shared_ptr<Collection> coll = db->GetCollection(collresourceid);
+		wstring coll_name = coll->id();
+		shared_ptr<DocumentIterator> iter =
+			coll->QueryDocumentsAsync(wstring(L"SELECT * FROM " + coll_name)).get();
+		wcout << "\n\nQuerying collection:";
+		while (iter->HasMore()) {
+			shared_ptr<Document> doc = iter->Next();
+			wstring doc_name = doc->id();
+			wcout << "\n\t" << doc_name << "\n";
+			wcout << "\t"
+				<< "[{\"FirstName\":"
+				<< doc->payload().at(U("FirstName")).as_string()
+				<< ",\"LastName\":" << doc->payload().at(U("LastName")).as_string()
+				<< "}]";
+		}
 	}
 	catch (DocumentDBRuntimeException ex) {
 		wcout << ex.message();
 	}
-
-	return nullptr;
 }
 
-void replacedocument(const DocumentClient& client, const wstring dbresourceid, const wstring collresourceid,
+void replacedocument(const DocumentClient &client, const wstring dbresourceid,
+	const wstring collresourceid,
 	const wstring docresourceid) {
 	try {
 		client.GetDatabase(dbresourceid).get();
@@ -35,15 +49,16 @@ void replacedocument(const DocumentClient& client, const wstring dbresourceid, c
 		newdoc[L"id"] = value::string(L"WakefieldFamily");
 		newdoc[L"FirstName"] = value::string(L"Lucy");
 		newdoc[L"LastName"] = value::string(L"Smith Wakefield");
-		coll->ReplaceDocumentAsync(docresourceid, newdoc);
+		coll->ReplaceDocument(docresourceid, newdoc);
 	}
 	catch (DocumentDBRuntimeException ex) {
 		throw;
 	}
 }
 
-void deletedocument(const DocumentClient& client, const wstring dbresourceid, const wstring collresourceid,
-	const wstring docresourceid) {
+
+void deletedocument(const DocumentClient &client, const wstring dbresourceid,
+	const wstring collresourceid, const wstring docresourceid) {
 	try {
 		client.GetDatabase(dbresourceid).get();
 		shared_ptr<Database> db = client.GetDatabase(dbresourceid);
@@ -51,46 +66,24 @@ void deletedocument(const DocumentClient& client, const wstring dbresourceid, co
 		coll->DeleteDocumentAsync(docresourceid).get();
 	}
 	catch (DocumentDBRuntimeException ex) {
-		throw;
+		wcout << ex.message();
 	}
 }
 
-void deletedb(const DocumentClient& client, const wstring dbresourceid) {
+void deletedb(const DocumentClient &client, const wstring dbresourceid) {
 	try {
 		client.DeleteDatabase(dbresourceid);
-	}
-	catch (DocumentDBRuntimeException ex) {
-		throw;
-	}
-}
-
-void executesimplequery(const DocumentClient& client, const wstring dbresourceid, const wstring collresourceid) {
-	try {
-		client.GetDatabase(dbresourceid).get();
-		shared_ptr<Database> db = client.GetDatabase(dbresourceid);
-		shared_ptr<Collection> coll = db->GetCollection(collresourceid);
-		wstring coll_name = coll->id();
-		shared_ptr<DocumentIterator> iter = coll->QueryDocumentsAsync(wstring(L"SELECT * FROM " + coll_name)).get();
-		wcout << "\n\nQuerying collection:";
-		while (iter->HasMore())
-		{
-			shared_ptr<Document> doc = iter->Next();
-			wstring doc_name = doc->id();
-			wcout << "\n\t" << doc_name << "\n";
-			wcout << "\t" << "[{\"FirstName\":" << doc->payload().at(U("FirstName")).as_string() << ",\"LastName\":"
-				<< doc->payload().at(U("LastName")).as_string() << "}]";
-		}
 	}
 	catch (DocumentDBRuntimeException ex) {
 		wcout << ex.message();
 	}
 }
 
-int main()
-{
+int main() {
 	try {
 		// Start by defining your account's configuration
-		DocumentDBConfiguration conf(L"https://cppdocuments.documents.azure.com:443/", L"Add your key here");
+		DocumentDBConfiguration conf(
+			L"https://cppdocuments.documents.azure.com:443/", L"Add your key here");
 		// Create your client
 		DocumentClient client(conf);
 		// Create a new database
@@ -100,28 +93,29 @@ int main()
 			// Create a collection inside database
 			shared_ptr<Collection> coll = db->CreateCollection(L"FamilyColl");
 			wcout << "\n\nCreating collection:\n" << coll->id();
-
 			value document_family;
-
 			document_family[L"id"] = value::string(L"AndersenFamily");
 			document_family[L"FirstName"] = value::string(L"Thomas");
 			document_family[L"LastName"] = value::string(L"Andersen");
-			shared_ptr<Document> doc = coll->CreateDocumentAsync(document_family).get();
+			shared_ptr<Document> doc =
+				coll->CreateDocumentAsync(document_family).get();
 			wcout << "\n\nCreating document:\n" << doc->id();
-
 			document_family[L"id"] = value::string(L"WakefieldFamily");
 			document_family[L"FirstName"] = value::string(L"Lucy");
 			document_family[L"LastName"] = value::string(L"Wakefield");
 			doc = coll->CreateDocumentAsync(document_family).get();
 			wcout << "\n\nCreating document:\n" << doc->id();
-
 			executesimplequery(client, db->resource_id(), coll->resource_id());
-			replacedocument(client, db->resource_id(), coll->resource_id(), doc->resource_id());
+			replacedocument(client, db->resource_id(), coll->resource_id(),
+				doc->resource_id());
+			wcout << "\n\nReplaced document:\n" << doc->id();
 			executesimplequery(client, db->resource_id(), coll->resource_id());
-			deletedocument(client, db->resource_id(), coll->resource_id(), doc->resource_id());
+			deletedocument(client, db->resource_id(), coll->resource_id(),
+				doc->resource_id());
 			wcout << "\n\nDeleted document:\n" << doc->id();
 			deletedb(client, db->resource_id());
 			wcout << "\n\nDeleted db:\n" << db->id();
+			cin.get();
 		}
 		catch (ResourceAlreadyExistsException ex) {
 			wcout << ex.message();
@@ -130,6 +124,5 @@ int main()
 	catch (DocumentDBRuntimeException ex) {
 		wcout << ex.message();
 	}
+	cin.get();
 }
-
-
