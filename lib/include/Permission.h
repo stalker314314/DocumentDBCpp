@@ -40,36 +40,36 @@ namespace documentdb {
 	public:
 		Permission(
 			const std::shared_ptr<const DocumentDBConfiguration>& document_db_configuration,
-			const std::wstring& id,
-			const std::wstring& permission_mode,
-			const std::wstring& resource,
-			const std::wstring& resource_id,
+			const utility::string_t& id,
+			const utility::string_t& permission_mode,
+			const utility::string_t& resource,
+			const utility::string_t& resource_id,
 			unsigned long ts,
-			const std::wstring& self,
-			const std::wstring& etag,
-			const std::wstring& token);
+			const utility::string_t& self,
+			const utility::string_t& etag,
+			const utility::string_t& token);
 
 		virtual ~Permission();
 
-		std::wstring permission_mode() const
+		utility::string_t permission_mode() const
 		{
 			return permission_mode_;
 		}
 
-		std::wstring resource() const
+		utility::string_t resource() const
 		{
 			return resource_;
 		}
 
-		std::wstring token() const
+		utility::string_t token() const
 		{
 			return token_;
 		}
 
 	private:
-		std::wstring resource_;
-		std::wstring token_;
-		std::wstring permission_mode_;
+		utility::string_t resource_;
+		utility::string_t token_;
+		utility::string_t permission_mode_;
 	};
 }
 

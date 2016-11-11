@@ -42,18 +42,18 @@ namespace documentdb {
 	public:
 		Trigger(
 			const std::shared_ptr<const DocumentDBConfiguration>& document_db_configuration,
-			const std::wstring& id,
-			const std::wstring& resource_id,
+			const utility::string_t& id,
+			const utility::string_t& resource_id,
 			unsigned long ts,
-			const std::wstring& self,
-			const std::wstring& etag,
-			const std::wstring& body,
+			const utility::string_t& self,
+			const utility::string_t& etag,
+			const utility::string_t& body,
 			const TriggerOperation& triggerOperation,
 			const TriggerType& triggerType);
 
 		virtual ~Trigger();
 
-		std::wstring body() const
+		utility::string_t body() const
 		{
 			return body_;
 		}
@@ -69,7 +69,7 @@ namespace documentdb {
 		}
 
 	private:
-		std::wstring body_;
+		utility::string_t body_;
 		TriggerOperation triggerOperation_;
 		TriggerType triggerType_;
 	};

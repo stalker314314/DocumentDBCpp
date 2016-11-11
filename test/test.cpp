@@ -34,12 +34,17 @@
 #include "TriggerType.h"
 
 using namespace std;
+using namespace utility;
 using namespace documentdb;
 using namespace web::json;
 
-const wstring js_function = L"function() {var x = 10; return 1; }";
+#ifndef U
+#define U(x) _XPLATSTR(x)
+#endif
 
-wstring generate_random_string(
+const string_t js_function = U("function() {var x = 10; return 1; }");
+
+string_t generate_random_string(
 	size_t length)
 {
 	auto randchar = []() -> char
@@ -48,7 +53,7 @@ wstring generate_random_string(
 		const size_t max_index = sizeof(charset) - 1;
 		return charset[rand() % max_index];
 	};
-	wstring str(length, 0);
+	string_t str(length, 0);
 	generate_n(str.begin(), length, randchar);
 	return str;
 }
@@ -131,8 +136,8 @@ void test_databases(
 	assert(previous_db_count == client.ListDatabases().size());
 
 	// Create database with a random name
-	wstring db_name = generate_random_string(8);
-	shared_ptr<Database> db = client.CreateDatabaseAsync(wstring(db_name)).get();
+	string_t db_name = generate_random_string(8);
+	shared_ptr<Database> db = client.CreateDatabaseAsync(string_t(db_name)).get();
 	assert(db->id() == db_name);
 
 	// We cannot create database with a same ID
@@ -182,12 +187,12 @@ void test_databases(
 	assert(db->users() == read_db->users());
 
 	// Replace database
-	wstring new_db_name = generate_random_string(8);
-	db = client.ReplaceDatabaseAsync(db->resource_id(), wstring(new_db_name)).get();
+	string_t new_db_name = generate_random_string(8);
+	db = client.ReplaceDatabaseAsync(db->resource_id(), string_t(new_db_name)).get();
 	assert(db->id() == new_db_name);
 
 	// Delete created database
-	wstring resource_id = db->resource_id();
+	string_t resource_id = db->resource_id();
 	client.DeleteDatabaseAsync(db->resource_id()).get();
 
 	// We cannot delete database that does not exist
@@ -236,10 +241,10 @@ void test_databases(
 void test_collections(
 	const DocumentClient& client)
 {
-	wstring db_name = generate_random_string(8);
+	string_t db_name = generate_random_string(8);
 
 	// Create a database on which we are going to test collections
-	shared_ptr<Database> db = client.CreateDatabase(wstring(db_name));
+	shared_ptr<Database> db = client.CreateDatabase(string_t(db_name));
 
 	// There should be no collections at this point in this database
 	vector<shared_ptr<Collection>> colls = db->ListCollectionsAsync().get();
@@ -247,7 +252,7 @@ void test_collections(
 	assert(colls.size() == db->ListCollections().size());
 
 	// Create new test collection
-	wstring coll_name = generate_random_string(8);
+	string_t coll_name = generate_random_string(8);
 	shared_ptr<Collection> coll = db->CreateCollectionAsync(coll_name).get();
 	assert(coll->id() == coll_name);
 
@@ -296,7 +301,7 @@ void test_collections(
 	assert(colls[0]->udfs() == coll->udfs());
 
 	// Delete created collection
-	wstring resource_id = coll->resource_id();
+	string_t resource_id = coll->resource_id();
 	db->DeleteCollectionAsync(coll).get();
 
 	// We cannot get collection that does not exist
@@ -348,32 +353,32 @@ void test_collections(
 void test_documents(
 	const DocumentClient& client)
 {
-	wstring db_name = generate_random_string(8);
+	string_t db_name = generate_random_string(8);
 
 	// Create a database on which we are going to test collections
-	shared_ptr<Database> db = client.CreateDatabase(wstring(db_name));
+	shared_ptr<Database> db = client.CreateDatabase(string_t(db_name));
 
 	// Create new test collection
-	wstring coll_name = generate_random_string(8);
+	string_t coll_name = generate_random_string(8);
 	shared_ptr<Collection> coll = db->CreateCollection(coll_name);
 
 	// Collection should be empty
 	assert(coll->ListDocumentsAsync().get().size() == 0);
 	assert(coll->ListDocuments().size() == 0);
 
-	shared_ptr<DocumentIterator> iter = coll->QueryDocumentsAsync(wstring(L"SELECT * FROM " + coll_name)).get();
+	shared_ptr<DocumentIterator> iter = coll->QueryDocumentsAsync(U("SELECT * FROM ") + coll_name).get();
 	assert(!iter->HasMore());
 
 	// Try inserting one document with ID set
 	value document1;
-	document1[L"id"] = value::string(L"id");
-	document1[L"foo"] = value::string(L"bar");
+	document1[U("id")] = value::string(U("id"));
+	document1[U("foo")] = value::string(U("bar"));
 	shared_ptr<Document> doc = coll->CreateDocumentAsync(document1).get();
-	assert(doc->id() == L"id");
+	assert(doc->id() == U("id"));
 
 	// Try inserting document with same ID
 	value document_conflict;
-	document_conflict[L"id"] = value::string(L"id");
+	document_conflict[U("id")] = value::string(U("id"));
 
 	try
 	{
@@ -417,21 +422,21 @@ void test_documents(
 
 	// Get document
 	shared_ptr<Document> doc_get = coll->GetDocumentAsync(doc->resource_id()).get();
-	assert(doc_get->payload().at(L"foo").as_string() == L"bar");
+	assert(doc_get->payload().at(U("foo")).as_string() == U("bar"));
 	compare_documents(doc_get, doc);
 
 	// Query for documents
 	vector <shared_ptr<Document>> doc_list = coll->ListDocumentsAsync().get();
 	assert(doc_list.size() == 1);
-	assert(doc_list[0]->payload().at(L"foo").as_string() == L"bar");
+	assert(doc_list[0]->payload().at(U("foo")).as_string() == U("bar"));
 	compare_documents(doc_list[0], doc);
 
-	iter = coll->QueryDocumentsAsync(wstring(L"SELECT * FROM " + coll_name)).get();
+	iter = coll->QueryDocumentsAsync(U("SELECT * FROM ") + coll_name).get();
 	int count = 0;
 	while (iter->HasMore())
 	{
 		shared_ptr<Document> iter_doc = iter->Next();
-		assert(iter_doc->payload().at(L"foo").as_string() == L"bar");
+		assert(iter_doc->payload().at(U("foo")).as_string() == U("bar"));
 		compare_documents(iter_doc, doc);
 
 		count++;
@@ -439,12 +444,12 @@ void test_documents(
 	assert(count == 1);
 
 	// Delete document with document
-	wstring resource_id = doc->resource_id();
+	string_t resource_id = doc->resource_id();
 	coll->DeleteDocumentAsync(doc).get();
 
 	assert(coll->ListDocumentsAsync().get().size() == 0);
 
-	iter = coll->QueryDocuments(wstring(L"SELECT * FROM " + coll_name));
+	iter = coll->QueryDocuments(U("SELECT * FROM ") + coll_name);
 	assert(!iter->HasMore());
 
 	// Getting the document that does not exist results in exception
@@ -491,29 +496,29 @@ void test_documents(
 
 	// Try inserting one document without ID set
 	value document2;
-	document2[L"foo2"] = value::string(L"bar2");
+	document2[U("foo2")] = value::string(U("bar2"));
 	doc = coll->CreateDocument(document2);
 
 	// Query again for documents
 	doc_list = coll->ListDocuments();
 	assert(doc_list.size() == 1);
-	assert(doc_list[0]->payload().at(L"foo2").as_string() == L"bar2");
+	assert(doc_list[0]->payload().at(U("foo2")).as_string() == U("bar2"));
 	compare_documents(doc_list[0], doc);
 
 	coll->DeleteDocument(doc->resource_id());
 
 	// Try inserting document as JSON
-	wstring id = generate_random_string(32);
-	wstring json_object = L"{\"id\": \"" + id + L"\", \"foo3\": \"bar3\" }";
+	string_t id = generate_random_string(32);
+	string_t json_object = U("{\"id\": \"") + id + U("\", \"foo3\": \"bar3\" }");
 	doc = coll->CreateDocument(json_object);
 
 	// Query again for documents
-	iter = coll->QueryDocuments(wstring(L"SELECT * FROM " + coll_name));
+	iter = coll->QueryDocuments(U("SELECT * FROM ") + coll_name);
 	count = 0;
 	while (iter->HasMore())
 	{
 		shared_ptr<Document> iter_doc = iter->Next();
-		assert(doc->payload().at(L"foo3").as_string() == L"bar3");
+		assert(doc->payload().at(U("foo3")).as_string() == U("bar3"));
 		compare_documents(iter_doc, doc);
 
 		count++;
@@ -521,14 +526,14 @@ void test_documents(
 	assert(count == 1);
 
 	// Replace document
-	document2[L"foo3"] = value::string(L"bar4");
+	document2[U("foo3")] = value::string(U("bar4"));
 	shared_ptr<Document> replaced_doc = coll->ReplaceDocumentAsync(doc->resource_id(), document2).get();
-	assert(replaced_doc->payload().at(L"foo3").as_string() == L"bar4");
+	assert(replaced_doc->payload().at(U("foo3")).as_string() == U("bar4"));
 	compare_documents(replaced_doc, doc, true);
 
 	// Delete document with resource ID
 	coll->DeleteDocumentAsync(doc->resource_id()).get();
-	iter = coll->QueryDocuments(wstring(L"SELECT * FROM " + coll_name));
+	iter = coll->QueryDocuments(U("SELECT * FROM ") + coll_name);
 	assert(!iter->HasMore());
 
 	// Delete collection now that we are done testing
@@ -541,10 +546,10 @@ void test_documents(
 void test_users(
 	const DocumentClient& client)
 {
-	wstring db_name = generate_random_string(8);
+	string_t db_name = generate_random_string(8);
 
 	// Create a database on which we are going to test users
-	shared_ptr<Database> db = client.CreateDatabase(wstring(db_name));
+	shared_ptr<Database> db = client.CreateDatabase(string_t(db_name));
 
 	// There should be no users at this point in this database
 	vector<shared_ptr<User>> users = db->ListUsersAsync().get();
@@ -552,7 +557,7 @@ void test_users(
 	assert(users.size() == db->ListUsers().size());
 
 	// Create new test user
-	wstring user_name = generate_random_string(8);
+	string_t user_name = generate_random_string(8);
 	shared_ptr<User> user = db->CreateUserAsync(user_name).get();
 	assert(user->id() == user_name);
 
@@ -594,12 +599,12 @@ void test_users(
 	assert(users[0]->permissions() == user->permissions());
 
 	// Replace user
-	wstring new_user_name = generate_random_string(8);
-	user = db->ReplaceUserAsync(user->resource_id(), wstring(new_user_name)).get();
+	string_t new_user_name = generate_random_string(8);
+	user = db->ReplaceUserAsync(user->resource_id(), string_t(new_user_name)).get();
 	assert(user->id() == new_user_name);
 
 	// Delete created user
-	wstring resource_id = user->resource_id();
+	string_t resource_id = user->resource_id();
 	db->DeleteUserAsync(user).get();
 
 	// We cannot get user that does not exist
@@ -650,35 +655,35 @@ void test_users(
 
 void test_permissions(
 	const DocumentClient& client) {
-	wstring db_name = generate_random_string(8);
+	string_t db_name = generate_random_string(8);
 
 	// Create a database on which we are going to test permissions
-	shared_ptr<Database> db = client.CreateDatabase(wstring(db_name));
+	shared_ptr<Database> db = client.CreateDatabase(string_t(db_name));
 
-	wstring user_name = generate_random_string(8);
+	string_t user_name = generate_random_string(8);
 
 	// Create a user on which we are going to test permissions
-	shared_ptr<User> user = db->CreateUser(wstring(user_name));
+	shared_ptr<User> user = db->CreateUser(string_t(user_name));
 
 	// There should be no permissions at this point in this database
 	vector<shared_ptr<Permission>> permissions = user->ListPermissionsAsync().get();
 	assert(permissions.size() == 0);
 	assert(permissions.size() == user->ListPermissions().size());
 
-	wstring coll_name = generate_random_string(8);
+	string_t coll_name = generate_random_string(8);
 
 	// Create a collection on which we are going to test permissions
-	shared_ptr<Collection> coll = db->CreateCollection(wstring(coll_name));
+	shared_ptr<Collection> coll = db->CreateCollection(string_t(coll_name));
 
 	// Create new test permission
-	wstring permission_name = generate_random_string(8);
-	shared_ptr<Permission> permission = user->CreatePermissionAsync(permission_name, L"All", coll->self()).get();
+	string_t permission_name = generate_random_string(8);
+	shared_ptr<Permission> permission = user->CreatePermissionAsync(permission_name, U("All"), coll->self()).get();
 	assert(permission->id() == permission_name);
 
 	// We cannot create permission with same resource ID
 	try
 	{
-		user->CreatePermissionAsync(permission_name, L"All", coll->self()).get();
+		user->CreatePermissionAsync(permission_name, U("All"), coll->self()).get();
 		assert(false);
 	}
 	catch (const ResourceAlreadyExistsException&)
@@ -688,7 +693,7 @@ void test_permissions(
 
 	try
 	{
-		user->CreatePermission(permission_name, L"All", coll->self());
+		user->CreatePermission(permission_name, U("All"), coll->self());
 		assert(false);
 	}
 	catch (const ResourceAlreadyExistsException&)
@@ -714,12 +719,12 @@ void test_permissions(
 	assert(permissions[0]->resource() == permission->resource());
 
 	// Replace permission
-	wstring new_permission_name = generate_random_string(8);
-	permission = user->ReplacePermissionAsync(permission->resource_id(), wstring(new_permission_name), L"Read", coll->self()).get();
+	string_t new_permission_name = generate_random_string(8);
+	permission = user->ReplacePermissionAsync(permission->resource_id(), string_t(new_permission_name), U("Read"), coll->self()).get();
 	assert(permission->id() == new_permission_name);
 
 	// Delete created permission
-	wstring resource_id = permission->resource_id();
+	string_t resource_id = permission->resource_id();
 	user->DeletePermissionAsync(permission).get();
 
 	// We cannot get permission that does not exist
@@ -777,20 +782,20 @@ void test_permissions(
 void test_triggers(
 	const DocumentClient& client)
 {
-	wstring db_name = generate_random_string(8);
+	string_t db_name = generate_random_string(8);
 
 	// Create a database on which we are going to test triggers
-	shared_ptr<Database> db = client.CreateDatabase(wstring(db_name));
+	shared_ptr<Database> db = client.CreateDatabase(string_t(db_name));
 
 	// Create new test collection
-	wstring coll_name = generate_random_string(8);
+	string_t coll_name = generate_random_string(8);
 	shared_ptr<Collection> coll = db->CreateCollection(coll_name);
 
-	shared_ptr<TriggerIterator> iter = coll->QueryTriggersAsync(wstring(L"SELECT * FROM " + coll_name)).get();
+	shared_ptr<TriggerIterator> iter = coll->QueryTriggersAsync(string_t(U("SELECT * FROM ") + coll_name)).get();
 	assert(!iter->HasMore());
 
 	// Try inserting one trigger
-	wstring trigger_name = generate_random_string(8);
+	string_t trigger_name = generate_random_string(8);
 	shared_ptr<Trigger> trigger = coll->CreateTriggerAsync(trigger_name, js_function, TriggerOperation::ALL, TriggerType::PRE).get();
 	assert(trigger->id() == trigger_name);
 	assert(trigger->body() == js_function);
@@ -827,7 +832,7 @@ void test_triggers(
 	assert(trigger_list.size() == 1);
 	compare_triggers(trigger_list[0], trigger);
 
-	iter = coll->QueryTriggersAsync(wstring(L"SELECT * FROM " + coll_name)).get();
+	iter = coll->QueryTriggersAsync(U("SELECT * FROM ") + coll_name).get();
 	int count = 0;
 	while (iter->HasMore())
 	{
@@ -839,19 +844,19 @@ void test_triggers(
 	assert(count == 1);
 
 	// Replace trigger
-	wstring new_trigger_name = generate_random_string(8);
+	string_t new_trigger_name = generate_random_string(8);
 	shared_ptr<Trigger> replaced_trigger = coll->ReplaceTriggerAsync(trigger->resource_id(), new_trigger_name, js_function, TriggerOperation::UPDATE, TriggerType::POST).get();
 	trigger = coll->GetTrigger(trigger->resource_id());
 	compare_triggers(replaced_trigger, trigger, false);
 	assert(replaced_trigger->id() == new_trigger_name);
 
 	// Delete trigger
-	wstring resource_id = trigger->resource_id();
+	string_t resource_id = trigger->resource_id();
 	coll->DeleteTriggerAsync(trigger->resource_id()).get();
 
 	assert(coll->ListTriggersAsync().get().size() == 0);
 
-	iter = coll->QueryTriggers(wstring(L"SELECT * FROM " + coll_name));
+	iter = coll->QueryTriggers(string_t(U("SELECT * FROM ") + coll_name));
 	assert(!iter->HasMore());
 
 	// Getting the trigger that does not exist results in exception
@@ -906,20 +911,20 @@ void test_triggers(
 void test_stored_procedures(
 	const DocumentClient& client)
 {
-	wstring db_name = generate_random_string(8);
+	string_t db_name = generate_random_string(8);
 
 	// Create a database on which we are going to test sprocs
-	shared_ptr<Database> db = client.CreateDatabase(wstring(db_name));
+	shared_ptr<Database> db = client.CreateDatabase(string_t(db_name));
 
 	// Create new test collection
-	wstring coll_name = generate_random_string(8);
+	string_t coll_name = generate_random_string(8);
 	shared_ptr<Collection> coll = db->CreateCollection(coll_name);
 
-	shared_ptr<StoredProcedureIterator> iter = coll->QueryStoredProceduresAsync(wstring(L"SELECT * FROM " + coll_name)).get();
+	shared_ptr<StoredProcedureIterator> iter = coll->QueryStoredProceduresAsync(string_t(U("SELECT * FROM ") + coll_name)).get();
 	assert(!iter->HasMore());
 
 	// Try inserting one sproc with ID set
-	wstring sproc_name = generate_random_string(8);
+	string_t sproc_name = generate_random_string(8);
 	shared_ptr<StoredProcedure> sproc = coll->CreateStoredProcedureAsync(sproc_name, js_function).get();
 	assert(sproc->id() == sproc_name);
 	assert(sproc->body() == js_function);
@@ -954,7 +959,7 @@ void test_stored_procedures(
 	assert(sproc_list.size() == 1);
 	compare_sprocs(sproc_list[0], sproc);
 
-	iter = coll->QueryStoredProceduresAsync(wstring(L"SELECT * FROM " + coll_name)).get();
+	iter = coll->QueryStoredProceduresAsync(string_t(U("SELECT * FROM ") + coll_name)).get();
 	int count = 0;
 	while (iter->HasMore())
 	{
@@ -972,19 +977,19 @@ void test_stored_procedures(
 
 
 	// Replace sproc
-	wstring new_sproc_name = generate_random_string(8);
+	string_t new_sproc_name = generate_random_string(8);
 	shared_ptr<StoredProcedure> replaced_sproc = coll->ReplaceStoredProcedureAsync(sproc->resource_id(), new_sproc_name, js_function).get();
 	sproc = coll->GetStoredProcedure(sproc->resource_id());
 	compare_sprocs(replaced_sproc, sproc);
 	assert(replaced_sproc->id() == new_sproc_name);
 
 	// Delete sproc
-	wstring resource_id = sproc->resource_id();
+	string_t resource_id = sproc->resource_id();
 	coll->DeleteStoredProcedureAsync(sproc->resource_id()).get();
 
 	assert(coll->ListStoredProceduresAsync().get().size() == 0);
 
-	iter = coll->QueryStoredProcedures(wstring(L"SELECT * FROM " + coll_name));
+	iter = coll->QueryStoredProcedures(string_t(U("SELECT * FROM ") + coll_name));
 	assert(!iter->HasMore());
 
 	// Getting the sproc that does not exist results in exception
@@ -1039,20 +1044,20 @@ void test_stored_procedures(
 void test_user_defined_functions(
 	const DocumentClient& client)
 {
-	wstring db_name = generate_random_string(8);
+	string_t db_name = generate_random_string(8);
 
 	// Create a database on which we are going to test udfs
-	shared_ptr<Database> db = client.CreateDatabase(wstring(db_name));
+	shared_ptr<Database> db = client.CreateDatabase(string_t(db_name));
 
 	// Create new test collection
-	wstring coll_name = generate_random_string(8);
+	string_t coll_name = generate_random_string(8);
 	shared_ptr<Collection> coll = db->CreateCollection(coll_name);
 
-	shared_ptr<UserDefinedFunctionIterator> iter = coll->QueryUserDefinedFunctionsAsync(wstring(L"SELECT * FROM " + coll_name)).get();
+	shared_ptr<UserDefinedFunctionIterator> iter = coll->QueryUserDefinedFunctionsAsync(U("SELECT * FROM ") + coll_name).get();
 	assert(!iter->HasMore());
 
 	// Try inserting one udf with ID set
-	wstring udf_name = generate_random_string(8);
+	string_t udf_name = generate_random_string(8);
 	shared_ptr<UserDefinedFunction> udf = coll->CreateUserDefinedFunctionAsync(udf_name, js_function).get();
 	assert(udf->id() == udf_name);
 	assert(udf->body() == js_function);
@@ -1087,7 +1092,7 @@ void test_user_defined_functions(
 	assert(udf_list.size() == 1);
 	compare_udfs(udf_list[0], udf);
 
-	iter = coll->QueryUserDefinedFunctionsAsync(wstring(L"SELECT * FROM " + coll_name)).get();
+	iter = coll->QueryUserDefinedFunctionsAsync(U("SELECT * FROM ") + coll_name).get();
 	int count = 0;
 	while (iter->HasMore())
 	{
@@ -1099,7 +1104,7 @@ void test_user_defined_functions(
 	assert(count == 1);
 
 	// Execute udf within a query
-	iter = coll->QueryUserDefinedFunctions(wstring(L"SELECT * FROM " + coll_name + L" WHERE " + udf_name + L"() = '0'"));
+	iter = coll->QueryUserDefinedFunctions(U("SELECT * FROM ") + coll_name + U(" WHERE ") + udf_name + U("() = '0'"));
 	count = 0;
 	while (iter->HasMore())
 	{
@@ -1108,19 +1113,19 @@ void test_user_defined_functions(
 	assert(count == 0);
 
 	// Replace udf
-	wstring new_udf_name = generate_random_string(8);
+	string_t new_udf_name = generate_random_string(8);
 	shared_ptr<UserDefinedFunction> replaced_udf = coll->ReplaceUserDefinedFunctionAsync(udf->resource_id(), new_udf_name, js_function).get();
 	udf = coll->GetUserDefinedFunction(udf->resource_id());
 	compare_udfs(replaced_udf, udf);
 	assert(replaced_udf->id() == new_udf_name);
 
 	// Delete udf
-	wstring resource_id = udf->resource_id();
+	string_t resource_id = udf->resource_id();
 	coll->DeleteUserDefinedFunctionAsync(udf->resource_id()).get();
 
 	assert(coll->ListUserDefinedFunctionsAsync().get().size() == 0);
 
-	iter = coll->QueryUserDefinedFunctions(wstring(L"SELECT * FROM " + coll_name));
+	iter = coll->QueryUserDefinedFunctions(U("SELECT * FROM ") + coll_name);
 	assert(!iter->HasMore());
 
 	// Getting the udf that does not exist results in exception
@@ -1175,26 +1180,26 @@ void test_user_defined_functions(
 void test_attachments(
 	const DocumentClient& client)
 {
-	wstring db_name = generate_random_string(8);
+	string_t db_name = generate_random_string(8);
 
 	// Create a database on which we are going to test collections
-	shared_ptr<Database> db = client.CreateDatabase(wstring(db_name));
+	shared_ptr<Database> db = client.CreateDatabase(string_t(db_name));
 
 	// Create new test collection
-	wstring coll_name = generate_random_string(8);
+	string_t coll_name = generate_random_string(8);
 	shared_ptr<Collection> coll = db->CreateCollection(coll_name);
 
 	// Create one document with ID set
-	wstring doc_name = generate_random_string(8);
+	string_t doc_name = generate_random_string(8);
 	value document1;
-	document1[L"id"] = value::string(doc_name);
+	document1[U("id")] = value::string(doc_name);
 	shared_ptr<Document> doc = coll->CreateDocumentAsync(document1).get();
 	assert(doc->id() == doc_name);
 
-	shared_ptr<AttachmentIterator> iter = doc->QueryAttachmentsAsync(wstring(L"SELECT * FROM " + doc_name)).get();
+	shared_ptr<AttachmentIterator> iter = doc->QueryAttachmentsAsync(U("SELECT * FROM ") + doc_name).get();
 	assert(!iter->HasMore());
 
-	wstring attachment_name = generate_random_string(8);
+	string_t attachment_name = generate_random_string(8);
 	vector<unsigned char> content;
 	string content_str = "stream_content";
 	for (auto iter = content_str.cbegin(); iter != content_str.cend(); ++iter)
@@ -1202,21 +1207,21 @@ void test_attachments(
 		content.push_back(*iter);
 	}
 
-	shared_ptr<Attachment> attachment1 = doc->CreateAttachmentAsync(attachment_name, L"application/text", content).get();
+	shared_ptr<Attachment> attachment1 = doc->CreateAttachmentAsync(attachment_name, U("application/text"), content).get();
 	assert(attachment1->id() == attachment_name);
-	assert(attachment1->contentType() == L"application/text");
+	assert(attachment1->contentType() == U("application/text"));
 
-	shared_ptr<Attachment> attachment2 = doc->CreateAttachmentAsync(L"Sample3_coverpageimage__v2", L"image / jpg", L"www.bing.com").get();
-	assert(attachment2->id() == L"Sample3_coverpageimage__v2");
-	assert(attachment2->contentType() == L"image / jpg");
-	assert(attachment2->media() == L"www.bing.com");
+	shared_ptr<Attachment> attachment2 = doc->CreateAttachmentAsync(U("Sample3_coverpageimage__v2"), U("image / jpg"), U("www.bing.com")).get();
+	assert(attachment2->id() == U("Sample3_coverpageimage__v2"));
+	assert(attachment2->contentType() == U("image / jpg"));
+	assert(attachment2->media() == U("www.bing.com"));
 
 	doc->DeleteAttachment(attachment2);
 
 	// Try inserting attachment with same ID
 	try
 	{
-		doc->CreateAttachmentAsync(attachment_name, L"application/text", content).get();
+		doc->CreateAttachmentAsync(attachment_name, U("application/text"), content).get();
 		assert(false);
 	}
 	catch (const ResourceAlreadyExistsException&)
@@ -1226,7 +1231,7 @@ void test_attachments(
 
 	try
 	{
-		doc->CreateAttachment(attachment_name, L"application/text", content).get();
+		doc->CreateAttachment(attachment_name, U("application/text"), content).get();
 		assert(false);
 	}
 	catch (const ResourceAlreadyExistsException&)
@@ -1243,7 +1248,7 @@ void test_attachments(
 	assert(attachment_list.size() == 1);
 	compare_attachments(attachment_list[0], attachment1);
 
-	iter = doc->QueryAttachmentsAsync(wstring(L"SELECT * FROM " + doc_name)).get();
+	iter = doc->QueryAttachmentsAsync(string_t(U("SELECT * FROM ") + doc_name)).get();
 	int count = 0;
 	while (iter->HasMore())
 	{
@@ -1255,19 +1260,19 @@ void test_attachments(
 	assert(count == 1);
 
 	// Replace attachments
-	wstring new_attachment_name = generate_random_string(8);
-	shared_ptr<Attachment> replaced_attachment = doc->ReplaceAttachmentAsync(attachment1->resource_id(), new_attachment_name, L"image / jpg", L"www.bing.com").get();
+	string_t new_attachment_name = generate_random_string(8);
+	shared_ptr<Attachment> replaced_attachment = doc->ReplaceAttachmentAsync(attachment1->resource_id(), new_attachment_name, U("image / jpg"), U("www.bing.com")).get();
 	attachment1 = doc->GetAttachment(attachment1->resource_id());
 	compare_attachments(replaced_attachment, attachment1, false);
 	assert(replaced_attachment->id() == new_attachment_name);
 
 	// Delete attachment
-	wstring resource_id = attachment1->resource_id();
+	string_t resource_id = attachment1->resource_id();
 	doc->DeleteAttachmentAsync(attachment1->resource_id()).get();
 
 	assert(doc->ListAttachmentsAsync().get().size() == 0);
 
-	iter = doc->QueryAttachments(wstring(L"SELECT * FROM " + coll_name));
+	iter = doc->QueryAttachments(U("SELECT * FROM ") + coll_name);
 	assert(!iter->HasMore());
 
 	// Getting the attachment that does not exist results in exception
@@ -1326,9 +1331,8 @@ void test_attachments(
 int main()
 {
 	srand((unsigned int)time(nullptr));
-
-	wifstream confFile("account_configuration.txt");
-	wstring account, primaryKey;
+	ifstream_t confFile("account_configuration.txt");
+	string_t account, primaryKey;
 	confFile >> account;
 	confFile >> primaryKey;
 

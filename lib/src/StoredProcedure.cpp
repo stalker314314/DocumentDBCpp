@@ -26,15 +26,16 @@
 
 using namespace documentdb;
 using namespace std;
+using namespace utility;
 
 StoredProcedure::StoredProcedure(
 	const shared_ptr<const DocumentDBConfiguration>& document_db_configuration,
-	const wstring& id,
-	const wstring& resource_id,
+	const string_t& id,
+	const string_t& resource_id,
 	unsigned long ts,
-	const wstring& self,
-	const wstring& etag,
-	const wstring& body)
+	const string_t& self,
+	const string_t& etag,
+	const string_t& body)
 	: DocumentDBEntity(document_db_configuration, id, resource_id, ts, self, etag)
 	, body_(body)
 {

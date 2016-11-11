@@ -35,8 +35,8 @@
 namespace documentdb
 {
 	bool comparei(
-		std::wstring string1,
-		std::wstring string2);
+		utility::string_t string1,
+		utility::string_t string2);
 
 	class Index
 	{
@@ -45,7 +45,7 @@ namespace documentdb
 			IndexType index_type,
 			int numeric_precision,
 			int string_precision,
-			std::wstring path);
+			utility::string_t path);
 
 		virtual ~Index();
 
@@ -74,7 +74,7 @@ namespace documentdb
 			return string_precision_;
 		}
 
-		std::wstring path() const
+		utility::string_t path() const
 		{
 			return path_;
 		}
@@ -83,7 +83,7 @@ namespace documentdb
 		IndexType index_type_;
 		int numeric_precision_;
 		int string_precision_;
-		std::wstring path_;
+		utility::string_t path_;
 	};
 }
 

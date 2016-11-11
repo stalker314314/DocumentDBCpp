@@ -35,18 +35,19 @@
 
 using namespace documentdb;
 using namespace std;
+using namespace utility;
 using namespace web::http;
 using namespace web::json;
 using namespace web::http::client;
 
 User::User(
 	const shared_ptr<const DocumentDBConfiguration>& document_db_configuration,
-	const wstring& id,
-	const wstring& resource_id,
+	const string_t& id,
+	const string_t& resource_id,
 	unsigned long ts,
-	const wstring& self,
-	const wstring& etag,
-	const wstring& permissions)
+	const string_t& self,
+	const string_t& etag,
+	const string_t& permissions)
 	: DocumentDBEntity(document_db_configuration, id, resource_id, ts, self, etag)
 	, permissions_(permissions)
 {
@@ -60,14 +61,14 @@ User::~User()
 shared_ptr<Permission> User::PermissionFromJson(
 	const value* json_permission) const
 {
-	wstring id = json_permission->at(DOCUMENT_ID).as_string();
-	wstring rid = json_permission->at(RESPONSE_RESOURCE_RID).as_string();
+	string_t id = json_permission->at(DOCUMENT_ID).as_string();
+	string_t rid = json_permission->at(RESPONSE_RESOURCE_RID).as_string();
 	unsigned long ts = json_permission->at(RESPONSE_RESOURCE_TS).as_integer();
-	wstring self = json_permission->at(RESPONSE_RESOURCE_SELF).as_string();
-	wstring etag = json_permission->at(RESPONSE_RESOURCE_ETAG).as_string();
-	wstring mode = json_permission->at(RESPONSE_RESOURCE_PERMISSION_MODE).as_string();
-	wstring resource = json_permission->at(RESPONSE_RESOURCE_RESOURCE).as_string();
-	wstring token = json_permission->at(RESPONSE_RESOURCE_TOKEN).as_string();
+	string_t self = json_permission->at(RESPONSE_RESOURCE_SELF).as_string();
+	string_t etag = json_permission->at(RESPONSE_RESOURCE_ETAG).as_string();
+	string_t mode = json_permission->at(RESPONSE_RESOURCE_PERMISSION_MODE).as_string();
+	string_t resource = json_permission->at(RESPONSE_RESOURCE_RESOURCE).as_string();
+	string_t token = json_permission->at(RESPONSE_RESOURCE_TOKEN).as_string();
 
 	IndexingPolicy indexing_policy;
 	if (json_permission->has_field(RESPONSE_INDEXING_POLICY))
@@ -88,10 +89,10 @@ shared_ptr<Permission> User::PermissionFromJson(
 		token);
 }
 
-Concurrency::task<shared_ptr<Permission>> User::CreatePermissionAsync(
-	const wstring& id,
-	const wstring& permissionMode,
-	const wstring& resource) const
+pplx::task<shared_ptr<Permission>> User::CreatePermissionAsync(
+	const string_t& id,
+	const string_t& permissionMode,
+	const string_t& resource) const
 {
 	http_request request = CreateRequest(
 		methods::POST,
@@ -120,15 +121,15 @@ Concurrency::task<shared_ptr<Permission>> User::CreatePermissionAsync(
 }
 
 shared_ptr<Permission> User::CreatePermission(
-	const wstring& id,
-	const wstring& permissionMode,
-	const wstring& resource) const
+	const string_t& id,
+	const string_t& permissionMode,
+	const string_t& resource) const
 {
 	return CreatePermissionAsync(id, permissionMode, resource).get();
 }
 
-Concurrency::task<void> User::DeletePermissionAsync(
-	const wstring& resource_id) const
+pplx::task<void> User::DeletePermissionAsync(
+	const string_t& resource_id) const
 {
 	http_request request = CreateRequest(
 		methods::DEL,
@@ -150,12 +151,12 @@ Concurrency::task<void> User::DeletePermissionAsync(
 }
 
 void User::DeletePermission(
-	const wstring& resource_id) const
+	const string_t& resource_id) const
 {
 	this->DeletePermissionAsync(resource_id).get();
 }
 
-Concurrency::task<void> User::DeletePermissionAsync(
+pplx::task<void> User::DeletePermissionAsync(
 	const shared_ptr<Permission>& permission) const
 {
 	return DeletePermissionAsync(permission->resource_id());
@@ -167,8 +168,8 @@ void User::DeletePermission(
 	this->DeletePermissionAsync(permission->resource_id()).get();
 }
 
-Concurrency::task<shared_ptr<Permission>> User::GetPermissionAsync(
-	const wstring& resource_id) const
+pplx::task<shared_ptr<Permission>> User::GetPermissionAsync(
+	const string_t& resource_id) const
 {
 	http_request request = CreateRequest(
 		methods::GET,
@@ -191,12 +192,12 @@ Concurrency::task<shared_ptr<Permission>> User::GetPermissionAsync(
 }
 
 shared_ptr<Permission> User::GetPermission(
-	const wstring& resource_id) const
+	const string_t& resource_id) const
 {
 	return GetPermissionAsync(resource_id).get();
 }
 
-Concurrency::task<vector<shared_ptr<Permission>>> User::ListPermissionsAsync() const
+pplx::task<vector<shared_ptr<Permission>>> User::ListPermissionsAsync() const
 {
 	http_request request = CreateRequest(
 		methods::GET,
@@ -232,11 +233,11 @@ vector<shared_ptr<Permission>> User::ListPermissions() const
 	return this->ListPermissionsAsync().get();
 }
 
-Concurrency::task<shared_ptr<Permission>> User::ReplacePermissionAsync(
-	const wstring& resource_id,
-	const wstring& new_id,
-	const wstring& new_permissionMode,
-	const wstring& new_resource) const
+pplx::task<shared_ptr<Permission>> User::ReplacePermissionAsync(
+	const string_t& resource_id,
+	const string_t& new_id,
+	const string_t& new_permissionMode,
+	const string_t& new_resource) const
 {
 	http_request request = CreateRequest(
 		methods::PUT,
@@ -265,10 +266,10 @@ Concurrency::task<shared_ptr<Permission>> User::ReplacePermissionAsync(
 }
 
 shared_ptr<Permission> User::ReplacePermission(
-	const wstring& resource_id,
-	const wstring& new_id,
-	const wstring& new_permissionMode,
-	const wstring& new_resource) const
+	const string_t& resource_id,
+	const string_t& new_id,
+	const string_t& new_permissionMode,
+	const string_t& new_resource) const
 {
 	return this->ReplacePermissionAsync(resource_id, new_id, new_permissionMode, new_resource).get();
 }

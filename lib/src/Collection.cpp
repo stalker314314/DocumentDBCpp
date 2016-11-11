@@ -26,7 +26,11 @@
 
 #include "Collection.h"
 
+#ifdef _WIN32
 #include <windows.h>
+#else
+#include <uuid/uuid.h>
+#endif
 
 #include <cpprest/http_client.h>
 #include <cpprest/filestream.h>
@@ -38,22 +42,23 @@
 
 using namespace documentdb;
 using namespace std;
+using namespace utility;
 using namespace web::http;
 using namespace web::json;
 using namespace web::http::client;
 
 Collection::Collection(
 		const shared_ptr<const DocumentDBConfiguration>& document_db_configuration,
-		const wstring& id,
-		const wstring& resource_id,
+		const string_t& id,
+		const string_t& resource_id,
 		const unsigned long ts,
-		const wstring& self,
-		const wstring& etag,
-		const wstring& docs,
-		const wstring& sprocs,
-		const wstring& triggers,
-		const wstring& udfs,
-		const wstring& conflicts,
+		const string_t& self,
+		const string_t& etag,
+		const string_t& docs,
+		const string_t& sprocs,
+		const string_t& triggers,
+		const string_t& udfs,
+		const string_t& conflicts,
 		const IndexingPolicy& indexing_policy)
 	: DocumentDBEntity(document_db_configuration, id, resource_id, ts, self, etag)
 	, docs_(docs)
@@ -70,12 +75,12 @@ Collection::~Collection()
 shared_ptr<Document> Collection::DocumentFromJson(
 	const value& json_collection) const
 {
-	wstring id = json_collection.at(DOCUMENT_ID).as_string();
-	wstring rid = json_collection.at(RESPONSE_RESOURCE_RID).as_string();
+	string_t id = json_collection.at(DOCUMENT_ID).as_string();
+	string_t rid = json_collection.at(RESPONSE_RESOURCE_RID).as_string();
 	unsigned long ts = json_collection.at(RESPONSE_RESOURCE_TS).as_integer();
-	wstring self = json_collection.at(RESPONSE_RESOURCE_SELF).as_string();
-	wstring etag = json_collection.at(RESPONSE_RESOURCE_ETAG).as_string();
-	wstring attachments = json_collection.at(RESPONSE_RESOURCE_ATTACHMENTS).as_string();
+	string_t self = json_collection.at(RESPONSE_RESOURCE_SELF).as_string();
+	string_t etag = json_collection.at(RESPONSE_RESOURCE_ETAG).as_string();
+	string_t attachments = json_collection.at(RESPONSE_RESOURCE_ATTACHMENTS).as_string();
 
 	return make_shared<Document>(
 		this->document_db_configuration(),
@@ -91,15 +96,15 @@ shared_ptr<Document> Collection::DocumentFromJson(
 shared_ptr<Trigger> Collection::TriggerFromJson(
 	const value* json_trigger) const
 {
-	wstring id = json_trigger->at(DOCUMENT_ID).as_string();
-	wstring rid = json_trigger->at(RESPONSE_RESOURCE_RID).as_string();
+	string_t id = json_trigger->at(DOCUMENT_ID).as_string();
+	string_t rid = json_trigger->at(RESPONSE_RESOURCE_RID).as_string();
 	unsigned long ts = json_trigger->at(RESPONSE_RESOURCE_TS).as_integer();
-	wstring self = json_trigger->at(RESPONSE_RESOURCE_SELF).as_string();
-	wstring etag = json_trigger->at(RESPONSE_RESOURCE_ETAG).as_string();
-	wstring body = json_trigger->at(RESPONSE_RESOURCE_BODY).as_string();
-	wstring trigger_operation_str = json_trigger->at(RESPONSE_RESOURCE_TRIGGER_OPERATION).as_string();
+	string_t self = json_trigger->at(RESPONSE_RESOURCE_SELF).as_string();
+	string_t etag = json_trigger->at(RESPONSE_RESOURCE_ETAG).as_string();
+	string_t body = json_trigger->at(RESPONSE_RESOURCE_BODY).as_string();
+	string_t trigger_operation_str = json_trigger->at(RESPONSE_RESOURCE_TRIGGER_OPERATION).as_string();
 	TriggerOperation triggerOperation = wstringToTriggerOperation(trigger_operation_str);
-	wstring trigger_type_str = json_trigger->at(RESPONSE_RESOURCE_TRIGGER_TYPE).as_string();
+	string_t trigger_type_str = json_trigger->at(RESPONSE_RESOURCE_TRIGGER_TYPE).as_string();
 	TriggerType triggerType = wstringToTriggerType(trigger_type_str);
 
 	IndexingPolicy indexing_policy;
@@ -124,12 +129,12 @@ shared_ptr<Trigger> Collection::TriggerFromJson(
 shared_ptr<StoredProcedure> Collection::StoredProcedureFromJson(
 	const value* json_sproc) const
 {
-	wstring id = json_sproc->at(DOCUMENT_ID).as_string();
-	wstring rid = json_sproc->at(RESPONSE_RESOURCE_RID).as_string();
+	string_t id = json_sproc->at(DOCUMENT_ID).as_string();
+	string_t rid = json_sproc->at(RESPONSE_RESOURCE_RID).as_string();
 	unsigned long ts = json_sproc->at(RESPONSE_RESOURCE_TS).as_integer();
-	wstring self = json_sproc->at(RESPONSE_RESOURCE_SELF).as_string();
-	wstring etag = json_sproc->at(RESPONSE_RESOURCE_ETAG).as_string();
-	wstring body = json_sproc->at(RESPONSE_RESOURCE_BODY).as_string();
+	string_t self = json_sproc->at(RESPONSE_RESOURCE_SELF).as_string();
+	string_t etag = json_sproc->at(RESPONSE_RESOURCE_ETAG).as_string();
+	string_t body = json_sproc->at(RESPONSE_RESOURCE_BODY).as_string();
 
 	IndexingPolicy indexing_policy;
 	if (json_sproc->has_field(RESPONSE_INDEXING_POLICY))
@@ -151,12 +156,12 @@ shared_ptr<StoredProcedure> Collection::StoredProcedureFromJson(
 std::shared_ptr<UserDefinedFunction> Collection::UserDefinedFunctionFromJson(
 	const value* json_udf) const
 {
-	wstring id = json_udf->at(DOCUMENT_ID).as_string();
-	wstring rid = json_udf->at(RESPONSE_RESOURCE_RID).as_string();
+	string_t id = json_udf->at(DOCUMENT_ID).as_string();
+	string_t rid = json_udf->at(RESPONSE_RESOURCE_RID).as_string();
 	unsigned long ts = json_udf->at(RESPONSE_RESOURCE_TS).as_integer();
-	wstring self = json_udf->at(RESPONSE_RESOURCE_SELF).as_string();
-	wstring etag = json_udf->at(RESPONSE_RESOURCE_ETAG).as_string();
-	wstring body = json_udf->at(RESPONSE_RESOURCE_BODY).as_string();
+	string_t self = json_udf->at(RESPONSE_RESOURCE_SELF).as_string();
+	string_t etag = json_udf->at(RESPONSE_RESOURCE_ETAG).as_string();
+	string_t body = json_udf->at(RESPONSE_RESOURCE_BODY).as_string();
 
 	IndexingPolicy indexing_policy;
 	if (json_udf->has_field(RESPONSE_INDEXING_POLICY))
@@ -175,34 +180,45 @@ std::shared_ptr<UserDefinedFunction> Collection::UserDefinedFunctionFromJson(
 		body);
 }
 
-wstring Collection::GenerateGuid()
+string_t Collection::GenerateGuid()
 {
+#ifdef _WIN32
 	UUID uuid;
 	ZeroMemory(&uuid, sizeof(UUID));
 	RPC_STATUS status = UuidCreate(&uuid);
 	if (status != RPC_S_OK)
 	{
-		throw DocumentDBRuntimeException(L"Unable to create UUID");
+		throw DocumentDBRuntimeException(_XPLATSTR("Unable to create UUID"));
 	}
 
 	wchar_t *str;
 	status = UuidToStringW(&uuid, (RPC_WSTR*)&str);
 	if (status == RPC_S_OUT_OF_MEMORY)
 	{
-		throw DocumentDBRuntimeException(L"Out of memory while creating UUID");
+		throw DocumentDBRuntimeException(_XPLATSTR("Out of memory while creating UUID"));
 	}
 	else if (status != RPC_S_OK)
 	{
-		throw DocumentDBRuntimeException(L"Unknown error while creating UUID");
+		throw DocumentDBRuntimeException(_XPLATSTR("Unknown error while creating UUID"));
 	}
 
-	wstring guid = str;
+	string_t guid = conversions::to_string_t(str);
 	RpcStringFreeW((RPC_WSTR*)&str);
 
 	return guid;
+#else
+	uuid_t uuid;
+	char uuid_string[37];
+
+	uuid_generate_random(uuid);
+	uuid_unparse_upper(uuid, uuid_string);
+
+	std::string result(uuid_string);
+	return result;
+#endif
 }
 
-Concurrency::task<shared_ptr<Document>> Collection::CreateDocumentAsync(
+pplx::task<shared_ptr<Document>> Collection::CreateDocumentAsync(
 	const value& document) const
 {
 	value body = document;
@@ -215,8 +231,8 @@ Concurrency::task<shared_ptr<Document>> Collection::CreateDocumentAsync(
 	return this->CreateDocumentAsync(body.serialize());
 }
 
-Concurrency::task<shared_ptr<Document>> Collection::CreateDocumentAsync(
-	const wstring& document) const
+pplx::task<shared_ptr<Document>> Collection::CreateDocumentAsync(
+	const string_t& document) const
 {
 	http_request request = CreateRequest(
 		methods::POST,
@@ -247,13 +263,13 @@ shared_ptr<Document> Collection::CreateDocument(
 }
 
 shared_ptr<Document> Collection::CreateDocument(
-	const wstring& document) const
+	const string_t& document) const
 {
 	return this->CreateDocumentAsync(document).get();
 }
 
-Concurrency::task<shared_ptr<Document>> Collection::GetDocumentAsync(
-	const wstring& resource_id) const
+pplx::task<shared_ptr<Document>> Collection::GetDocumentAsync(
+	const string_t& resource_id) const
 {
 	http_request request = CreateRequest(
 		methods::GET,
@@ -276,12 +292,12 @@ Concurrency::task<shared_ptr<Document>> Collection::GetDocumentAsync(
 }
 
 shared_ptr<Document> Collection::GetDocument(
-	const wstring& resource_id) const
+	const string_t& resource_id) const
 {
 	return this->GetDocumentAsync(resource_id).get();
 }
 
-Concurrency::task<vector<shared_ptr<Document>>> Collection::ListDocumentsAsync() const
+pplx::task<vector<shared_ptr<Document>>> Collection::ListDocumentsAsync() const
 {
 	http_request request = CreateRequest(
 		methods::GET,
@@ -317,8 +333,8 @@ vector<shared_ptr<Document>> Collection::ListDocuments() const
 	return this->ListDocumentsAsync().get();
 }
 
-Concurrency::task<shared_ptr<Document>> Collection::ReplaceDocumentAsync(
-	const wstring& resource_id,
+pplx::task<shared_ptr<Document>> Collection::ReplaceDocumentAsync(
+	const string_t& resource_id,
 	const value& document) const
 {
 	http_request request = CreateRequest(
@@ -351,13 +367,13 @@ Concurrency::task<shared_ptr<Document>> Collection::ReplaceDocumentAsync(
 }
 
 shared_ptr<Document> Collection::ReplaceDocument(
-	const wstring& resource_id,
+	const string_t& resource_id,
 	const value& document) const
 {
 	return this->ReplaceDocumentAsync(resource_id, document).get();
 }
 
-Concurrency::task<void> Collection::DeleteDocumentAsync(
+pplx::task<void> Collection::DeleteDocumentAsync(
 	const shared_ptr<Document>& document) const
 {
 	return DeleteDocumentAsync(document->resource_id());
@@ -369,8 +385,8 @@ void Collection::DeleteDocument(
 	this->DeleteDocumentAsync(document).get();
 }
 
-Concurrency::task<void> Collection::DeleteDocumentAsync(
-	const wstring& resource_id) const
+pplx::task<void> Collection::DeleteDocumentAsync(
+	const string_t& resource_id) const
 {
 	http_request request = CreateRequest(
 		methods::DEL,
@@ -392,13 +408,13 @@ Concurrency::task<void> Collection::DeleteDocumentAsync(
 }
 
 void Collection::DeleteDocument(
-	const wstring& resource_id) const
+	const string_t& resource_id) const
 {
 	this->DeleteDocumentAsync(resource_id).get();
 }
 
-Concurrency::task<shared_ptr<DocumentIterator>> Collection::QueryDocumentsAsync(
-	const wstring& query,
+pplx::task<shared_ptr<DocumentIterator>> Collection::QueryDocumentsAsync(
+	const string_t& query,
 	const int page_size) const
 {
 	http_request request = CreateQueryRequest(
@@ -407,12 +423,12 @@ Concurrency::task<shared_ptr<DocumentIterator>> Collection::QueryDocumentsAsync(
 		RESOURCE_PATH_DOCS,
 		this->resource_id(),
 		this->document_db_configuration()->master_key());
-	const wstring requestUri = this->self() + docs_;
+	const string_t requestUri = this->self() + docs_;
 	request.set_request_uri(requestUri);
 
 	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
 	{
-		wstring continuation_id = response.headers()[HEADER_MS_CONTINUATION];
+		string_t continuation_id = response.headers()[HEADER_MS_CONTINUATION];
 		value json_response = response.extract_json().get();
 
 		if (response.status_code() == status_codes::OK)
@@ -433,15 +449,15 @@ Concurrency::task<shared_ptr<DocumentIterator>> Collection::QueryDocumentsAsync(
 }
 
 shared_ptr<DocumentIterator> Collection::QueryDocuments(
-	const wstring& query,
+	const string_t& query,
 	const int page_size) const
 {
 	return this->QueryDocumentsAsync(query, page_size).get();
 }
 
-Concurrency::task<shared_ptr<Trigger>> Collection::CreateTriggerAsync(
-	const wstring& id,
-	const wstring& body,
+pplx::task<shared_ptr<Trigger>> Collection::CreateTriggerAsync(
+	const string_t& id,
+	const string_t& body,
 	const TriggerOperation& triggerOperation,
 	const TriggerType& triggerType) const
 {
@@ -474,16 +490,16 @@ Concurrency::task<shared_ptr<Trigger>> Collection::CreateTriggerAsync(
 }
 
 shared_ptr<Trigger> Collection::CreateTrigger(
-	const wstring& id,
-	const wstring& body,
+	const string_t& id,
+	const string_t& body,
 	const TriggerOperation& triggerOperation,
 	const TriggerType& triggerType) const
 {
 	return CreateTriggerAsync(id, body, triggerOperation, triggerType).get();
 }
 
-Concurrency::task<shared_ptr<Trigger>> Collection::GetTriggerAsync(
-	const wstring& resource_id) const
+pplx::task<shared_ptr<Trigger>> Collection::GetTriggerAsync(
+	const string_t& resource_id) const
 {
 	http_request request = CreateRequest(
 		methods::GET,
@@ -506,12 +522,12 @@ Concurrency::task<shared_ptr<Trigger>> Collection::GetTriggerAsync(
 }
 
 shared_ptr<Trigger> Collection::GetTrigger(
-	const wstring& resource_id) const
+	const string_t& resource_id) const
 {
 	return GetTriggerAsync(resource_id).get();
 }
 
-Concurrency::task<vector<shared_ptr<Trigger>>> Collection::ListTriggersAsync() const
+pplx::task<vector<shared_ptr<Trigger>>> Collection::ListTriggersAsync() const
 {
 	http_request request = CreateRequest(
 		methods::GET,
@@ -547,10 +563,10 @@ vector<shared_ptr<Trigger>> Collection::ListTriggers() const
 	return ListTriggersAsync().get();
 }
 
-Concurrency::task<shared_ptr<Trigger>> Collection::ReplaceTriggerAsync(
-	const wstring& id,
-	const wstring& new_id,
-	const wstring& body,
+pplx::task<shared_ptr<Trigger>> Collection::ReplaceTriggerAsync(
+	const string_t& id,
+	const string_t& new_id,
+	const string_t& body,
 	const TriggerOperation& triggerOperation,
 	const TriggerType& triggerType) const
 {
@@ -583,16 +599,16 @@ Concurrency::task<shared_ptr<Trigger>> Collection::ReplaceTriggerAsync(
 }
 
 shared_ptr<Trigger> Collection::ReplaceTrigger(
-	const wstring& id,
-	const wstring& new_id,
-	const wstring& body,
+	const string_t& id,
+	const string_t& new_id,
+	const string_t& body,
 	const TriggerOperation& triggerOperation,
 	const TriggerType& triggerType) const
 {
 	return this->ReplaceTriggerAsync(id, new_id, body, triggerOperation, triggerType).get();
 }
 
-Concurrency::task<void> Collection::DeleteTriggerAsync(
+pplx::task<void> Collection::DeleteTriggerAsync(
 	const shared_ptr<Trigger>& trigger) const
 {
 	return DeleteTriggerAsync(trigger->resource_id());
@@ -604,8 +620,8 @@ void Collection::DeleteTrigger(
 	DeleteTriggerAsync(trigger->resource_id()).get();
 }
 
-Concurrency::task<void> Collection::DeleteTriggerAsync(
-	const wstring& resource_id) const
+pplx::task<void> Collection::DeleteTriggerAsync(
+	const string_t& resource_id) const
 {
 	http_request request = CreateRequest(
 		methods::DEL,
@@ -627,13 +643,13 @@ Concurrency::task<void> Collection::DeleteTriggerAsync(
 }
 
 void Collection::DeleteTrigger(
-	const wstring& resource_id) const
+	const string_t& resource_id) const
 {
 	DeleteTriggerAsync(resource_id).get();
 }
 
-Concurrency::task<shared_ptr<TriggerIterator>> Collection::QueryTriggersAsync(
-	const wstring& query,
+pplx::task<shared_ptr<TriggerIterator>> Collection::QueryTriggersAsync(
+	const string_t& query,
 	const int page_size) const
 {
 	http_request request = CreateQueryRequest(
@@ -642,12 +658,12 @@ Concurrency::task<shared_ptr<TriggerIterator>> Collection::QueryTriggersAsync(
 		RESOURCE_PATH_TRIGGERS,
 		this->resource_id(),
 		this->document_db_configuration()->master_key());
-	const wstring requestUri = this->self() + triggers_;
+	const string_t requestUri = this->self() + triggers_;
 	request.set_request_uri(requestUri);
 
 	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
 	{
-		wstring continuation_id = response.headers()[HEADER_MS_CONTINUATION];
+		string_t continuation_id = response.headers()[HEADER_MS_CONTINUATION];
 		value json_response = response.extract_json().get();
 
 		if (response.status_code() == status_codes::OK)
@@ -668,15 +684,15 @@ Concurrency::task<shared_ptr<TriggerIterator>> Collection::QueryTriggersAsync(
 }
 
 shared_ptr<TriggerIterator> Collection::QueryTriggers(
-	const wstring& query,
+	const string_t& query,
 	const int page_size) const
 {
 	return QueryTriggersAsync(query, page_size).get();
 }
 
-Concurrency::task<shared_ptr<StoredProcedure>> Collection::CreateStoredProcedureAsync(
-	const wstring& id,
-	const wstring& body) const
+pplx::task<shared_ptr<StoredProcedure>> Collection::CreateStoredProcedureAsync(
+	const string_t& id,
+	const string_t& body) const
 {
 	http_request request = CreateRequest(
 		methods::POST,
@@ -705,14 +721,14 @@ Concurrency::task<shared_ptr<StoredProcedure>> Collection::CreateStoredProcedure
 }
 
 shared_ptr<StoredProcedure> Collection::CreateStoredProcedure(
-	const wstring& id,
-	const wstring& body) const
+	const string_t& id,
+	const string_t& body) const
 {
 	return CreateStoredProcedureAsync(id, body).get();
 }
 
-Concurrency::task<shared_ptr<StoredProcedure>> Collection::GetStoredProcedureAsync(
-	const wstring& resource_id) const
+pplx::task<shared_ptr<StoredProcedure>> Collection::GetStoredProcedureAsync(
+	const string_t& resource_id) const
 {
 	http_request request = CreateRequest(
 		methods::GET,
@@ -735,12 +751,12 @@ Concurrency::task<shared_ptr<StoredProcedure>> Collection::GetStoredProcedureAsy
 }
 
 shared_ptr<StoredProcedure> Collection::GetStoredProcedure(
-	const wstring& resource_id) const
+	const string_t& resource_id) const
 {
 	return GetStoredProcedureAsync(resource_id).get();
 }
 
-Concurrency::task<vector<shared_ptr<StoredProcedure>>> Collection::ListStoredProceduresAsync() const
+pplx::task<vector<shared_ptr<StoredProcedure>>> Collection::ListStoredProceduresAsync() const
 {
 	http_request request = CreateRequest(
 		methods::GET,
@@ -776,10 +792,10 @@ vector<shared_ptr<StoredProcedure>> Collection::ListStoredProcedures() const
 	return ListStoredProceduresAsync().get();
 }
 
-Concurrency::task<shared_ptr<StoredProcedure>> Collection::ReplaceStoredProcedureAsync(
-	const wstring& id,
-	const wstring& new_id,
-	const wstring& body) const
+pplx::task<shared_ptr<StoredProcedure>> Collection::ReplaceStoredProcedureAsync(
+	const string_t& id,
+	const string_t& new_id,
+	const string_t& body) const
 {
 	http_request request = CreateRequest(
 		methods::PUT,
@@ -808,14 +824,14 @@ Concurrency::task<shared_ptr<StoredProcedure>> Collection::ReplaceStoredProcedur
 }
 
 shared_ptr<StoredProcedure> Collection::ReplaceStoredProcedure(
-	const wstring& id,
-	const wstring& new_id,
-	const wstring& body) const
+	const string_t& id,
+	const string_t& new_id,
+	const string_t& body) const
 {
 	return this->ReplaceStoredProcedureAsync(id, new_id, body).get();
 }
 
-Concurrency::task<void> Collection::DeleteStoredProcedureAsync(
+pplx::task<void> Collection::DeleteStoredProcedureAsync(
 	const shared_ptr<StoredProcedure>& storedProcedure) const
 {
 	return DeleteStoredProcedureAsync(storedProcedure->resource_id());
@@ -827,8 +843,8 @@ void Collection::DeleteStoredProcedure(
 	DeleteStoredProcedureAsync(storedProcedure->resource_id()).get();
 }
 
-Concurrency::task<void> Collection::DeleteStoredProcedureAsync(
-	const wstring& resource_id) const
+pplx::task<void> Collection::DeleteStoredProcedureAsync(
+	const string_t& resource_id) const
 {
 	http_request request = CreateRequest(
 		methods::DEL,
@@ -850,13 +866,13 @@ Concurrency::task<void> Collection::DeleteStoredProcedureAsync(
 }
 
 void Collection::DeleteStoredProcedure(
-	const wstring& resource_id) const
+	const string_t& resource_id) const
 {
 	DeleteStoredProcedureAsync(resource_id).get();
 }
 
-Concurrency::task<shared_ptr<StoredProcedureIterator>> Collection::QueryStoredProceduresAsync(
-	const wstring& query,
+pplx::task<shared_ptr<StoredProcedureIterator>> Collection::QueryStoredProceduresAsync(
+	const string_t& query,
 	const int page_size) const
 {
 	http_request request = CreateQueryRequest(
@@ -865,12 +881,12 @@ Concurrency::task<shared_ptr<StoredProcedureIterator>> Collection::QueryStoredPr
 		RESOURCE_PATH_SPROCS,
 		this->resource_id(),
 		this->document_db_configuration()->master_key());
-	const wstring requestUri = this->self() + sprocs_;
+	const string_t requestUri = this->self() + sprocs_;
 	request.set_request_uri(requestUri);
 
 	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
 	{
-		wstring continuation_id = response.headers()[HEADER_MS_CONTINUATION];
+		string_t continuation_id = response.headers()[HEADER_MS_CONTINUATION];
 		value json_response = response.extract_json().get();
 
 		if (response.status_code() == status_codes::OK)
@@ -892,14 +908,14 @@ Concurrency::task<shared_ptr<StoredProcedureIterator>> Collection::QueryStoredPr
 }
 
 shared_ptr<StoredProcedureIterator> Collection::QueryStoredProcedures(
-	const wstring& query,
+	const string_t& query,
 	const int page_size) const
 {
 	return QueryStoredProceduresAsync(query, page_size).get();
 }
 
-Concurrency::task<void> Collection::ExecuteStoredProcedureAsync(
-	const std::wstring& resource_id,
+pplx::task<void> Collection::ExecuteStoredProcedureAsync(
+	const string_t& resource_id,
 	const value& input) const
 {
 	http_request request = CreateRequest(
@@ -924,15 +940,15 @@ Concurrency::task<void> Collection::ExecuteStoredProcedureAsync(
 }
 
 void Collection::ExecuteStoredProcedure(
-	const std::wstring& resource_id,
+	const string_t& resource_id,
 	const value& input) const
 {
 	ExecuteStoredProcedureAsync(resource_id, input).get();
 }
 
-Concurrency::task<std::shared_ptr<UserDefinedFunction>> Collection::CreateUserDefinedFunctionAsync(
-	const std::wstring& id,
-	const std::wstring& body) const
+pplx::task<std::shared_ptr<UserDefinedFunction>> Collection::CreateUserDefinedFunctionAsync(
+	const string_t& id,
+	const string_t& body) const
 {
 	http_request request = CreateRequest(
 		methods::POST,
@@ -961,14 +977,14 @@ Concurrency::task<std::shared_ptr<UserDefinedFunction>> Collection::CreateUserDe
 }
 
 std::shared_ptr<UserDefinedFunction> Collection::CreateUserDefinedFunction(
-	const std::wstring& id,
-	const std::wstring& body) const
+	const string_t& id,
+	const string_t& body) const
 {
 	return CreateUserDefinedFunctionAsync(id, body).get();
 }
 
-Concurrency::task<std::shared_ptr<UserDefinedFunction>> Collection::GetUserDefinedFunctionAsync(
-	const std::wstring& resource_id) const
+pplx::task<std::shared_ptr<UserDefinedFunction>> Collection::GetUserDefinedFunctionAsync(
+	const string_t& resource_id) const
 {
 	http_request request = CreateRequest(
 		methods::GET,
@@ -991,12 +1007,12 @@ Concurrency::task<std::shared_ptr<UserDefinedFunction>> Collection::GetUserDefin
 }
 
 std::shared_ptr<UserDefinedFunction> Collection::GetUserDefinedFunction(
-	const std::wstring& resource_id) const
+	const string_t& resource_id) const
 {
 	return GetUserDefinedFunctionAsync(resource_id).get();
 }
 
-Concurrency::task<std::vector<std::shared_ptr<UserDefinedFunction>>> Collection::ListUserDefinedFunctionsAsync() const
+pplx::task<std::vector<std::shared_ptr<UserDefinedFunction>>> Collection::ListUserDefinedFunctionsAsync() const
 {
 	http_request request = CreateRequest(
 		methods::GET,
@@ -1032,10 +1048,10 @@ std::vector<std::shared_ptr<UserDefinedFunction>> Collection::ListUserDefinedFun
 	return ListUserDefinedFunctionsAsync().get();
 }
 
-Concurrency::task<std::shared_ptr<UserDefinedFunction>> Collection::ReplaceUserDefinedFunctionAsync(
-	const std::wstring& id,
-	const std::wstring& new_id,
-	const std::wstring& body) const
+pplx::task<std::shared_ptr<UserDefinedFunction>> Collection::ReplaceUserDefinedFunctionAsync(
+	const string_t& id,
+	const string_t& new_id,
+	const string_t& body) const
 {
 	http_request request = CreateRequest(
 		methods::PUT,
@@ -1064,14 +1080,14 @@ Concurrency::task<std::shared_ptr<UserDefinedFunction>> Collection::ReplaceUserD
 }
 
 std::shared_ptr<UserDefinedFunction> Collection::ReplaceUserDefinedFunction(
-	const std::wstring& id,
-	const std::wstring& new_id,
-	const std::wstring& body) const
+	const string_t& id,
+	const string_t& new_id,
+	const string_t& body) const
 {
 	return ReplaceUserDefinedFunctionAsync(id, new_id, body).get();
 }
 
-Concurrency::task<void> Collection::DeleteUserDefinedFunctionAsync(
+pplx::task<void> Collection::DeleteUserDefinedFunctionAsync(
 	const std::shared_ptr<UserDefinedFunction>& userDefinedFunction) const
 {
 	return DeleteUserDefinedFunctionAsync(userDefinedFunction->resource_id());
@@ -1083,8 +1099,8 @@ void Collection::DeleteUserDefinedFunction(
 	return DeleteUserDefinedFunctionAsync(userDefinedFunction->resource_id()).get();
 }
 
-Concurrency::task<void> Collection::DeleteUserDefinedFunctionAsync(
-	const std::wstring& resource_id) const
+pplx::task<void> Collection::DeleteUserDefinedFunctionAsync(
+	const string_t& resource_id) const
 {
 	http_request request = CreateRequest(
 		methods::DEL,
@@ -1106,13 +1122,13 @@ Concurrency::task<void> Collection::DeleteUserDefinedFunctionAsync(
 }
 
 void Collection::DeleteUserDefinedFunction(
-	const std::wstring& resource_id) const
+	const string_t& resource_id) const
 {
 	return DeleteUserDefinedFunctionAsync(resource_id).get();
 }
 
-Concurrency::task<std::shared_ptr<UserDefinedFunctionIterator>> Collection::QueryUserDefinedFunctionsAsync(
-	const std::wstring& query,
+pplx::task<std::shared_ptr<UserDefinedFunctionIterator>> Collection::QueryUserDefinedFunctionsAsync(
+	const string_t& query,
 	const int page_size) const
 {
 	http_request request = CreateQueryRequest(
@@ -1121,12 +1137,12 @@ Concurrency::task<std::shared_ptr<UserDefinedFunctionIterator>> Collection::Quer
 		RESOURCE_PATH_UDFS,
 		this->resource_id(),
 		this->document_db_configuration()->master_key());
-	const wstring requestUri = this->self() + udfs_;
+	const string_t requestUri = this->self() + udfs_;
 	request.set_request_uri(requestUri);
 
 	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
 	{
-		wstring continuation_id = response.headers()[HEADER_MS_CONTINUATION];
+		string_t continuation_id = response.headers()[HEADER_MS_CONTINUATION];
 		value json_response = response.extract_json().get();
 
 		if (response.status_code() == status_codes::OK)
@@ -1148,7 +1164,7 @@ Concurrency::task<std::shared_ptr<UserDefinedFunctionIterator>> Collection::Quer
 }
 
 std::shared_ptr<UserDefinedFunctionIterator> Collection::QueryUserDefinedFunctions(
-	const std::wstring& query,
+	const string_t& query,
 	const int page_size) const
 {
 	return QueryUserDefinedFunctionsAsync(query, page_size).get();

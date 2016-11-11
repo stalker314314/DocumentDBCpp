@@ -34,19 +34,20 @@
 
 using namespace documentdb;
 using namespace std;
+using namespace utility;
 using namespace web::http;
 using namespace web::json;
 using namespace web::http::client;
 
 Database::Database(
 		const shared_ptr<const DocumentDBConfiguration>& document_db_configuration,
-		const wstring& id,
-		const wstring& resource_id,
+		const string_t& id,
+		const string_t& resource_id,
 		const unsigned long ts,
-		const wstring& self,
-		const wstring& etag,
-		const wstring& colls,
-		const wstring& users)
+		const string_t& self,
+		const string_t& etag,
+		const string_t& colls,
+		const string_t& users)
 	: DocumentDBEntity(document_db_configuration, id, resource_id, ts, self, etag)
 	, colls_(colls)
 	, users_(users)
@@ -62,16 +63,16 @@ Database::~Database()
 shared_ptr<Collection> Database::CollectionFromJson(
 	const value* json_collection) const
 {
-	wstring id = json_collection->at(DOCUMENT_ID).as_string();
-	wstring rid = json_collection->at(RESPONSE_RESOURCE_RID).as_string();
+	string_t id = json_collection->at(DOCUMENT_ID).as_string();
+	string_t rid = json_collection->at(RESPONSE_RESOURCE_RID).as_string();
 	unsigned long ts = json_collection->at(RESPONSE_RESOURCE_TS).as_integer();
-	wstring self = json_collection->at(RESPONSE_RESOURCE_SELF).as_string();
-	wstring etag = json_collection->at(RESPONSE_RESOURCE_ETAG).as_string();
-	wstring docs = json_collection->at(RESPONSE_RESOURCE_DOCS).as_string();
-	wstring sprocs = json_collection->at(RESPONSE_RESOURCE_SPROCS).as_string();
-	wstring triggers = json_collection->at(RESPONSE_RESOURCE_TRIGGERS).as_string();
-	wstring udfs = json_collection->at(RESPONSE_RESOURCE_UDFS).as_string();
-	wstring conflicts = json_collection->at(RESPONSE_RESOURCE_CONFLICTS).as_string();
+	string_t self = json_collection->at(RESPONSE_RESOURCE_SELF).as_string();
+	string_t etag = json_collection->at(RESPONSE_RESOURCE_ETAG).as_string();
+	string_t docs = json_collection->at(RESPONSE_RESOURCE_DOCS).as_string();
+	string_t sprocs = json_collection->at(RESPONSE_RESOURCE_SPROCS).as_string();
+	string_t triggers = json_collection->at(RESPONSE_RESOURCE_TRIGGERS).as_string();
+	string_t udfs = json_collection->at(RESPONSE_RESOURCE_UDFS).as_string();
+	string_t conflicts = json_collection->at(RESPONSE_RESOURCE_CONFLICTS).as_string();
 
 	IndexingPolicy indexing_policy;
 	if (json_collection->has_field(RESPONSE_INDEXING_POLICY))
@@ -98,12 +99,12 @@ shared_ptr<Collection> Database::CollectionFromJson(
 shared_ptr<User> Database::UserFromJson(
 	const value* json_user) const
 {
-	wstring id = json_user->at(DOCUMENT_ID).as_string();
-	wstring rid = json_user->at(RESPONSE_RESOURCE_RID).as_string();
+	string_t id = json_user->at(DOCUMENT_ID).as_string();
+	string_t rid = json_user->at(RESPONSE_RESOURCE_RID).as_string();
 	unsigned long ts = json_user->at(RESPONSE_RESOURCE_TS).as_integer();
-	wstring self = json_user->at(RESPONSE_RESOURCE_SELF).as_string();
-	wstring etag = json_user->at(RESPONSE_RESOURCE_ETAG).as_string();
-	wstring permissions = json_user->at(RESPONSE_RESOURCE_PERMISSIONS).as_string();
+	string_t self = json_user->at(RESPONSE_RESOURCE_SELF).as_string();
+	string_t etag = json_user->at(RESPONSE_RESOURCE_ETAG).as_string();
+	string_t permissions = json_user->at(RESPONSE_RESOURCE_PERMISSIONS).as_string();
 
 	IndexingPolicy indexing_policy;
 	if (json_user->has_field(RESPONSE_INDEXING_POLICY))
@@ -122,8 +123,8 @@ shared_ptr<User> Database::UserFromJson(
 		permissions);
 }
 
-Concurrency::task<shared_ptr<Collection>> Database::CreateCollectionAsync(
-	const wstring& id) const
+pplx::task<shared_ptr<Collection>> Database::CreateCollectionAsync(
+	const string_t& id) const
 {
 	http_request request = CreateRequest(
 		methods::POST,
@@ -150,12 +151,12 @@ Concurrency::task<shared_ptr<Collection>> Database::CreateCollectionAsync(
 }
 
 shared_ptr<Collection> Database::CreateCollection(
-	const wstring& id) const
+	const string_t& id) const
 {
 	return this->CreateCollectionAsync(id).get();
 }
 
-Concurrency::task<void> Database::DeleteCollectionAsync(
+pplx::task<void> Database::DeleteCollectionAsync(
 	const shared_ptr<Collection>& collection) const
 {
 	return DeleteCollectionAsync(collection->resource_id());
@@ -167,8 +168,8 @@ void Database::DeleteCollection(
 	this->DeleteCollectionAsync(collection).get();
 }
 
-Concurrency::task<void> Database::DeleteCollectionAsync(
-	const wstring& resource_id) const
+pplx::task<void> Database::DeleteCollectionAsync(
+	const string_t& resource_id) const
 {
 	http_request request = CreateRequest(
 		methods::DEL,
@@ -190,13 +191,13 @@ Concurrency::task<void> Database::DeleteCollectionAsync(
 }
 
 void Database::DeleteCollection(
-	const wstring& resource_id) const
+	const string_t& resource_id) const
 {
 	this->DeleteCollectionAsync(resource_id).get();
 }
 
-Concurrency::task<shared_ptr<Collection>> Database::GetCollectionAsync(
-	const wstring& resource_id) const
+pplx::task<shared_ptr<Collection>> Database::GetCollectionAsync(
+	const string_t& resource_id) const
 {
 	http_request request = CreateRequest(
 		methods::GET,
@@ -219,12 +220,12 @@ Concurrency::task<shared_ptr<Collection>> Database::GetCollectionAsync(
 }
 
 shared_ptr<Collection> Database::GetCollection(
-	const wstring& resource_id) const
+	const string_t& resource_id) const
 {
 	return this->GetCollectionAsync(resource_id).get();
 }
 
-Concurrency::task<vector<shared_ptr<Collection>>> Database::ListCollectionsAsync() const
+pplx::task<vector<shared_ptr<Collection>>> Database::ListCollectionsAsync() const
 {
 	http_request request = CreateRequest(
 		methods::GET,
@@ -260,8 +261,8 @@ vector<shared_ptr<Collection>> Database::ListCollections() const
 	return this->ListCollectionsAsync().get();
 }
 
-Concurrency::task<shared_ptr<User>> Database::CreateUserAsync(
-	const wstring& id) const
+pplx::task<shared_ptr<User>> Database::CreateUserAsync(
+	const string_t& id) const
 {
 	http_request request = CreateRequest(
 		methods::POST,
@@ -289,13 +290,13 @@ Concurrency::task<shared_ptr<User>> Database::CreateUserAsync(
 }
 
 shared_ptr<User> Database::CreateUser(
-	const wstring& id) const
+	const string_t& id) const
 {
 	return this->CreateUserAsync(id).get();
 }
 
-Concurrency::task<void> Database::DeleteUserAsync(
-	const wstring& resource_id) const
+pplx::task<void> Database::DeleteUserAsync(
+	const string_t& resource_id) const
 {
 	http_request request = CreateRequest(
 		methods::DEL,
@@ -316,12 +317,12 @@ Concurrency::task<void> Database::DeleteUserAsync(
 }
 
 void Database::DeleteUser(
-	const wstring& resource_id) const
+	const string_t& resource_id) const
 {
 	this->DeleteUserAsync(resource_id).get();
 }
 
-Concurrency::task<void> Database::DeleteUserAsync(
+pplx::task<void> Database::DeleteUserAsync(
 	const shared_ptr<User>& user) const
 {
 	return this->DeleteUserAsync(user->resource_id());
@@ -333,8 +334,8 @@ void Database::DeleteUser(
 	this->DeleteUserAsync(user->resource_id()).get();
 }
 
-Concurrency::task<shared_ptr<User>> Database::GetUserAsync(
-	const wstring& resource_id) const
+pplx::task<shared_ptr<User>> Database::GetUserAsync(
+	const string_t& resource_id) const
 {
 	http_request request = CreateRequest(
 		methods::GET,
@@ -357,12 +358,12 @@ Concurrency::task<shared_ptr<User>> Database::GetUserAsync(
 }
 
 shared_ptr<User> Database::GetUser(
-	const wstring& resource_id) const
+	const string_t& resource_id) const
 {
 	return this->GetUserAsync(resource_id).get();
 }
 
-Concurrency::task<vector<shared_ptr<User>>> Database::ListUsersAsync() const
+pplx::task<vector<shared_ptr<User>>> Database::ListUsersAsync() const
 {
 	http_request request = CreateRequest(
 		methods::GET,
@@ -393,9 +394,9 @@ Concurrency::task<vector<shared_ptr<User>>> Database::ListUsersAsync() const
 	});
 }
 
-Concurrency::task<shared_ptr<User>> Database::ReplaceUserAsync(
-	const wstring& resource_id,
-	const wstring& new_id) const
+pplx::task<shared_ptr<User>> Database::ReplaceUserAsync(
+	const string_t& resource_id,
+	const string_t& new_id) const
 {
 	http_request request = CreateRequest(
 		methods::PUT,
@@ -422,8 +423,8 @@ Concurrency::task<shared_ptr<User>> Database::ReplaceUserAsync(
 }
 
 shared_ptr<User> Database::ReplaceUser(
-	const wstring& resource_id,
-	const wstring& new_id) const
+	const string_t& resource_id,
+	const string_t& new_id) const
 {
 	return this->ReplaceUserAsync(resource_id, new_id).get();
 }

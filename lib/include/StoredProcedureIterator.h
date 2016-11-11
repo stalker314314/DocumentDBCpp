@@ -41,10 +41,10 @@ namespace documentdb
 	public:
 		StoredProcedureIterator(
 			const std::shared_ptr<const Collection>& collection,
-			const std::wstring& original_query,
+			const utility::string_t& original_query,
 			const int page_size,
-			const std::wstring& original_request_uri,
-			const std::wstring& continuation_id,
+			const utility::string_t& original_request_uri,
+			const utility::string_t& continuation_id,
 			const web::json::value& buffer);
 		virtual ~StoredProcedureIterator();
 
@@ -54,10 +54,10 @@ namespace documentdb
 
 	private:
 		std::shared_ptr<const Collection> collection_;
-		std::wstring original_query_;
+		utility::string_t original_query_;
 		int page_size_;
-		std::wstring original_request_uri_;
-		std::wstring continuation_id_;
+		utility::string_t original_request_uri_;
+		utility::string_t continuation_id_;
 		web::json::value buffer_;
 		unsigned int current_;
 	};

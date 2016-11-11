@@ -25,13 +25,12 @@
 #ifndef _DOCUMENTDB_HMAC_CRYPT_H_
 #define _DOCUMENTDB_HMAC_CRYPT_H_
 
-#include <windows.h>
 
-BYTE* hmac(
-	const BYTE* key,
-	DWORD keySize,
-	const BYTE* message,
-	DWORD messageSize,
-	DWORD* cbHash);
+unsigned char* hmac(
+	const unsigned char* key,
+	int keySize,
+	const unsigned char* message,
+	int messageSize,
+	int* cbHash);
 
 #endif // !_DOCUMENTDB_HMAC_CRYPT_H_

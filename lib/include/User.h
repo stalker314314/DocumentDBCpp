@@ -41,67 +41,67 @@ namespace documentdb {
 	public:
 		User(
 			const std::shared_ptr<const DocumentDBConfiguration>& document_db_configuration,
-			const std::wstring& id,
-			const std::wstring& resource_id,
+			const utility::string_t& id,
+			const utility::string_t& resource_id,
 			unsigned long ts,
-			const std::wstring& self,
-			const std::wstring& etag,
-			const std::wstring& permissions);
+			const utility::string_t& self,
+			const utility::string_t& etag,
+			const utility::string_t& permissions);
 
 		virtual ~User();
 
-		Concurrency::task<std::shared_ptr<Permission>> CreatePermissionAsync(
-			const std::wstring& id,
-			const std::wstring& permissionMode,
-			const std::wstring& resource) const;
+		pplx::task<std::shared_ptr<Permission>> CreatePermissionAsync(
+			const utility::string_t& id,
+			const utility::string_t& permissionMode,
+			const utility::string_t& resource) const;
 
 		std::shared_ptr<Permission> CreatePermission(
-			const std::wstring& id,
-			const std::wstring& permissionMode,
-			const std::wstring& resource) const;
+			const utility::string_t& id,
+			const utility::string_t& permissionMode,
+			const utility::string_t& resource) const;
 
-		Concurrency::task<void> DeletePermissionAsync(
-			const std::wstring& resource_id) const;
+		pplx::task<void> DeletePermissionAsync(
+			const utility::string_t& resource_id) const;
 
 		void DeletePermission(
-			const std::wstring& resource_id) const;
+			const utility::string_t& resource_id) const;
 
-		Concurrency::task<void> DeletePermissionAsync(
+		pplx::task<void> DeletePermissionAsync(
 			const std::shared_ptr<Permission>& permission) const;
 
 		void DeletePermission(
 			const std::shared_ptr<Permission>& permission) const;
 
-		Concurrency::task<std::shared_ptr<Permission>> GetPermissionAsync(
-			const std::wstring& resource_id) const;
+		pplx::task<std::shared_ptr<Permission>> GetPermissionAsync(
+			const utility::string_t& resource_id) const;
 
 		std::shared_ptr<Permission> GetPermission(
-			const std::wstring& resource_id) const;
+			const utility::string_t& resource_id) const;
 
-		Concurrency::task<std::vector<std::shared_ptr<Permission>>> ListPermissionsAsync() const;
+		pplx::task<std::vector<std::shared_ptr<Permission>>> ListPermissionsAsync() const;
 
 		std::vector<std::shared_ptr<Permission>> ListPermissions() const;
 
-		Concurrency::task<std::shared_ptr<Permission>> ReplacePermissionAsync(
-			const std::wstring& resource_id,
-			const std::wstring& new_id,
-			const std::wstring& new_permissionMode,
-			const std::wstring& new_resource) const;
+		pplx::task<std::shared_ptr<Permission>> ReplacePermissionAsync(
+			const utility::string_t& resource_id,
+			const utility::string_t& new_id,
+			const utility::string_t& new_permissionMode,
+			const utility::string_t& new_resource) const;
 
 		std::shared_ptr<Permission> ReplacePermission(
-			const std::wstring& resource_id,
-			const std::wstring& new_id,
-			const std::wstring& new_permissionMode,
-			const std::wstring& new_resource) const;
+			const utility::string_t& resource_id,
+			const utility::string_t& new_id,
+			const utility::string_t& new_permissionMode,
+			const utility::string_t& new_resource) const;
 
-		std::wstring permissions() const
+		utility::string_t permissions() const
 		{
 			return permissions_;
 		}
 	private:
 		std::shared_ptr<Permission> PermissionFromJson(const web::json::value* json_permission) const;
 
-		std::wstring permissions_;
+		utility::string_t permissions_;
 	};
 }
 

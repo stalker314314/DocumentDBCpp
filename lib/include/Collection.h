@@ -27,7 +27,7 @@
 
 #include <string>
 #include <memory>
-
+#include <pplx/pplxtasks.h>
 #include <cpprest/http_client.h>
 
 #include "DocumentDBEntity.h"
@@ -45,19 +45,19 @@
 #include "UserDefinedFunction.h"
 
 namespace documentdb {
-	std::wstring triggerOperationToWstring(
+	utility::string_t triggerOperationToWstring(
 		const TriggerOperation& trigger_operation);
 	TriggerOperation wstringToTriggerOperation(
-		const std::wstring& trigger_operation_str);
+		const utility::string_t& trigger_operation_str);
 
-	std::wstring triggerTypeToWstring(
+	utility::string_t triggerTypeToWstring(
 		const TriggerType& trigger_type);
 	TriggerType wstringToTriggerType
-		(const std::wstring& trigger_type_str);
+		(const utility::string_t& trigger_type_str);
 
 	bool comparei(
-		std::wstring string1,
-		std::wstring string2);
+		utility::string_t string1,
+		utility::string_t string2);
 
 	class Collection : public DocumentDBEntity, public std::enable_shared_from_this < Collection >
 	{
@@ -69,254 +69,254 @@ namespace documentdb {
 	public:
 		Collection(
 			const std::shared_ptr<const DocumentDBConfiguration>& document_db_configuration,
-			const std::wstring& id,
-			const std::wstring& resource_id,
+			const utility::string_t& id,
+			const utility::string_t& resource_id,
 			const unsigned long ts,
-			const std::wstring& self,
-			const std::wstring& etag,
-			const std::wstring& docs,
-			const std::wstring& sprocs,
-			const std::wstring& triggers,
-			const std::wstring& udfs,
-			const std::wstring& conflicts,
+			const utility::string_t& self,
+			const utility::string_t& etag,
+			const utility::string_t& docs,
+			const utility::string_t& sprocs,
+			const utility::string_t& triggers,
+			const utility::string_t& udfs,
+			const utility::string_t& conflicts,
 			const IndexingPolicy& indexing_policy);
 
 		virtual ~Collection();
 
-		Concurrency::task<std::shared_ptr<Document>> CreateDocumentAsync(
+		pplx::task<std::shared_ptr<Document>> CreateDocumentAsync(
 			const web::json::value& document) const;
 
 		std::shared_ptr<Document> CreateDocument(
 			const web::json::value& document) const;
 
-		Concurrency::task<std::shared_ptr<Document>> CreateDocumentAsync(
-			const std::wstring& document) const;
+		pplx::task<std::shared_ptr<Document>> CreateDocumentAsync(
+			const utility::string_t& document) const;
 
 		std::shared_ptr<Document> CreateDocument(
-			const std::wstring& document) const;
+			const utility::string_t& document) const;
 
-		Concurrency::task<std::shared_ptr<Document>> GetDocumentAsync(
-			const std::wstring& resource_id) const;
+		pplx::task<std::shared_ptr<Document>> GetDocumentAsync(
+			const utility::string_t& resource_id) const;
 
 		std::shared_ptr<Document> GetDocument(
-			const std::wstring& resource_id) const;
+			const utility::string_t& resource_id) const;
 
-		Concurrency::task<std::vector<std::shared_ptr<Document>>> ListDocumentsAsync() const;
+		pplx::task<std::vector<std::shared_ptr<Document>>> ListDocumentsAsync() const;
 
 		std::vector<std::shared_ptr<Document>> ListDocuments() const;
 
-		Concurrency::task<std::shared_ptr<Document>> ReplaceDocumentAsync(
-			const std::wstring& resource_id,
+		pplx::task<std::shared_ptr<Document>> ReplaceDocumentAsync(
+			const utility::string_t& resource_id,
 			const web::json::value& document) const;
 
 		std::shared_ptr<Document> ReplaceDocument(
-			const std::wstring& resource_id,
+			const utility::string_t& resource_id,
 			const web::json::value& document) const;
 
-		Concurrency::task<void> DeleteDocumentAsync(
+		pplx::task<void> DeleteDocumentAsync(
 			const std::shared_ptr<Document>& document) const;
 
 		void DeleteDocument(
 			const std::shared_ptr<Document>& document) const;
 
-		Concurrency::task<void> DeleteDocumentAsync(
-			const std::wstring& resource_id) const;
+		pplx::task<void> DeleteDocumentAsync(
+			const utility::string_t& resource_id) const;
 
 		void DeleteDocument(
-			const std::wstring& resource_id) const;
+			const utility::string_t& resource_id) const;
 
-		Concurrency::task<std::shared_ptr<DocumentIterator>> QueryDocumentsAsync(
-			const std::wstring& query,
+		pplx::task<std::shared_ptr<DocumentIterator>> QueryDocumentsAsync(
+			const utility::string_t& query,
 			const int page_size = 10) const;
 
 		std::shared_ptr<DocumentIterator> QueryDocuments(
-			const std::wstring& query,
+			const utility::string_t& query,
 			const int page_size = 10) const;
 
 		//triggers management
-		Concurrency::task<std::shared_ptr<Trigger>> CreateTriggerAsync(
-			const std::wstring& id,
-			const std::wstring& body,
+		pplx::task<std::shared_ptr<Trigger>> CreateTriggerAsync(
+			const utility::string_t& id,
+			const utility::string_t& body,
 			const TriggerOperation& triggerOperation,
 			const TriggerType& triggerType) const;
 
 		std::shared_ptr<Trigger> CreateTrigger(
-			const std::wstring& id,
-			const std::wstring& body,
+			const utility::string_t& id,
+			const utility::string_t& body,
 			const TriggerOperation& triggerOperation,
 			const TriggerType& triggerType) const;
 
-		Concurrency::task<std::shared_ptr<Trigger>> GetTriggerAsync(
-			const std::wstring& resource_id) const;
+		pplx::task<std::shared_ptr<Trigger>> GetTriggerAsync(
+			const utility::string_t& resource_id) const;
 
 		std::shared_ptr<Trigger> GetTrigger(
-			const std::wstring& resource_id) const;
+			const utility::string_t& resource_id) const;
 
-		Concurrency::task<std::vector<std::shared_ptr<Trigger>>> ListTriggersAsync() const;
+		pplx::task<std::vector<std::shared_ptr<Trigger>>> ListTriggersAsync() const;
 
 		std::vector<std::shared_ptr<Trigger>> ListTriggers() const;
 
-		Concurrency::task<std::shared_ptr<Trigger>> ReplaceTriggerAsync(
-			const std::wstring& id,
-			const std::wstring& new_id,
-			const std::wstring& body,
+		pplx::task<std::shared_ptr<Trigger>> ReplaceTriggerAsync(
+			const utility::string_t& id,
+			const utility::string_t& new_id,
+			const utility::string_t& body,
 			const TriggerOperation& triggerOperation,
 			const TriggerType& triggerType) const;
 
 		std::shared_ptr<Trigger> ReplaceTrigger(
-			const std::wstring& id,
-			const std::wstring& new_id,
-			const std::wstring& body,
+			const utility::string_t& id,
+			const utility::string_t& new_id,
+			const utility::string_t& body,
 			const TriggerOperation& triggerOperation,
 			const TriggerType& triggerType) const;
 
-		Concurrency::task<void> DeleteTriggerAsync(
+		pplx::task<void> DeleteTriggerAsync(
 			const std::shared_ptr<Trigger>& trigger) const;
 
 		void DeleteTrigger(
 			const std::shared_ptr<Trigger>& trigger) const;
 
-		Concurrency::task<void> DeleteTriggerAsync(
-			const std::wstring& resource_id) const;
+		pplx::task<void> DeleteTriggerAsync(
+			const utility::string_t& resource_id) const;
 
 		void DeleteTrigger(
-			const std::wstring& resource_id) const;
+			const utility::string_t& resource_id) const;
 
-		Concurrency::task<std::shared_ptr<TriggerIterator>> QueryTriggersAsync(
-			const std::wstring& query,
+		pplx::task<std::shared_ptr<TriggerIterator>> QueryTriggersAsync(
+			const utility::string_t& query,
 			const int page_size = 10) const;
 
 		std::shared_ptr<TriggerIterator> QueryTriggers(
-			const std::wstring& query,
+			const utility::string_t& query,
 			const int page_size = 10) const;
 
 		//stored procedures management
-		Concurrency::task<std::shared_ptr<StoredProcedure>> CreateStoredProcedureAsync(
-			const std::wstring& id,
-			const std::wstring& body) const;
+		pplx::task<std::shared_ptr<StoredProcedure>> CreateStoredProcedureAsync(
+			const utility::string_t& id,
+			const utility::string_t& body) const;
 
 		std::shared_ptr<StoredProcedure> CreateStoredProcedure(
-			const std::wstring& id,
-			const std::wstring& body) const;
+			const utility::string_t& id,
+			const utility::string_t& body) const;
 
-		Concurrency::task<std::shared_ptr<StoredProcedure>> GetStoredProcedureAsync(
-			const std::wstring& resource_id) const;
+		pplx::task<std::shared_ptr<StoredProcedure>> GetStoredProcedureAsync(
+			const utility::string_t& resource_id) const;
 
 		std::shared_ptr<StoredProcedure> GetStoredProcedure(
-			const std::wstring& resource_id) const;
+			const utility::string_t& resource_id) const;
 
-		Concurrency::task<std::vector<std::shared_ptr<StoredProcedure>>> ListStoredProceduresAsync() const;
+		pplx::task<std::vector<std::shared_ptr<StoredProcedure>>> ListStoredProceduresAsync() const;
 
 		std::vector<std::shared_ptr<StoredProcedure>> ListStoredProcedures() const;
 
-		Concurrency::task<std::shared_ptr<StoredProcedure>> ReplaceStoredProcedureAsync(
-			const std::wstring& id,
-			const std::wstring& new_id,
-			const std::wstring& body) const;
+		pplx::task<std::shared_ptr<StoredProcedure>> ReplaceStoredProcedureAsync(
+			const utility::string_t& id,
+			const utility::string_t& new_id,
+			const utility::string_t& body) const;
 
 		std::shared_ptr<StoredProcedure> ReplaceStoredProcedure(
-			const std::wstring& id,
-			const std::wstring& new_id,
-			const std::wstring& body) const;
+			const utility::string_t& id,
+			const utility::string_t& new_id,
+			const utility::string_t& body) const;
 
-		Concurrency::task<void> DeleteStoredProcedureAsync(
+		pplx::task<void> DeleteStoredProcedureAsync(
 			const std::shared_ptr<StoredProcedure>& storedProcedure) const;
 
 		void DeleteStoredProcedure(
 			const std::shared_ptr<StoredProcedure>& storedProcedure) const;
 
-		Concurrency::task<void> DeleteStoredProcedureAsync(
-			const std::wstring& resource_id) const;
+		pplx::task<void> DeleteStoredProcedureAsync(
+			const utility::string_t& resource_id) const;
 
 		void DeleteStoredProcedure(
-			const std::wstring& resource_id) const;
+			const utility::string_t& resource_id) const;
 
-		Concurrency::task<std::shared_ptr<StoredProcedureIterator>> QueryStoredProceduresAsync(
-			const std::wstring& query,
+		pplx::task<std::shared_ptr<StoredProcedureIterator>> QueryStoredProceduresAsync(
+			const utility::string_t& query,
 			const int page_size = 10) const;
 
 		std::shared_ptr<StoredProcedureIterator> QueryStoredProcedures(
-			const std::wstring& query,
+			const utility::string_t& query,
 			const int page_size = 10) const;
 
-		Concurrency::task<void> ExecuteStoredProcedureAsync(
-			const std::wstring& resource_id,
+		pplx::task<void> ExecuteStoredProcedureAsync(
+			const utility::string_t& resource_id,
 			const web::json::value& input) const;
 
 		void ExecuteStoredProcedure(
-			const std::wstring& resource_id,
+			const utility::string_t& resource_id,
 			const web::json::value& input) const;
 
 		// User defined functions management
-		Concurrency::task<std::shared_ptr<UserDefinedFunction>> CreateUserDefinedFunctionAsync(
-			const std::wstring& id,
-			const std::wstring& body) const;
+		pplx::task<std::shared_ptr<UserDefinedFunction>> CreateUserDefinedFunctionAsync(
+			const utility::string_t& id,
+			const utility::string_t& body) const;
 
 		std::shared_ptr<UserDefinedFunction> CreateUserDefinedFunction(
-			const std::wstring& id,
-			const std::wstring& body) const;
+			const utility::string_t& id,
+			const utility::string_t& body) const;
 
-		Concurrency::task<std::shared_ptr<UserDefinedFunction>> GetUserDefinedFunctionAsync(
-			const std::wstring& resource_id) const;
+		pplx::task<std::shared_ptr<UserDefinedFunction>> GetUserDefinedFunctionAsync(
+			const utility::string_t& resource_id) const;
 
 		std::shared_ptr<UserDefinedFunction> GetUserDefinedFunction(
-			const std::wstring& resource_id) const;
+			const utility::string_t& resource_id) const;
 
-		Concurrency::task<std::vector<std::shared_ptr<UserDefinedFunction>>> ListUserDefinedFunctionsAsync() const;
+		pplx::task<std::vector<std::shared_ptr<UserDefinedFunction>>> ListUserDefinedFunctionsAsync() const;
 
 		std::vector<std::shared_ptr<UserDefinedFunction>> ListUserDefinedFunctions() const;
 
-		Concurrency::task<std::shared_ptr<UserDefinedFunction>> ReplaceUserDefinedFunctionAsync(
-			const std::wstring& id,
-			const std::wstring& new_id,
-			const std::wstring& body) const;
+		pplx::task<std::shared_ptr<UserDefinedFunction>> ReplaceUserDefinedFunctionAsync(
+			const utility::string_t& id,
+			const utility::string_t& new_id,
+			const utility::string_t& body) const;
 
 		std::shared_ptr<UserDefinedFunction> ReplaceUserDefinedFunction(
-			const std::wstring& id,
-			const std::wstring& new_id,
-			const std::wstring& body) const;
+			const utility::string_t& id,
+			const utility::string_t& new_id,
+			const utility::string_t& body) const;
 
-		Concurrency::task<void> DeleteUserDefinedFunctionAsync(
+		pplx::task<void> DeleteUserDefinedFunctionAsync(
 			const std::shared_ptr<UserDefinedFunction>& userDefinedFunction) const;
 
 		void DeleteUserDefinedFunction(
 			const std::shared_ptr<UserDefinedFunction>& userDefinedFunction) const;
 
-		Concurrency::task<void> DeleteUserDefinedFunctionAsync(
-			const std::wstring& resource_id) const;
+		pplx::task<void> DeleteUserDefinedFunctionAsync(
+			const utility::string_t& resource_id) const;
 
 		void DeleteUserDefinedFunction(
-			const std::wstring& resource_id) const;
+			const utility::string_t& resource_id) const;
 
-		Concurrency::task<std::shared_ptr<UserDefinedFunctionIterator>> QueryUserDefinedFunctionsAsync(
-			const std::wstring& query,
+		pplx::task<std::shared_ptr<UserDefinedFunctionIterator>> QueryUserDefinedFunctionsAsync(
+			const utility::string_t& query,
 			const int page_size = 10) const;
 
 		std::shared_ptr<UserDefinedFunctionIterator> QueryUserDefinedFunctions(
-			const std::wstring& query,
+			const utility::string_t& query,
 			const int page_size = 10) const;
 
-		std::wstring docs() const
+		utility::string_t docs() const
 		{
 			return docs_;
 		}
 
-		std::wstring sprocs() const
+		utility::string_t sprocs() const
 		{
 			return sprocs_;
 		}
 
-		std::wstring triggers() const
+		utility::string_t triggers() const
 		{
 			return triggers_;
 		}
 
-		std::wstring udfs() const
+		utility::string_t udfs() const
 		{
 			return udfs_;
 		}
 
-		std::wstring conflicts() const
+		utility::string_t conflicts() const
 		{
 			return conflicts_;
 		}
@@ -339,13 +339,13 @@ namespace documentdb {
 		std::shared_ptr<UserDefinedFunction> UserDefinedFunctionFromJson(
 			const web::json::value* json_udf) const;
 
-		static std::wstring GenerateGuid();
+		static utility::string_t GenerateGuid();
 
-		std::wstring docs_;
-		std::wstring sprocs_;
-		std::wstring triggers_;
-		std::wstring udfs_;
-		std::wstring conflicts_;
+		utility::string_t docs_;
+		utility::string_t sprocs_;
+		utility::string_t triggers_;
+		utility::string_t udfs_;
+		utility::string_t conflicts_;
 		IndexingPolicy indexing_policy_;
 	};
 }

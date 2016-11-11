@@ -43,39 +43,39 @@ namespace documentdb {
 
 		virtual ~DocumentClient() {}
 
-		Concurrency::task<std::shared_ptr<Database>> CreateDatabaseAsync(
-			const std::wstring& id) const;
+		pplx::task<std::shared_ptr<Database>> CreateDatabaseAsync(
+			const utility::string_t& id) const;
 
 		std::shared_ptr<Database> CreateDatabase(
-			const std::wstring& id) const;
+			const utility::string_t& id) const;
 
-		Concurrency::task<std::shared_ptr<Database>> ReplaceDatabaseAsync(
-			const std::wstring& resource_id,
-			const std::wstring& new_id) const;
+		pplx::task<std::shared_ptr<Database>> ReplaceDatabaseAsync(
+			const utility::string_t& resource_id,
+			const utility::string_t& new_id) const;
 
 		std::shared_ptr<Database> ReplaceDatabase(
-			const std::wstring& resource_id,
-			const std::wstring& new_id) const;
+			const utility::string_t& resource_id,
+			const utility::string_t& new_id) const;
 
-		Concurrency::task<void> DeleteDatabaseAsync(
+		pplx::task<void> DeleteDatabaseAsync(
 			const Database& database) const;
 
 		void DeleteDatabase(
 			const Database& database) const;
 
-		Concurrency::task<void> DeleteDatabaseAsync(
-			const std::wstring& resource_id) const;
+		pplx::task<void> DeleteDatabaseAsync(
+			const utility::string_t& resource_id) const;
 
 		void DeleteDatabase(
-			const std::wstring& resource_id) const;
+			const utility::string_t& resource_id) const;
 
-		Concurrency::task<std::shared_ptr<Database>> GetDatabaseAsync(
-			const std::wstring& resource_id) const;
+		pplx::task<std::shared_ptr<Database>> GetDatabaseAsync(
+			const utility::string_t& resource_id) const;
 
 		std::shared_ptr<Database> GetDatabase(
-			const std::wstring& resource_id) const;
+			const utility::string_t& resource_id) const;
 
-		Concurrency::task<std::vector<std::shared_ptr<Database>>> ListDatabasesAsync() const;
+		pplx::task<std::vector<std::shared_ptr<Database>>> ListDatabasesAsync() const;
 
 		std::vector<std::shared_ptr<Database>> ListDatabases() const;
 

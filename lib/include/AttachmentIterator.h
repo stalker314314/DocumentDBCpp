@@ -25,7 +25,6 @@
 #ifndef _DOCUMENTDB_ATTACHMENT_ITERATOR_H_
 #define _DOCUMENTDB_ATTACHMENT_ITERATOR_H_
 
-#include <memory>
 
 #include <cpprest/json.h>
 
@@ -41,10 +40,10 @@ namespace documentdb
 	public:
 		AttachmentIterator(
 			const std::shared_ptr<const Document>& document,
-			const std::wstring& original_query,
+			const utility::string_t& original_query,
 			const int page_size,
-			const std::wstring& original_request_uri,
-			const std::wstring& continuation_id,
+			const utility::string_t& original_request_uri,
+			const utility::string_t& continuation_id,
 			const web::json::value& buffer);
 		virtual ~AttachmentIterator();
 
@@ -54,10 +53,10 @@ namespace documentdb
 
 	private:
 		std::shared_ptr<const Document> document_;
-		std::wstring original_query_;
+		utility::string_t original_query_;
 		int page_size_;
-		std::wstring original_request_uri_;
-		std::wstring continuation_id_;
+		utility::string_t original_request_uri_;
+		utility::string_t continuation_id_;
 		web::json::value buffer_;
 		unsigned int current_;
 	};

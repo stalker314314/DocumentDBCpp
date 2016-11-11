@@ -34,8 +34,8 @@ class DocumentDBConfiguration
 {
 public:
 	DocumentDBConfiguration(
-		std::wstring url_connection,
-		std::wstring master_key);
+		utility::string_t url_connection,
+		utility::string_t master_key);
 
 	virtual ~DocumentDBConfiguration();
 
@@ -50,7 +50,7 @@ public:
 	}
 
 private:
-	std::wstring url_connection_;
+	utility::string_t url_connection_;
 	std::vector<unsigned char> master_key_;
 	web::http::client::http_client http_client_;
 };

@@ -31,6 +31,7 @@
 
 using namespace documentdb;
 using namespace std;
+using namespace utility;
 using namespace web::json;
 
 IndexingPolicy::IndexingPolicy()
@@ -39,15 +40,15 @@ IndexingPolicy::IndexingPolicy()
 	, excluded_paths_()
 	, included_paths_(0)
 {
-	included_paths_.push_back(make_shared<Index>(IndexType::HASH, 3, 3, L"/"));
-	included_paths_.push_back(make_shared<Index>(IndexType::RANGE, 6, 3, L"/\"_ts\"/?"));
+	included_paths_.push_back(make_shared<Index>(IndexType::HASH, 3, 3, _XPLATSTR("/")));
+	included_paths_.push_back(make_shared<Index>(IndexType::RANGE, 6, 3, _XPLATSTR("/\"_ts\"/?")));
 }
 
 IndexingPolicy::IndexingPolicy(
 	const bool automatic,
 	const IndexingMode& indexing_mode,
 	const vector<shared_ptr<Index>>& included_paths,
-	const vector<wstring>& excluded_paths)
+	const vector<string_t>& excluded_paths)
 	: automatic_(automatic)
 	, indexing_mode_(indexing_mode)
 	, included_paths_(included_paths)
@@ -63,19 +64,19 @@ IndexingPolicy IndexingPolicy::FromJson(
 {
 	bool automatic = json_payload.at(RESPONSE_INDEXING_POLICY_AUTOMATIC).as_bool();
 
-	wstring indexing_mode_str = json_payload.at(RESPONSE_INDEXING_POLICY_INDEXING_MODE).as_string();
+	string_t indexing_mode_str = json_payload.at(RESPONSE_INDEXING_POLICY_INDEXING_MODE).as_string();
 	IndexingMode indexing_mode;
-	if (comparei(indexing_mode_str, L"CONSISTENT"))
+	if (comparei(indexing_mode_str, _XPLATSTR("CONSISTENT")))
 	{
 		indexing_mode = IndexingMode::CONSISTENT;
 	}
-	else if (comparei(indexing_mode_str, L"LAZY"))
+	else if (comparei(indexing_mode_str, _XPLATSTR("LAZY")))
 	{
 		indexing_mode = IndexingMode::LAZY;
 	}
 	else
 	{
-		throw DocumentDBRuntimeException(L"Unsupported indexing policy: " + indexing_mode_str);
+		throw DocumentDBRuntimeException(_XPLATSTR("Unsupported indexing policy: ") + indexing_mode_str);
 	}
 
 	vector<shared_ptr<Index>> included_paths;
@@ -85,7 +86,7 @@ IndexingPolicy IndexingPolicy::FromJson(
 		included_paths.push_back(Index::FromJson(jsonIncludePath));
 	}
 
-	vector<wstring> excluded_paths;
+	vector<string_t> excluded_paths;
 	auto excluded_paths_json = json_payload.at(RESPONSE_INDEXING_POLICY_EXCLUDED_PATHS).as_array();
 	for (auto jsonExcludedPath : excluded_paths_json)
 	{

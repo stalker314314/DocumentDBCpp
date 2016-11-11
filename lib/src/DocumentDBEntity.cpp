@@ -26,15 +26,16 @@
 
 using namespace documentdb;
 using namespace std;
+using namespace utility;
 
 
 DocumentDBEntity::DocumentDBEntity(
 		const shared_ptr<const DocumentDBConfiguration>& document_db_configuration,
-		const wstring& id,
-		const wstring& resource_id,
+		const string_t& id,
+		const string_t& resource_id,
 		const unsigned long ts,
-		const wstring& self,
-		const wstring& etag)
+		const string_t& self,
+		const string_t& etag)
 	: document_db_configuration_(document_db_configuration)
 	, id_(id)
 	, resource_id_(resource_id)

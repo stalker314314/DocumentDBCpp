@@ -31,13 +31,14 @@
 
 using namespace documentdb;
 using namespace std;
+using namespace utility;
 using namespace web::json;
 
 Index::Index(
 		IndexType index_type,
 		int numeric_precision,
 		int string_precision,
-		wstring path)
+		string_t path)
 	: index_type_(index_type)
 	, numeric_precision_(numeric_precision)
 	, string_precision_(string_precision)
@@ -69,14 +70,14 @@ shared_ptr<Index> Index::FromJson(
 	const value& json_payload)
 {
 	IndexType index_type = IndexType::HASH;
-	if (comparei(json_payload.at(RESPONSE_INDEX_INDEX_TYPE).as_string(), L"RANGE"))
+	if (comparei(json_payload.at(RESPONSE_INDEX_INDEX_TYPE).as_string(), _XPLATSTR("RANGE")))
 	{
 		index_type = IndexType::RANGE;
 	}
 #ifdef _DEBUG
 	else
 	{
-		assert(comparei(json_payload.at(RESPONSE_INDEX_INDEX_TYPE).as_string(), L"HASH"));
+		assert(comparei(json_payload.at(RESPONSE_INDEX_INDEX_TYPE).as_string(), _XPLATSTR("HASH")));
 	}
 #endif
 
@@ -92,7 +93,7 @@ shared_ptr<Index> Index::FromJson(
 		string_precision = json_payload.at(RESPONSE_INDEX_STRING_PRECISION).as_integer();
 	}
 
-	wstring path = json_payload.at(RESPONSE_INDEX_PATH).as_string();
+	string_t path = json_payload.at(RESPONSE_INDEX_PATH).as_string();
 
 	return make_shared<Index>(index_type, numeric_precision, string_precision, path);
 }

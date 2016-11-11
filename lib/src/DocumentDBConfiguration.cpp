@@ -25,11 +25,12 @@
 #include "DocumentDBConfiguration.h"
 
 using namespace std;
+using namespace utility;
 using namespace web::http;
 
 DocumentDBConfiguration::DocumentDBConfiguration(
-		wstring url_connection,
-		wstring master_key)
+		string_t url_connection,
+		string_t master_key)
 	: url_connection_(url_connection)
 	, http_client_(url_connection)
 {

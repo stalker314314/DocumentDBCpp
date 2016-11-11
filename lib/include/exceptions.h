@@ -25,8 +25,6 @@
 #ifndef _DOCUMENTDB_EXCEPTIONS_H_
 #define _DOCUMENTDB_EXCEPTIONS_H_
 
-#include <string>
-
 #include <cpprest/http_client.h>
 
 namespace documentdb
@@ -35,18 +33,18 @@ namespace documentdb
 	{
 	public:
 		DocumentDBRuntimeException(
-			const std::wstring& message)
+			const utility::string_t& message)
 			: message_(message)
 		{
 		}
 
-		std::wstring message() const
+		utility::string_t message() const
 		{
 			return message_;
 		}
 
 	private:
-		std::wstring message_;
+		utility::string_t message_;
 	};
 
 	class DocumentDBResponseException : public DocumentDBRuntimeException
@@ -54,8 +52,8 @@ namespace documentdb
 	public:
 		DocumentDBResponseException(
 			const web::http::status_code& status_code,
-			const std::wstring& code,
-			const std::wstring& message)
+			const utility::string_t& code,
+			const utility::string_t& message)
 			: DocumentDBRuntimeException(message)
 			, status_code_(status_code)
 			, code_(code)
@@ -64,7 +62,7 @@ namespace documentdb
 
 	private:
 		web::http::status_code status_code_;
-		std::wstring code_;
+		utility::string_t code_;
 	};
 
 	class ResourceAlreadyExistsException : public DocumentDBResponseException
@@ -72,8 +70,8 @@ namespace documentdb
 	public:
 		ResourceAlreadyExistsException(
 			const web::http::status_code& status_code,
-			const std::wstring& code,
-			const std::wstring& message)
+			const utility::string_t& code,
+			const utility::string_t& message)
 			: DocumentDBResponseException(status_code, code, message)
 		{
 		}
@@ -84,8 +82,8 @@ namespace documentdb
 	public:
 		ResourceNotFoundException(
 			const web::http::status_code& status_code,
-			const std::wstring& code,
-			const std::wstring& message)
+			const utility::string_t& code,
+			const utility::string_t& message)
 			: DocumentDBResponseException(status_code, code, message)
 		{
 		}
@@ -96,8 +94,8 @@ namespace documentdb
 	public:
 		DocumentTooLargeException(
 			const web::http::status_code& status_code,
-			const std::wstring& code,
-			const std::wstring& message)
+			const utility::string_t& code,
+			const utility::string_t& message)
 			: DocumentDBResponseException(status_code, code, message)
 		{
 		}

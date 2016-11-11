@@ -36,8 +36,8 @@
 namespace documentdb
 {
 	bool comparei(
-		std::wstring string1,
-		std::wstring string2);
+		utility::string_t string1,
+		utility::string_t string2);
 
 	class IndexingPolicy
 	{
@@ -47,7 +47,7 @@ namespace documentdb
 			const bool automatic,
 			const IndexingMode& indexing_mode,
 			const std::vector<std::shared_ptr<Index>>& included_paths,
-			const std::vector<std::wstring>& excluded_paths);
+			const std::vector<utility::string_t>& excluded_paths);
 
 		virtual ~IndexingPolicy();
 
@@ -68,7 +68,7 @@ namespace documentdb
 			return included_paths_;
 		}
 
-		std::vector<std::wstring> excluded_paths() const
+		std::vector<utility::string_t> excluded_paths() const
 		{
 			return excluded_paths_;
 		}
@@ -77,7 +77,7 @@ namespace documentdb
 		bool automatic_;
 		IndexingMode indexing_mode_;
 		std::vector<std::shared_ptr<Index>> included_paths_;
-		std::vector<std::wstring> excluded_paths_;
+		std::vector<utility::string_t> excluded_paths_;
 	};
 }
 

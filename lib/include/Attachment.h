@@ -40,29 +40,29 @@ namespace documentdb {
 	public:
 		Attachment(
 			const std::shared_ptr<const DocumentDBConfiguration>& document_db_configuration,
-			const std::wstring& id,
-			const std::wstring& resource_id,
+			const utility::string_t& id,
+			const utility::string_t& resource_id,
 			unsigned long ts,
-			const std::wstring& self,
-			const std::wstring& etag,
-			const std::wstring& contentType,
-			const std::wstring& media);
+			const utility::string_t& self,
+			const utility::string_t& etag,
+			const utility::string_t& contentType,
+			const utility::string_t& media);
 
 		virtual ~Attachment();
 
-		std::wstring contentType()
+		utility::string_t contentType()
 		{
 			return contentType_;
 		}
 
-		std::wstring media()
+		utility::string_t media()
 		{
 			return media_;
 		}
 
 	private:
-		std::wstring contentType_;
-		std::wstring media_;
+		utility::string_t contentType_;
+		utility::string_t media_;
 	};
 }
 

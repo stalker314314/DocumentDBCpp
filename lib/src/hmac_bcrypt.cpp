@@ -24,6 +24,7 @@
 
 #include "hmac_bcrypt.h"
 
+// This file can only be compiled on Windows
 #include <windows.h>
 #include <stdio.h>
 #include <bcrypt.h>
@@ -37,14 +38,14 @@
 
 #define STATUS_UNSUCCESSFUL         ((NTSTATUS)0xC0000001L)
 
-BYTE* hmac(const BYTE* key, DWORD keySize, const BYTE* message, DWORD messageSize, DWORD* cbHash)
+unsigned char* hmac(const unsigned char* key, int keySize, const unsigned char* message, int messageSize, int* cbHash)
 {
 	BCRYPT_ALG_HANDLE       hAlg = NULL;
 	BCRYPT_HASH_HANDLE      hHash = NULL;
 	NTSTATUS                status = STATUS_UNSUCCESSFUL;
 	DWORD                   cbData = 0, cbHashObject = 0;
 	PBYTE                   pbHashObject = NULL;
-	PBYTE                   pbHash = NULL;
+	unsigned char*          pbHash = NULL;
 	bool                    error = false;
 
 	//open an algorithm handle
@@ -93,7 +94,7 @@ BYTE* hmac(const BYTE* key, DWORD keySize, const BYTE* message, DWORD messageSiz
 	}
 
 	//allocate the hash buffer on the heap
-	pbHash = (PBYTE)HeapAlloc(GetProcessHeap(), 0, *cbHash);
+	pbHash = (unsigned char*)HeapAlloc(GetProcessHeap(), 0, *cbHash);
 	if (NULL == pbHash)
 	{
 		error = true;
@@ -160,7 +161,7 @@ Cleanup:
 			HeapFree(GetProcessHeap(), 0, pbHash);
 		}
 
-		throw documentdb::DocumentDBRuntimeException(L"Error during hmac hasing");
+		throw documentdb::DocumentDBRuntimeException(_XPLATSTR("Error during hmac hashing"));
 	}
 
 	return pbHash;

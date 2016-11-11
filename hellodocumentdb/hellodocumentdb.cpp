@@ -3,30 +3,46 @@
 
 #include "stdafx.h"
 #include <cpprest/json.h>
+
+#ifdef USUNG_NUGET
+// In VS case, this sample is built using Nuget and these are location of headers
 #include <documentdbcpp\DocumentClient.h>
 #include <documentdbcpp\exceptions.h>
 #include <documentdbcpp\TriggerOperation.h>
 #include <documentdbcpp\TriggerType.h>
+#else
+// In Linux/CMake case, we are getting headers locally
+#include <DocumentClient.h>
+#include <exceptions.h>
+#include <TriggerOperation.h>
+#include <TriggerType.h>
+#endif
+
 using namespace documentdb;
 using namespace web::json;
 using namespace std;
+using namespace utility;
+
+#ifndef U
+#define U(x) _XPLATSTR(x)
+#endif
 
 void executesimplequery(const DocumentClient &client,
-	const wstring dbresourceid,
-	const wstring collresourceid) {
+	const string_t dbresourceid,
+	const string_t collresourceid) {
 	try {
 		client.GetDatabase(dbresourceid).get();
 		shared_ptr<Database> db = client.GetDatabase(dbresourceid);
 		shared_ptr<Collection> coll = db->GetCollection(collresourceid);
-		wstring coll_name = coll->id();
+		string_t coll_name = coll->id();
 		shared_ptr<DocumentIterator> iter =
-			coll->QueryDocumentsAsync(wstring(L"SELECT * FROM " + coll_name)).get();
-		wcout << "\n\nQuerying collection:";
+			coll->QueryDocumentsAsync(U("SELECT * FROM ") + coll_name).get();
+		ucout << "\n\nQuerying collection:";
 		while (iter->HasMore()) {
 			shared_ptr<Document> doc = iter->Next();
-			wstring doc_name = doc->id();
-			wcout << "\n\t" << doc_name << "\n";
-			wcout << "\t"
+			string_t doc_name = doc->id();
+			ucout << "\n\t" << doc_name << "\n";
+			ucout << "\t"
 				<< "[{\"FirstName\":"
 				<< doc->payload().at(U("FirstName")).as_string()
 				<< ",\"LastName\":" << doc->payload().at(U("LastName")).as_string()
@@ -34,21 +50,21 @@ void executesimplequery(const DocumentClient &client,
 		}
 	}
 	catch (DocumentDBRuntimeException ex) {
-		wcout << ex.message();
+		ucout << ex.message();
 	}
 }
 
-void replacedocument(const DocumentClient &client, const wstring dbresourceid,
-	const wstring collresourceid,
-	const wstring docresourceid) {
+void replacedocument(const DocumentClient &client, const string_t dbresourceid,
+	const string_t collresourceid,
+	const string_t docresourceid) {
 	try {
 		client.GetDatabase(dbresourceid).get();
 		shared_ptr<Database> db = client.GetDatabase(dbresourceid);
 		shared_ptr<Collection> coll = db->GetCollection(collresourceid);
 		value newdoc;
-		newdoc[L"id"] = value::string(L"WakefieldFamily");
-		newdoc[L"FirstName"] = value::string(L"Lucy");
-		newdoc[L"LastName"] = value::string(L"Smith Wakefield");
+		newdoc[U("id")] = value::string(U("WakefieldFamily"));
+		newdoc[U("FirstName")] = value::string(U("Lucy"));
+		newdoc[U("LastName")] = value::string(U("Smith Wakefield"));
 		coll->ReplaceDocument(docresourceid, newdoc);
 	}
 	catch (DocumentDBRuntimeException ex) {
@@ -57,8 +73,8 @@ void replacedocument(const DocumentClient &client, const wstring dbresourceid,
 }
 
 
-void deletedocument(const DocumentClient &client, const wstring dbresourceid,
-	const wstring collresourceid, const wstring docresourceid) {
+void deletedocument(const DocumentClient &client, const string_t dbresourceid,
+	const string_t collresourceid, const string_t docresourceid) {
 	try {
 		client.GetDatabase(dbresourceid).get();
 		shared_ptr<Database> db = client.GetDatabase(dbresourceid);
@@ -66,16 +82,16 @@ void deletedocument(const DocumentClient &client, const wstring dbresourceid,
 		coll->DeleteDocumentAsync(docresourceid).get();
 	}
 	catch (DocumentDBRuntimeException ex) {
-		wcout << ex.message();
+		ucout << ex.message();
 	}
 }
 
-void deletedb(const DocumentClient &client, const wstring dbresourceid) {
+void deletedb(const DocumentClient &client, const string_t dbresourceid) {
 	try {
 		client.DeleteDatabase(dbresourceid);
 	}
 	catch (DocumentDBRuntimeException ex) {
-		wcout << ex.message();
+		ucout << ex.message();
 	}
 }
 
@@ -83,46 +99,46 @@ int main() {
 	try {
 		// Start by defining your account's configuration
 		DocumentDBConfiguration conf(
-			L"https://cppdocuments.documents.azure.com:443/", L"Add your key here");
+			U("https://cppdocuments.documents.azure.com:443/"), U("Add your key here"));
 		// Create your client
 		DocumentClient client(conf);
 		// Create a new database
 		try {
-			shared_ptr<Database> db = client.CreateDatabase(L"FamilyDB");
-			wcout << "\nCreating database:\n" << db->id();
+			shared_ptr<Database> db = client.CreateDatabase(U("FamilyDB"));
+			ucout << "\nCreating database:\n" << db->id();
 			// Create a collection inside database
-			shared_ptr<Collection> coll = db->CreateCollection(L"FamilyColl");
-			wcout << "\n\nCreating collection:\n" << coll->id();
+			shared_ptr<Collection> coll = db->CreateCollection(U("FamilyColl"));
+			ucout << "\n\nCreating collection:\n" << coll->id();
 			value document_family;
-			document_family[L"id"] = value::string(L"AndersenFamily");
-			document_family[L"FirstName"] = value::string(L"Thomas");
-			document_family[L"LastName"] = value::string(L"Andersen");
+			document_family[U("id")] = value::string(U("AndersenFamily"));
+			document_family[U("FirstName")] = value::string(U("Thomas"));
+			document_family[U("LastName")] = value::string(U("Andersen"));
 			shared_ptr<Document> doc =
 				coll->CreateDocumentAsync(document_family).get();
-			wcout << "\n\nCreating document:\n" << doc->id();
-			document_family[L"id"] = value::string(L"WakefieldFamily");
-			document_family[L"FirstName"] = value::string(L"Lucy");
-			document_family[L"LastName"] = value::string(L"Wakefield");
+			ucout << "\n\nCreating document:\n" << doc->id();
+			document_family[U("id")] = value::string(U("WakefieldFamily"));
+			document_family[U("FirstName")] = value::string(U("Lucy"));
+			document_family[U("LastName")] = value::string(U("Wakefield"));
 			doc = coll->CreateDocumentAsync(document_family).get();
-			wcout << "\n\nCreating document:\n" << doc->id();
+			ucout << "\n\nCreating document:\n" << doc->id();			executesimplequery(client, db->resource_id(), coll->resource_id());
 			executesimplequery(client, db->resource_id(), coll->resource_id());
 			replacedocument(client, db->resource_id(), coll->resource_id(),
 				doc->resource_id());
-			wcout << "\n\nReplaced document:\n" << doc->id();
+			ucout << "\n\nReplaced document:\n" << doc->id();
 			executesimplequery(client, db->resource_id(), coll->resource_id());
 			deletedocument(client, db->resource_id(), coll->resource_id(),
 				doc->resource_id());
-			wcout << "\n\nDeleted document:\n" << doc->id();
+			ucout << "\n\nDeleted document:\n" << doc->id();
 			deletedb(client, db->resource_id());
-			wcout << "\n\nDeleted db:\n" << db->id();
+			ucout << "\n\nDeleted db:\n" << db->id();
 			cin.get();
 		}
 		catch (ResourceAlreadyExistsException ex) {
-			wcout << ex.message();
+			ucout << ex.message();
 		}
 	}
 	catch (DocumentDBRuntimeException ex) {
-		wcout << ex.message();
+		ucout << ex.message();
 	}
 	cin.get();
 }

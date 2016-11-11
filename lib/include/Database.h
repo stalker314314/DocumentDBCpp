@@ -44,99 +44,99 @@ namespace documentdb {
 	public:
 		Database(
 			const std::shared_ptr<const DocumentDBConfiguration>& document_db_configuration,
-			const std::wstring& id,
-			const std::wstring& resource_id,
+			const utility::string_t& id,
+			const utility::string_t& resource_id,
 			unsigned long ts,
-			const std::wstring& self,
-			const std::wstring& etag,
-			const std::wstring& colls,
-			const std::wstring& users);
+			const utility::string_t& self,
+			const utility::string_t& etag,
+			const utility::string_t& colls,
+			const utility::string_t& users);
 
 		virtual ~Database();
 
 		//collections management
 
-		Concurrency::task<std::shared_ptr<Collection>> CreateCollectionAsync(
-			const std::wstring& id) const;
+		pplx::task<std::shared_ptr<Collection>> CreateCollectionAsync(
+			const utility::string_t& id) const;
 
 		std::shared_ptr<Collection> CreateCollection(
-			const std::wstring& id) const;
+			const utility::string_t& id) const;
 
-		Concurrency::task<void> DeleteCollectionAsync(
-			const std::wstring& resource_id) const;
+		pplx::task<void> DeleteCollectionAsync(
+			const utility::string_t& resource_id) const;
 
 		void DeleteCollection(
-			const std::wstring& resource_id) const;
+			const utility::string_t& resource_id) const;
 
-		Concurrency::task<void> DeleteCollectionAsync(
+		pplx::task<void> DeleteCollectionAsync(
 			const std::shared_ptr<Collection>& collection) const;
 
 		void DeleteCollection(
 			const std::shared_ptr<Collection>& collection) const;
 
-		Concurrency::task<std::shared_ptr<Collection>> GetCollectionAsync(
-			const std::wstring& resource_id) const;
+		pplx::task<std::shared_ptr<Collection>> GetCollectionAsync(
+			const utility::string_t& resource_id) const;
 
 		std::shared_ptr<Collection> GetCollection(
-			const std::wstring& resource_id) const;
+			const utility::string_t& resource_id) const;
 
-		Concurrency::task<std::vector<std::shared_ptr<Collection>>> ListCollectionsAsync() const;
+		pplx::task<std::vector<std::shared_ptr<Collection>>> ListCollectionsAsync() const;
 
 		std::vector<std::shared_ptr<Collection>> ListCollections() const;
 
-		std::wstring colls() const
+		utility::string_t colls() const
 		{
 			return colls_;
 		}
 
-		std::wstring users() const
+		utility::string_t users() const
 		{
 			return users_;
 		}
 
 		//users management
-		Concurrency::task<std::shared_ptr<User>> CreateUserAsync(
-			const std::wstring& id) const;
+		pplx::task<std::shared_ptr<User>> CreateUserAsync(
+			const utility::string_t& id) const;
 
 		std::shared_ptr<User> CreateUser(
-			const std::wstring& id) const;
+			const utility::string_t& id) const;
 
-		Concurrency::task<void> DeleteUserAsync(
-			const std::wstring& resource_id) const;
+		pplx::task<void> DeleteUserAsync(
+			const utility::string_t& resource_id) const;
 
 		void DeleteUser(
-			const std::wstring& resource_id) const;
+			const utility::string_t& resource_id) const;
 
-		Concurrency::task<void> DeleteUserAsync(
+		pplx::task<void> DeleteUserAsync(
 			const std::shared_ptr<User>& user) const;
 
 		void DeleteUser(
 			const std::shared_ptr<User>& user) const;
 			
-		Concurrency::task<std::shared_ptr<User>> GetUserAsync(
-			const std::wstring& resource_id) const;
+		pplx::task<std::shared_ptr<User>> GetUserAsync(
+			const utility::string_t& resource_id) const;
 
 		std::shared_ptr<User> GetUser(
-			const std::wstring& resource_id) const;
+			const utility::string_t& resource_id) const;
 
-		Concurrency::task<std::vector<std::shared_ptr<User>>> ListUsersAsync() const;
+		pplx::task<std::vector<std::shared_ptr<User>>> ListUsersAsync() const;
 
 		std::vector<std::shared_ptr<User>> ListUsers() const;
 
-		Concurrency::task<std::shared_ptr<User>> ReplaceUserAsync(
-			const std::wstring& resource_id,
-			const std::wstring& new_id) const;
+		pplx::task<std::shared_ptr<User>> ReplaceUserAsync(
+			const utility::string_t& resource_id,
+			const utility::string_t& new_id) const;
 
 		std::shared_ptr<User> ReplaceUser(
-			const std::wstring& resource_id,
-			const std::wstring& new_id) const;
+			const utility::string_t& resource_id,
+			const utility::string_t& new_id) const;
 
 	private:
 		std::shared_ptr<Collection> CollectionFromJson(const web::json::value* json_collection) const;
 		std::shared_ptr<User> UserFromJson(const web::json::value* json_user) const;
 
-		std::wstring colls_;
-		std::wstring users_;
+		utility::string_t colls_;
+		utility::string_t users_;
 	};
 
 }

@@ -27,6 +27,7 @@
 
 #include <string>
 #include <memory>
+#include <pplx/pplxtasks.h>
 
 #include "DocumentDBEntity.h"
 #include "DocumentDBConfiguration.h"
@@ -41,79 +42,79 @@ namespace documentdb {
 	public:
 		Document(
 			const std::shared_ptr<const DocumentDBConfiguration>& document_db_configuration,
-			const std::wstring& id,
-			const std::wstring& resource_id,
+			const utility::string_t& id,
+			const utility::string_t& resource_id,
 			const unsigned long ts,
-			const std::wstring& self,
-			const std::wstring& etag,
-			const std::wstring& attachments,
+			const utility::string_t& self,
+			const utility::string_t& etag,
+			const utility::string_t& attachments,
 			const web::json::value& payload);
 
 		virtual ~Document();
 
-		Concurrency::task<std::shared_ptr<Attachment>> CreateAttachmentAsync(
-			const std::wstring& id,
-			const std::wstring& contentType,
-			const std::wstring& media) const;
+		pplx::task<std::shared_ptr<Attachment>> CreateAttachmentAsync(
+			const utility::string_t& id,
+			const utility::string_t& contentType,
+			const utility::string_t& media) const;
 
-		Concurrency::task<std::shared_ptr<Attachment>> CreateAttachmentAsync(
-			const std::wstring& id,
-			const std::wstring& contentType,
+		pplx::task<std::shared_ptr<Attachment>> CreateAttachmentAsync(
+			const utility::string_t& id,
+			const utility::string_t& contentType,
 			const std::vector<unsigned char>& raw_media) const;
 
 		std::shared_ptr<Attachment> CreateAttachment(
-			const std::wstring& id,
-			const std::wstring& contentType,
-			const std::wstring& media) const;
+			const utility::string_t& id,
+			const utility::string_t& contentType,
+			const utility::string_t& media) const;
 
 		std::shared_ptr<Attachment> CreateAttachment(
-			const std::wstring& id,
-			const std::wstring& contentType,
+			const utility::string_t& id,
+			const utility::string_t& contentType,
 			const std::vector<unsigned char>& raw_media) const;
 
-		Concurrency::task<std::shared_ptr<Attachment>> GetAttachmentAsync(
-			const std::wstring& resource_id) const;
+		pplx::task<std::shared_ptr<Attachment>> GetAttachmentAsync(
+			const utility::string_t& resource_id) const;
 
 		std::shared_ptr<Attachment> GetAttachment(
-			const std::wstring& resource_id) const;
+			const utility::string_t& resource_id) const;
 
-		Concurrency::task<std::vector<std::shared_ptr<Attachment>>> ListAttachmentsAsync() const;
+		pplx::task<std::vector<std::shared_ptr<Attachment>>> ListAttachmentsAsync() const;
 
 		std::vector<std::shared_ptr<Attachment>> ListAttachments() const;
 
-		Concurrency::task<std::shared_ptr<Attachment>> ReplaceAttachmentAsync(
-			const std::wstring& id,
-			const std::wstring& new_id,
-			const std::wstring& contentType,
-			const std::wstring& media) const;
+		pplx::task<std::shared_ptr<Attachment>> ReplaceAttachmentAsync(
+			const utility::string_t& id,
+			const utility::string_t& new_id,
+			const utility::string_t& contentType,
+			const utility::string_t& media) const;
 
 		std::shared_ptr<Attachment> ReplaceAttachment(
-			const std::wstring& id,
-			const std::wstring& new_id,
-			const std::wstring& contentType,
-			const std::wstring& media) const;
+			const utility::string_t& id,
+			const utility::string_t& new_id,
+			const utility::string_t& contentType,
+			const utility::string_t& media) const;
 
-		Concurrency::task<void> DeleteAttachmentAsync(
+		pplx::task<void> DeleteAttachmentAsync(
 			const std::shared_ptr<Attachment>& attachment) const;
 
 		void DeleteAttachment(
 			const std::shared_ptr<Attachment>& attachment) const;
 
-		Concurrency::task<void> DeleteAttachmentAsync(
-			const std::wstring& resource_id) const;
+		pplx::task<void> DeleteAttachmentAsync(
+			const utility::string_t& resource_id) const;
 
 		void DeleteAttachment(
-			const std::wstring& resource_id) const;
+			const utility::string_t& resource_id) const;
 
-		Concurrency::task<std::shared_ptr<AttachmentIterator>> QueryAttachmentsAsync(
-			const std::wstring& query,
+		pplx::task<std::shared_ptr<AttachmentIterator>> QueryAttachmentsAsync(
+			const utility::string_t& query,
 			const int page_size = 10) const;
 
 		std::shared_ptr<AttachmentIterator> QueryAttachments(
-			const std::wstring& query,
+			const utility::string_t& query,
 			const int page_size = 10) const;
 
-		std::wstring attachments() const
+		utility::string_t attachments() const
 		{
 			return attachments_;
 		}
@@ -126,7 +127,7 @@ namespace documentdb {
 		std::shared_ptr<Attachment> AttachmentFromJson(
 			const web::json::value& json_attachment) const;
 
-		std::wstring attachments_;
+		utility::string_t attachments_;
 		web::json::value payload_;
 	};
 }

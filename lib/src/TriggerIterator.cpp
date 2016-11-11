@@ -33,16 +33,17 @@
 
 using namespace documentdb;
 using namespace std;
+using namespace utility;
 using namespace web::http;
 using namespace web::json;
 using namespace web::http::client;
 
 TriggerIterator::TriggerIterator(
 	const shared_ptr<const Collection>& collection,
-	const wstring& original_query,
+	const string_t& original_query,
 	const int page_size,
-	const wstring& original_request_uri,
-	const wstring& continuation_id,
+	const string_t& original_request_uri,
+	const string_t& continuation_id,
 	const value& buffer)
 	: collection_(collection)
 	, original_query_(original_query)
@@ -85,7 +86,7 @@ bool TriggerIterator::HasMore()
 
 	if (response.status_code() == status_codes::OK)
 	{
-		wstring new_continuation_id = response.headers()[HEADER_MS_CONTINUATION];
+		string_t new_continuation_id = response.headers()[HEADER_MS_CONTINUATION];
 		int count = stoi(response.headers()[HEADER_MS_MAX_ITEM_COUNT]);
 
 		buffer_ = json_response.at(RESPONSE_QUERY_TRIGGERS);
@@ -108,5 +109,5 @@ shared_ptr<Trigger> TriggerIterator::Next()
 	// Did you called hasMore()?
 	//
 	assert(false);
-	throw DocumentDBRuntimeException(wstring(L"Calling Next without checking HasMore before that."));
+	throw DocumentDBRuntimeException(_XPLATSTR("Calling Next without checking HasMore before that."));
 }

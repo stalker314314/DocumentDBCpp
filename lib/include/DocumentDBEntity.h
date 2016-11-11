@@ -37,20 +37,20 @@ namespace documentdb
 	public:
 		DocumentDBEntity(
 			const std::shared_ptr<const DocumentDBConfiguration>& document_db_configuration,
-			const std::wstring& id,
-			const std::wstring& resource_id,
+			const utility::string_t& id,
+			const utility::string_t& resource_id,
 			const unsigned long ts,
-			const std::wstring& self,
-			const std::wstring& etag);
+			const utility::string_t& self,
+			const utility::string_t& etag);
 
 		virtual ~DocumentDBEntity();
 
-		std::wstring id() const
+		utility::string_t id() const
 		{
 			return id_;
 		}
 
-		std::wstring resource_id() const
+		utility::string_t resource_id() const
 		{
 			return resource_id_;
 		}
@@ -60,12 +60,12 @@ namespace documentdb
 			return ts_;
 		}
 
-		std::wstring self() const
+		utility::string_t self() const
 		{
 			return self_;
 		}
 
-		std::wstring etag() const
+		utility::string_t etag() const
 		{
 			return etag_;
 		}
@@ -78,11 +78,11 @@ namespace documentdb
 	private:
 		std::shared_ptr<const DocumentDBConfiguration> document_db_configuration_;
 
-		std::wstring id_;
-		std::wstring resource_id_;
+		utility::string_t id_;
+		utility::string_t resource_id_;
 		unsigned long ts_;
-		std::wstring self_;
-		std::wstring etag_;
+		utility::string_t self_;
+		utility::string_t etag_;
 	};
 }
 

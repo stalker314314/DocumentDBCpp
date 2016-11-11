@@ -34,17 +34,17 @@
 
 web::http::http_request CreateRequest(
 	const web::http::method& method,
-	const std::wstring& resource_type,
-	const std::wstring& resource_id,
+	const utility::string_t& resource_type,
+	const utility::string_t& resource_id,
 	const std::vector<unsigned char>& master_key);
 
 web::http::http_request CreateQueryRequest(
-	const std::wstring& query,
+	const utility::string_t& query,
 	const int pageSize,
-	const std::wstring& resource_type,
-	const std::wstring& resource_id,
+	const utility::string_t& resource_type,
+	const utility::string_t& resource_id,
 	const std::vector<unsigned char>& master_key,
-	const std::wstring& continuation_id = std::wstring());
+	const utility::string_t& continuation_id = utility::string_t());
 
 __declspec(noreturn)
 void ThrowExceptionFromResponse(

@@ -34,18 +34,19 @@
 
 using namespace documentdb;
 using namespace std;
+using namespace utility;
 using namespace web::http;
 using namespace web::json;
 using namespace web::http::client;
 
 Document::Document(
 		const shared_ptr<const DocumentDBConfiguration>& document_db_configuration,
-		const wstring& id,
-		const wstring& resource_id,
+		const string_t& id,
+		const string_t& resource_id,
 		const unsigned long ts,
-		const wstring& self,
-		const wstring& etag,
-		const wstring& attachments,
+		const string_t& self,
+		const string_t& etag,
+		const string_t& attachments,
 		const value& payload)
 	: DocumentDBEntity(document_db_configuration, id, resource_id, ts, self, etag)
 	, attachments_(attachments)
@@ -60,13 +61,13 @@ Document::~Document()
 shared_ptr<Attachment> Document::AttachmentFromJson(
 	const value& json_attachment) const
 {
-	wstring id = json_attachment.at(DOCUMENT_ID).as_string();
-	wstring rid = json_attachment.at(RESPONSE_RESOURCE_RID).as_string();
+	string_t id = json_attachment.at(DOCUMENT_ID).as_string();
+	string_t rid = json_attachment.at(RESPONSE_RESOURCE_RID).as_string();
 	unsigned long ts = json_attachment.at(RESPONSE_RESOURCE_TS).as_integer();
-	wstring self = json_attachment.at(RESPONSE_RESOURCE_SELF).as_string();
-	wstring etag = json_attachment.at(RESPONSE_RESOURCE_ETAG).as_string();
-	wstring contentType = json_attachment.at(RESPONSE_RESOURCE_CONTENT_TYPE).as_string();
-	wstring media = json_attachment.at(RESPONSE_RESOURCE_MEDIA).as_string();
+	string_t self = json_attachment.at(RESPONSE_RESOURCE_SELF).as_string();
+	string_t etag = json_attachment.at(RESPONSE_RESOURCE_ETAG).as_string();
+	string_t contentType = json_attachment.at(RESPONSE_RESOURCE_CONTENT_TYPE).as_string();
+	string_t media = json_attachment.at(RESPONSE_RESOURCE_MEDIA).as_string();
 
 	return make_shared<Attachment>(
 		this->document_db_configuration(),
@@ -79,10 +80,10 @@ shared_ptr<Attachment> Document::AttachmentFromJson(
 		media);
 }
 
-Concurrency::task<shared_ptr<Attachment>> Document::CreateAttachmentAsync(
-	const wstring& id,
-	const wstring& contentType,
-	const wstring& media) const
+pplx::task<shared_ptr<Attachment>> Document::CreateAttachmentAsync(
+	const string_t& id,
+	const string_t& contentType,
+	const string_t& media) const
 {
 	http_request request = CreateRequest(
 		methods::POST,
@@ -110,9 +111,9 @@ Concurrency::task<shared_ptr<Attachment>> Document::CreateAttachmentAsync(
 	});
 }
 
-Concurrency::task<shared_ptr<Attachment>> Document::CreateAttachmentAsync(
-	const wstring& id,
-	const wstring& contentType,
+pplx::task<shared_ptr<Attachment>> Document::CreateAttachmentAsync(
+	const string_t& id,
+	const string_t& contentType,
 	const vector<unsigned char>& raw_media) const
 {
 	http_request request = CreateRequest(
@@ -123,7 +124,7 @@ Concurrency::task<shared_ptr<Attachment>> Document::CreateAttachmentAsync(
 	request.set_request_uri(this->self() + attachments_);
 
 	request.headers().add(web::http::header_names::content_type, contentType);
-	request.headers().add(L"Slug", id);
+	request.headers().add(_XPLATSTR("Slug"), id);
 	request.set_body(raw_media);
 
 	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
@@ -140,23 +141,23 @@ Concurrency::task<shared_ptr<Attachment>> Document::CreateAttachmentAsync(
 }
 
 shared_ptr<Attachment> Document::CreateAttachment(
-	const wstring& id,
-	const wstring& contentType,
-	const wstring& media) const
+	const string_t& id,
+	const string_t& contentType,
+	const string_t& media) const
 {
 	return CreateAttachmentAsync(id, contentType, media).get();
 }
 
 shared_ptr<Attachment> Document::CreateAttachment(
-	const wstring& id,
-	const wstring& contentType,
+	const string_t& id,
+	const string_t& contentType,
 	const vector<unsigned char>& raw_media) const
 {
 	return CreateAttachmentAsync(id, contentType, raw_media).get();
 }
 
-Concurrency::task<shared_ptr<Attachment>> Document::GetAttachmentAsync(
-	const wstring& resource_id) const
+pplx::task<shared_ptr<Attachment>> Document::GetAttachmentAsync(
+	const string_t& resource_id) const
 {
 	http_request request = CreateRequest(
 		methods::GET,
@@ -179,12 +180,12 @@ Concurrency::task<shared_ptr<Attachment>> Document::GetAttachmentAsync(
 }
 
 shared_ptr<Attachment> Document::GetAttachment(
-	const wstring& resource_id) const
+	const string_t& resource_id) const
 {
 	return GetAttachmentAsync(resource_id).get();
 }
 
-Concurrency::task<vector<shared_ptr<Attachment>>> Document::ListAttachmentsAsync() const
+pplx::task<vector<shared_ptr<Attachment>>> Document::ListAttachmentsAsync() const
 {
 	http_request request = CreateRequest(
 		methods::GET,
@@ -220,11 +221,11 @@ vector<shared_ptr<Attachment>> Document::ListAttachments() const
 	return ListAttachmentsAsync().get();
 }
 
-Concurrency::task<shared_ptr<Attachment>> Document::ReplaceAttachmentAsync(
-	const wstring& id,
-	const wstring& new_id,
-	const wstring& contentType,
-	const wstring& media) const
+pplx::task<shared_ptr<Attachment>> Document::ReplaceAttachmentAsync(
+	const string_t& id,
+	const string_t& new_id,
+	const string_t& contentType,
+	const string_t& media) const
 {
 	http_request request = CreateRequest(
 		methods::PUT,
@@ -254,15 +255,15 @@ Concurrency::task<shared_ptr<Attachment>> Document::ReplaceAttachmentAsync(
 }
 
 shared_ptr<Attachment> Document::ReplaceAttachment(
-	const wstring& id,
-	const wstring& new_id,
-	const wstring& contentType,
-	const wstring& media) const
+	const string_t& id,
+	const string_t& new_id,
+	const string_t& contentType,
+	const string_t& media) const
 {
 	return ReplaceAttachmentAsync(id, new_id, contentType, media).get();
 }
 
-Concurrency::task<void> Document::DeleteAttachmentAsync(
+pplx::task<void> Document::DeleteAttachmentAsync(
 	const shared_ptr<Attachment>& attachment) const
 {
 	return DeleteAttachmentAsync(attachment->resource_id());
@@ -274,8 +275,8 @@ void Document::DeleteAttachment(
 	DeleteAttachmentAsync(attachment->resource_id()).get();
 }
 
-Concurrency::task<void> Document::DeleteAttachmentAsync(
-	const wstring& resource_id) const
+pplx::task<void> Document::DeleteAttachmentAsync(
+	const string_t& resource_id) const
 {
 	http_request request = CreateRequest(
 		methods::DEL,
@@ -297,13 +298,13 @@ Concurrency::task<void> Document::DeleteAttachmentAsync(
 }
 
 void Document::DeleteAttachment(
-	const wstring& resource_id) const
+	const string_t& resource_id) const
 {
 	DeleteAttachmentAsync(resource_id).get();
 }
 
-Concurrency::task<shared_ptr<AttachmentIterator>> Document::QueryAttachmentsAsync(
-	const wstring& query,
+pplx::task<shared_ptr<AttachmentIterator>> Document::QueryAttachmentsAsync(
+	const string_t& query,
 	const int page_size) const
 {
 	http_request request = CreateQueryRequest(
@@ -312,12 +313,12 @@ Concurrency::task<shared_ptr<AttachmentIterator>> Document::QueryAttachmentsAsyn
 		RESOURCE_PATH_ATTACHMENTS,
 		this->resource_id(),
 		this->document_db_configuration()->master_key());
-	const wstring requestUri = this->self() + attachments_;
+	const string_t requestUri = this->self() + attachments_;
 	request.set_request_uri(requestUri);
 
 	return this->document_db_configuration()->http_client().request(request).then([=](http_response response)
 	{
-		wstring continuation_id = response.headers()[HEADER_MS_CONTINUATION];
+		string_t continuation_id = response.headers()[HEADER_MS_CONTINUATION];
 		value json_response = response.extract_json().get();
 
 		if (response.status_code() == status_codes::OK)
@@ -338,7 +339,7 @@ Concurrency::task<shared_ptr<AttachmentIterator>> Document::QueryAttachmentsAsyn
 }
 
 shared_ptr<AttachmentIterator> Document::QueryAttachments(
-	const wstring& query,
+	const string_t& query,
 	const int page_size) const
 {
 	return QueryAttachmentsAsync(query, page_size).get();

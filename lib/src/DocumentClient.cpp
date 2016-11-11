@@ -24,10 +24,13 @@
 
 #include "DocumentClient.h"
 
-#include <iostream>
-#include <string.h>
+#ifdef _WIN32
 #include <windows.h>
 #include <Wincrypt.h>
+#endif
+
+#include <iostream>
+#include <string>
 #include <algorithm>
 
 #include <cpprest/filestream.h>
@@ -40,6 +43,7 @@
 
 using namespace documentdb;
 using namespace std;
+using namespace utility;
 using namespace web::http;
 using namespace web::json;
 using namespace web::http::client;
@@ -53,24 +57,24 @@ DocumentClient::DocumentClient(
 shared_ptr<Database> DocumentClient::DatabaseFromJson(
 	const value& json_database) const
 {
-	wstring id = json_database.at(DOCUMENT_ID).as_string();
-	wstring rid = json_database.at(RESPONSE_RESOURCE_RID).as_string();
+	utility::string_t id = json_database.at(DOCUMENT_ID).as_string();
+	utility::string_t rid = json_database.at(RESPONSE_RESOURCE_RID).as_string();
 	unsigned long ts = json_database.at(RESPONSE_RESOURCE_TS).as_integer();
-	wstring self = json_database.at(RESPONSE_RESOURCE_SELF).as_string();
-	wstring etag = json_database.at(RESPONSE_RESOURCE_ETAG).as_string();
-	wstring colls = json_database.at(RESPONSE_RESOURCE_COLLS).as_string();
-	wstring users = json_database.at(RESPONSE_RESOURCE_USERS).as_string();
+	utility::string_t self = json_database.at(RESPONSE_RESOURCE_SELF).as_string();
+	utility::string_t etag = json_database.at(RESPONSE_RESOURCE_ETAG).as_string();
+	utility::string_t colls = json_database.at(RESPONSE_RESOURCE_COLLS).as_string();
+	utility::string_t users = json_database.at(RESPONSE_RESOURCE_USERS).as_string();
 
 	return make_shared<Database>(document_db_configuration_, id, rid, ts, self, etag, colls, users);
 }
 
-Concurrency::task<shared_ptr<Database>> DocumentClient::CreateDatabaseAsync(
-	const wstring& id) const
+pplx::task<shared_ptr<Database>> DocumentClient::CreateDatabaseAsync(
+	const string_t& id) const
 {
 	http_request request = CreateRequest(
 		methods::POST,
 		RESOURCE_PATH_DBS,
-		L"",
+		_XPLATSTR(""),
 		document_db_configuration_->master_key());
 	request.set_request_uri(RESOURCE_PATH_DBS);
 	value body;
@@ -91,21 +95,21 @@ Concurrency::task<shared_ptr<Database>> DocumentClient::CreateDatabaseAsync(
 }
 
 shared_ptr<Database> DocumentClient::CreateDatabase(
-	const wstring& id) const
+	const string_t& id) const
 {
 	return this->CreateDatabaseAsync(id).get();
 }
 
-Concurrency::task<shared_ptr<Database>> DocumentClient::ReplaceDatabaseAsync(
-	const wstring& resource_id,
-	const wstring& new_id) const
+pplx::task<shared_ptr<Database>> DocumentClient::ReplaceDatabaseAsync(
+	const string_t& resource_id,
+	const string_t& new_id) const
 {
 	http_request request = CreateRequest(
 		methods::PUT,
 		RESOURCE_PATH_DBS,
 		resource_id,
 		document_db_configuration_->master_key());
-	request.set_request_uri(wstring(RESOURCE_PATH_DBS) + L"/" + resource_id);
+	request.set_request_uri(string_t(RESOURCE_PATH_DBS) + _XPLATSTR("/") + resource_id);
 
 	value body;
 	body[DOCUMENT_ID] = value::string(new_id);
@@ -125,13 +129,13 @@ Concurrency::task<shared_ptr<Database>> DocumentClient::ReplaceDatabaseAsync(
 }
 
 shared_ptr<Database> DocumentClient::ReplaceDatabase(
-	const wstring& resource_id,
-	const wstring& new_id) const
+	const string_t& resource_id,
+	const string_t& new_id) const
 {
 	return this->ReplaceDatabaseAsync(resource_id, new_id).get();
 }
 
-Concurrency::task<void> DocumentClient::DeleteDatabaseAsync(
+pplx::task<void> DocumentClient::DeleteDatabaseAsync(
 	const Database& database) const
 {
 	return DeleteDatabaseAsync(database.resource_id());
@@ -143,15 +147,15 @@ void DocumentClient::DeleteDatabase(
 	return this->DeleteDatabaseAsync(database).get();
 }
 
-Concurrency::task<void> DocumentClient::DeleteDatabaseAsync(
-	const wstring& resource_id) const
+pplx::task<void> DocumentClient::DeleteDatabaseAsync(
+	const string_t& resource_id) const
 {
 	http_request request = CreateRequest(
 		methods::DEL,
 		RESOURCE_PATH_DBS,
 		resource_id,
 		document_db_configuration_->master_key());
-	request.set_request_uri(wstring(RESOURCE_PATH_DBS) + L"/" + resource_id);
+	request.set_request_uri(string_t(RESOURCE_PATH_DBS) + _XPLATSTR("/") + resource_id);
 
 	return document_db_configuration_->http_client().request(request).then([=](http_response response)
 	{
@@ -166,20 +170,20 @@ Concurrency::task<void> DocumentClient::DeleteDatabaseAsync(
 }
 
 void DocumentClient::DeleteDatabase(
-	const wstring& resource_id) const
+	const string_t& resource_id) const
 {
 	return this->DeleteDatabaseAsync(resource_id).get();
 }
 
-Concurrency::task<shared_ptr<Database>> DocumentClient::GetDatabaseAsync(
-	const wstring& resource_id) const
+pplx::task<shared_ptr<Database>> DocumentClient::GetDatabaseAsync(
+	const string_t& resource_id) const
 {
 	http_request request = CreateRequest(
 		methods::GET,
 		RESOURCE_PATH_DBS,
 		resource_id,
 		document_db_configuration_->master_key());
-	request.set_request_uri(wstring(RESOURCE_PATH_DBS) + L"/" + resource_id);
+	request.set_request_uri(string_t(RESOURCE_PATH_DBS) + _XPLATSTR("/") + resource_id);
 
 	return document_db_configuration_->http_client().request(request).then([=](http_response response)
 	{
@@ -197,17 +201,17 @@ Concurrency::task<shared_ptr<Database>> DocumentClient::GetDatabaseAsync(
 }
 
 shared_ptr<Database> DocumentClient::GetDatabase(
-	const wstring& resource_id) const
+	const string_t& resource_id) const
 {
 	return this->GetDatabaseAsync(resource_id).get();
 }
 
-Concurrency::task<vector<shared_ptr<Database>>> DocumentClient::ListDatabasesAsync() const
+pplx::task<vector<shared_ptr<Database>>> DocumentClient::ListDatabasesAsync() const
 {
 	http_request request = CreateRequest(
 		methods::GET,
 		RESOURCE_PATH_DBS,
-		L"",
+		_XPLATSTR(""),
 		document_db_configuration_->master_key());
 	request.set_request_uri(RESOURCE_PATH_DBS);
 
@@ -217,7 +221,7 @@ Concurrency::task<vector<shared_ptr<Database>>> DocumentClient::ListDatabasesAsy
 
 		if (response.status_code() == status_codes::OK)
 		{
-			assert(L"" == json_response.at(RESPONSE_RESOURCE_RID).as_string());
+			assert(_XPLATSTR("") == json_response.at(RESPONSE_RESOURCE_RID).as_string());
 			vector<shared_ptr<Database>> databases;
 			databases.reserve(json_response.at(RESPONSE_BODY_COUNT).as_integer());
 			value json_databases = json_response.at(RESPONSE_DATABASES);
