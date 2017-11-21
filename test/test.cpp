@@ -186,11 +186,6 @@ void test_databases(
 	assert(db->self() == read_db->self());
 	assert(db->users() == read_db->users());
 
-	// Replace database
-	string_t new_db_name = generate_random_string(8);
-	db = client.ReplaceDatabaseAsync(db->resource_id(), string_t(new_db_name)).get();
-	assert(db->id() == new_db_name);
-
 	// Delete created database
 	string_t resource_id = db->resource_id();
 	client.DeleteDatabaseAsync(db->resource_id()).get();

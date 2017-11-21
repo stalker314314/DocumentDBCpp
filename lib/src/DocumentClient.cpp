@@ -100,41 +100,6 @@ shared_ptr<Database> DocumentClient::CreateDatabase(
 	return this->CreateDatabaseAsync(id).get();
 }
 
-pplx::task<shared_ptr<Database>> DocumentClient::ReplaceDatabaseAsync(
-	const string_t& resource_id,
-	const string_t& new_id) const
-{
-	http_request request = CreateRequest(
-		methods::PUT,
-		RESOURCE_PATH_DBS,
-		resource_id,
-		document_db_configuration_->master_key());
-	request.set_request_uri(string_t(RESOURCE_PATH_DBS) + _XPLATSTR("/") + resource_id);
-
-	value body;
-	body[DOCUMENT_ID] = value::string(new_id);
-	request.set_body(body);
-
-	return document_db_configuration_->http_client().request(request).then([=](http_response response)
-	{
-		value json_response = response.extract_json().get();
-
-		if (response.status_code() == status_codes::OK)
-		{
-			return DatabaseFromJson(json_response);
-		}
-
-		ThrowExceptionFromResponse(response.status_code(), json_response);
-	});
-}
-
-shared_ptr<Database> DocumentClient::ReplaceDatabase(
-	const string_t& resource_id,
-	const string_t& new_id) const
-{
-	return this->ReplaceDatabaseAsync(resource_id, new_id).get();
-}
-
 pplx::task<void> DocumentClient::DeleteDatabaseAsync(
 	const Database& database) const
 {

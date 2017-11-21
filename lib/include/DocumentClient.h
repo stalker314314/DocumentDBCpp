@@ -49,14 +49,6 @@ namespace documentdb {
 		std::shared_ptr<Database> CreateDatabase(
 			const utility::string_t& id) const;
 
-		pplx::task<std::shared_ptr<Database>> ReplaceDatabaseAsync(
-			const utility::string_t& resource_id,
-			const utility::string_t& new_id) const;
-
-		std::shared_ptr<Database> ReplaceDatabase(
-			const utility::string_t& resource_id,
-			const utility::string_t& new_id) const;
-
 		pplx::task<void> DeleteDatabaseAsync(
 			const Database& database) const;
 
