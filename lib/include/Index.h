@@ -42,10 +42,9 @@ namespace documentdb
 	{
 	public:
 		Index(
-			IndexType index_type,
-			int numeric_precision,
-			int string_precision,
-			utility::string_t path);
+			IndexType kind,
+			const utility::string_t& dataType,
+			int string_precision);
 
 		virtual ~Index();
 
@@ -59,14 +58,14 @@ namespace documentdb
 		static std::shared_ptr<Index> FromJson(
 			const web::json::value& json_payload);
 
-		IndexType index_type() const
+		IndexType kind() const
 		{
-			return index_type_;
+			return kind_;
 		}
 
-		int numeric_precision() const
+		utility::string_t data_type() const
 		{
-			return numeric_precision_;
+			return data_type_;
 		}
 
 		int string_precision() const
@@ -74,16 +73,10 @@ namespace documentdb
 			return string_precision_;
 		}
 
-		utility::string_t path() const
-		{
-			return path_;
-		}
-
 	private:
-		IndexType index_type_;
-		int numeric_precision_;
+		IndexType kind_;
+		utility::string_t data_type_;
 		int string_precision_;
-		utility::string_t path_;
 	};
 }
 

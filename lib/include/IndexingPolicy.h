@@ -30,8 +30,8 @@
 
 #include <cpprest/json.h>
 
+#include "IndexPath.h"
 #include "IndexingMode.h"
-#include "Index.h"
 
 namespace documentdb
 {
@@ -46,7 +46,7 @@ namespace documentdb
 		IndexingPolicy(
 			const bool automatic,
 			const IndexingMode& indexing_mode,
-			const std::vector<std::shared_ptr<Index>>& included_paths,
+			const std::vector<std::shared_ptr<IndexPath>>& included_paths,
 			const std::vector<utility::string_t>& excluded_paths);
 
 		virtual ~IndexingPolicy();
@@ -63,7 +63,7 @@ namespace documentdb
 			return indexing_mode_;
 		}
 
-		std::vector<std::shared_ptr<Index>> included_paths() const
+		std::vector<std::shared_ptr<IndexPath>> included_paths() const
 		{
 			return included_paths_;
 		}
@@ -76,7 +76,7 @@ namespace documentdb
 	private:
 		bool automatic_;
 		IndexingMode indexing_mode_;
-		std::vector<std::shared_ptr<Index>> included_paths_;
+		std::vector<std::shared_ptr<IndexPath>> included_paths_;
 		std::vector<utility::string_t> excluded_paths_;
 	};
 }

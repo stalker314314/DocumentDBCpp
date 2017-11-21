@@ -30,7 +30,8 @@ namespace documentdb
 	enum IndexType
 	{
 		HASH,
-		RANGE
+		RANGE,
+		SPATIAL
 	};
 }
 

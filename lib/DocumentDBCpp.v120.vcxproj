@@ -170,6 +170,7 @@
     <ClCompile Include="src\hmac_bcrypt.cpp" />
     <ClCompile Include="src\Index.cpp" />
     <ClCompile Include="src\IndexingPolicy.cpp" />
+    <ClCompile Include="src\IndexPath.cpp" />
     <ClCompile Include="src\Permission.cpp" />
     <ClCompile Include="src\StoredProcedure.cpp" />
     <ClCompile Include="src\StoredProcedureIterator.cpp" />
@@ -197,6 +198,7 @@
     <ClInclude Include="include\Index.h" />
     <ClInclude Include="include\IndexingMode.h" />
     <ClInclude Include="include\IndexingPolicy.h" />
+    <ClInclude Include="include\IndexPath.h" />
     <ClInclude Include="include\IndexType.h" />
     <ClInclude Include="include\Permission.h" />
     <ClInclude Include="include\StoredProcedure.h" />

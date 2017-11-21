@@ -118,7 +118,7 @@ http_request CreateRequest(
 		web::http::header_names::authorization,
 		uri::encode_data_string(_XPLATSTR("type=master&ver=1.0&sig=") + signature));
 	request.headers().add(HEADER_MS_DATE, requestTime);
-	request.headers().add(HEADER_MS_VERSION, _XPLATSTR("2014-08-21"));
+	request.headers().add(HEADER_MS_VERSION, _XPLATSTR("2017-02-22"));
 
 	return request;
 }
