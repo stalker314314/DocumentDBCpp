@@ -74,6 +74,7 @@ string_t GetCurrentRequestTime()
 #ifdef _UTF16_STRINGS
 	string_t timeAsString(strlen(buf) + 1, U(' '));
 	mbstowcs_s(nullptr, &timeAsString[0], timeAsString.size(), buf, strlen(buf));
+	timeAsString.resize(wcslen(timeAsString.c_str()));
 #else
 	string_t timeAsString = string_t(buf);
 #endif
