@@ -17,6 +17,7 @@ if(UNIX)
      Collection.cpp
      DocumentDBConfiguration.cpp
      IndexingPolicy.cpp
+     IndexPath.cpp
      TriggerIterator.cpp
      ConnectionHelper.cpp
      DocumentDBEntity.cpp
