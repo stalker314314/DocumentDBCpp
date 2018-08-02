@@ -25,6 +25,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <fstream>
+#include <assert.h>
 
 #include <cpprest/json.h>
 
@@ -132,7 +133,7 @@ void compare_attachments(const shared_ptr<Attachment>& attachment1,
 void test_databases(
 	const DocumentClient& client)
 {
-	int previous_db_count = client.ListDatabasesAsync().get().size();
+	size_t previous_db_count = client.ListDatabasesAsync().get().size();
 	assert(previous_db_count == client.ListDatabases().size());
 
 	// Create database with a random name
