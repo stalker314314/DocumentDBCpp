@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>DocumentDbCpp.v140</id>
-    <version>0.5</version>
+    <version>0.6</version>
     <title>C++ wrapper and object model for DocumentDB NoSQL database</title>
     <authors>Branko Kokanovic</authors>
     <owners>branko</owners>

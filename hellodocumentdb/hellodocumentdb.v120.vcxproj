@@ -183,8 +183,8 @@
     <Import Project="..\packages\cpprestsdk.v120.winxp.msvcstl.dyn.rt-dyn.2.8.0\build\native\cpprestsdk.v120.winxp.msvcstl.dyn.rt-dyn.targets" Condition="Exists('..\packages\cpprestsdk.v120.winxp.msvcstl.dyn.rt-dyn.2.8.0\build\native\cpprestsdk.v120.winxp.msvcstl.dyn.rt-dyn.targets')" />
     <Import Project="..\packages\cpprestsdk.v140.winapp.msvcstl.dyn.rt-dyn.2.8.0\build\native\cpprestsdk.v140.winapp.msvcstl.dyn.rt-dyn.targets" Condition="Exists('..\packages\cpprestsdk.v140.winapp.msvcstl.dyn.rt-dyn.2.8.0\build\native\cpprestsdk.v140.winapp.msvcstl.dyn.rt-dyn.targets')" />
     <Import Project="..\packages\cpprestsdk.v140.windesktop.msvcstl.dyn.rt-dyn.2.8.0\build\native\cpprestsdk.v140.windesktop.msvcstl.dyn.rt-dyn.targets" Condition="Exists('..\packages\cpprestsdk.v140.windesktop.msvcstl.dyn.rt-dyn.2.8.0\build\native\cpprestsdk.v140.windesktop.msvcstl.dyn.rt-dyn.targets')" />
-    <Import Project="..\packages\DocumentDbCpp.v120.0.5.0\build\native\DocumentDbCpp.v120.targets" Condition="Exists('..\packages\DocumentDbCpp.v120.0.5.0\build\native\DocumentDbCpp.v120.targets')" />
-    <Import Project="..\packages\DocumentDbCpp.v140.0.5.0\build\native\DocumentDbCpp.v140.targets" Condition="Exists('..\packages\DocumentDbCpp.v140.0.5.0\build\native\DocumentDbCpp.v140.targets')" />
+    <Import Project="..\packages\DocumentDbCpp.v120.0.6.0\build\native\DocumentDbCpp.v120.targets" Condition="Exists('..\packages\DocumentDbCpp.v120.0.6.0\build\native\DocumentDbCpp.v120.targets')" />
+    <Import Project="..\packages\DocumentDbCpp.v140.0.6.0\build\native\DocumentDbCpp.v140.targets" Condition="Exists('..\packages\DocumentDbCpp.v140.0.6.0\build\native\DocumentDbCpp.v140.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -198,7 +198,7 @@
     <Error Condition="!Exists('..\packages\cpprestsdk.v120.winxp.msvcstl.dyn.rt-dyn.2.8.0\build\native\cpprestsdk.v120.winxp.msvcstl.dyn.rt-dyn.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cpprestsdk.v120.winxp.msvcstl.dyn.rt-dyn.2.8.0\build\native\cpprestsdk.v120.winxp.msvcstl.dyn.rt-dyn.targets'))" />
     <Error Condition="!Exists('..\packages\cpprestsdk.v140.winapp.msvcstl.dyn.rt-dyn.2.8.0\build\native\cpprestsdk.v140.winapp.msvcstl.dyn.rt-dyn.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cpprestsdk.v140.winapp.msvcstl.dyn.rt-dyn.2.8.0\build\native\cpprestsdk.v140.winapp.msvcstl.dyn.rt-dyn.targets'))" />
     <Error Condition="!Exists('..\packages\cpprestsdk.v140.windesktop.msvcstl.dyn.rt-dyn.2.8.0\build\native\cpprestsdk.v140.windesktop.msvcstl.dyn.rt-dyn.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cpprestsdk.v140.windesktop.msvcstl.dyn.rt-dyn.2.8.0\build\native\cpprestsdk.v140.windesktop.msvcstl.dyn.rt-dyn.targets'))" />
-    <Error Condition="!Exists('..\packages\DocumentDbCpp.v120.0.5.0\build\native\DocumentDbCpp.v120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\DocumentDbCpp.v120.0.5.0\build\native\DocumentDbCpp.v120.targets'))" />
-    <Error Condition="!Exists('..\packages\DocumentDbCpp.v140.0.5.0\build\native\DocumentDbCpp.v140.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\DocumentDbCpp.v140.0.5.0\build\native\DocumentDbCpp.v140.targets'))" />
+    <Error Condition="!Exists('..\packages\DocumentDbCpp.v120.0.6.0\build\native\DocumentDbCpp.v120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\DocumentDbCpp.v120.0.6.0\build\native\DocumentDbCpp.v120.targets'))" />
+    <Error Condition="!Exists('..\packages\DocumentDbCpp.v140.0.6.0\build\native\DocumentDbCpp.v140.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\DocumentDbCpp.v140.0.6.0\build\native\DocumentDbCpp.v140.targets'))" />
   </Target>
 </Project>
