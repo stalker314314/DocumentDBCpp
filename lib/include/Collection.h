@@ -247,6 +247,11 @@ namespace documentdb {
 			const utility::string_t& resource_id,
 			const web::json::value& input) const;
 
+		void ExecuteStoredProcedureWithOutput(
+			const utility::string_t& resource_id,
+			const web::json::value& input,
+			web::json::value& output) const;
+
 		// User defined functions management
 		pplx::task<std::shared_ptr<UserDefinedFunction>> CreateUserDefinedFunctionAsync(
 			const utility::string_t& id,
