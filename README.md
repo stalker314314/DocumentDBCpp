@@ -5,4 +5,4 @@ forked from [stalker314314/DocumentDBCpp](https://github.com/stalker314314/Docum
 
 ## added
 1. support stored-procedure with output-parameters.
-2. Retry when query fails
+2. retry when query fails
