@@ -27,6 +27,8 @@
 
 #include <cpprest/http_client.h>
 
+#define MAX_QUERY_RETRY_CNT	(20)
+
 namespace documentdb
 {
 	class DocumentDBRuntimeException

@@ -247,11 +247,24 @@ pplx::task<shared_ptr<Document>> Collection::CreateDocumentAsync(
 	{
 		value json_response = response.extract_json().get();
 
-		if (response.status_code() == status_codes::Created)
-		{
-			return DocumentFromJson(json_response);
-		}
+		for (size_t i = 0; i < MAX_QUERY_RETRY_CNT; ++i) {
+			if (response.status_code() == status_codes::Created)
+			{
+				return DocumentFromJson(json_response);
+			}
+			else if (429 == response.status_code()) {
+				string_t timeMs = response.headers()[L"x-ms-retry-after-ms"];
+				std::this_thread::sleep_for(std::chrono::milliseconds(std::stoi(timeMs)));
 
+				response = this->document_db_configuration()->http_client().request(request).get();
+
+				json_response = response.extract_json().get();
+
+				continue;
+			}
+
+			ThrowExceptionFromResponse(response.status_code(), json_response);
+		}
 		ThrowExceptionFromResponse(response.status_code(), json_response);
 	});
 }
@@ -282,11 +295,23 @@ pplx::task<shared_ptr<Document>> Collection::GetDocumentAsync(
 	{
 		value json_response = response.extract_json().get();
 
-		if (response.status_code() == status_codes::OK)
-		{
-			return DocumentFromJson(json_response);
-		}
+		for (size_t i = 0; i < MAX_QUERY_RETRY_CNT; ++i) {
+			if (response.status_code() == status_codes::OK)
+			{
+				return DocumentFromJson(json_response);
+			}
+			else if (429 == response.status_code()) {
+				string_t timeMs = response.headers()[L"x-ms-retry-after-ms"];
+				std::this_thread::sleep_for(std::chrono::milliseconds(std::stoi(timeMs)));
 
+				response = this->document_db_configuration()->http_client().request(request).get();
+
+				json_response = response.extract_json().get();
+
+				continue;
+			}
+			ThrowExceptionFromResponse(response.status_code(), json_response);
+		}
 		ThrowExceptionFromResponse(response.status_code(), json_response);
 	});
 }
@@ -356,12 +381,24 @@ pplx::task<shared_ptr<Document>> Collection::ReplaceDocumentAsync(
 	{
 		value json_response = response.extract_json().get();
 
-		if (response.status_code() == status_codes::OK)
-		{
-			assert(resource_id == json_response.at(RESPONSE_RESOURCE_RID).as_string());
-			return DocumentFromJson(json_response);
-		}
+		for (size_t i = 0; i < MAX_QUERY_RETRY_CNT; ++i) {
+			if (response.status_code() == status_codes::OK)
+			{
+				assert(resource_id == json_response.at(RESPONSE_RESOURCE_RID).as_string());
+				return DocumentFromJson(json_response);
+			}
+			else if (429 == response.status_code()) {
+				string_t timeMs = response.headers()[L"x-ms-retry-after-ms"];
+				std::this_thread::sleep_for(std::chrono::milliseconds(std::stoi(timeMs)));
 
+				response = this->document_db_configuration()->http_client().request(request).get();
+
+				json_response = response.extract_json().get();
+
+				continue;
+			}
+			ThrowExceptionFromResponse(response.status_code(), json_response);
+		}
 		ThrowExceptionFromResponse(response.status_code(), json_response);
 	});
 }
@@ -431,19 +468,33 @@ pplx::task<shared_ptr<DocumentIterator>> Collection::QueryDocumentsAsync(
 		string_t continuation_id = response.headers()[HEADER_MS_CONTINUATION];
 		value json_response = response.extract_json().get();
 
-		if (response.status_code() == status_codes::OK)
-		{
-			assert(this->resource_id() == json_response.at(RESPONSE_RESOURCE_RID).as_string());
+		for (size_t i = 0; i < MAX_QUERY_RETRY_CNT; ++i) {
+			if (response.status_code() == status_codes::OK)
+			{
+				assert(this->resource_id() == json_response.at(RESPONSE_RESOURCE_RID).as_string());
 
-			return make_shared<DocumentIterator>(
-				shared_from_this(),
-				query,
-				page_size,
-				requestUri,
-				continuation_id,
-				json_response.at(RESPONSE_QUERY_DOCUMENTS));
+				return make_shared<DocumentIterator>(
+					shared_from_this(),
+					query,
+					page_size,
+					requestUri,
+					continuation_id,
+					json_response.at(RESPONSE_QUERY_DOCUMENTS));
+			}
+			else if (429 == response.status_code()) {
+				string_t timeMs = response.headers()[L"x-ms-retry-after-ms"];
+				std::this_thread::sleep_for(std::chrono::milliseconds(std::stoi(timeMs)));
+
+				response = this->document_db_configuration()->http_client().request(request).get();
+
+				continuation_id = response.headers()[HEADER_MS_CONTINUATION];
+				json_response = response.extract_json().get();
+
+				continue;
+			}
+
+			ThrowExceptionFromResponse(response.status_code(), json_response);
 		}
-
 		ThrowExceptionFromResponse(response.status_code(), json_response);
 	});
 }
@@ -934,6 +985,21 @@ pplx::task<void> Collection::ExecuteStoredProcedureAsync(
 			return;
 		}
 
+		
+		for (size_t i = 0; i < MAX_QUERY_RETRY_CNT; ++i) {
+			if (429 == response.status_code()) {
+				string_t timeMs = response.headers()[L"x-ms-retry-after-ms"];
+				std::this_thread::sleep_for(std::chrono::milliseconds(std::stoi(timeMs)));
+
+				response = this->document_db_configuration()->http_client().request(request).get();
+
+				continue;
+			}
+			else {
+				break;
+			};
+		}
+
 		value json_response = response.extract_json().get();
 		ThrowExceptionFromResponse(response.status_code(), json_response);
 	});
@@ -944,6 +1010,42 @@ void Collection::ExecuteStoredProcedure(
 	const value& input) const
 {
 	ExecuteStoredProcedureAsync(resource_id, input).get();
+}
+
+void Collection::ExecuteStoredProcedureWithOutput(
+	const utility::string_t& resource_id,
+	const web::json::value& input,
+	web::json::value& output) const
+{
+	http_request request = CreateRequest(
+		methods::POST,
+		RESOURCE_PATH_SPROCS,
+		resource_id,
+		this->document_db_configuration()->master_key());
+	request.set_request_uri(this->self() + sprocs_ + resource_id);
+
+	request.set_body(input);
+
+	value json_response;
+	http_response response;
+	for (size_t i = 0; i < MAX_QUERY_RETRY_CNT; ++i) {
+		response = this->document_db_configuration()->http_client().request(request).get();
+
+		if (response.status_code() == status_codes::OK)
+		{
+			output = response.extract_json().get();
+			return;
+		}
+		else if (429 == response.status_code()) {
+			string_t timeMs = response.headers()[L"x-ms-retry-after-ms"];
+			std::this_thread::sleep_for(std::chrono::milliseconds(std::stoi(timeMs)));
+
+			continue;
+		}
+		json_response = response.extract_json().get();
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+	}
+	ThrowExceptionFromResponse(response.status_code(), json_response);
 }
 
 pplx::task<std::shared_ptr<UserDefinedFunction>> Collection::CreateUserDefinedFunctionAsync(

@@ -37,15 +37,17 @@ using namespace web::json;
 IndexingPolicy::IndexingPolicy()
 	: automatic_(true)
 	, indexing_mode_(IndexingMode::CONSISTENT)
-	, excluded_paths_(0)
+	, excluded_paths_()
 	, included_paths_(0)
 {
+	included_paths_.push_back(make_shared<Index>(IndexType::HASH, 3, 3, _XPLATSTR("/")));
+	included_paths_.push_back(make_shared<Index>(IndexType::RANGE, 6, 3, _XPLATSTR("/\"_ts\"/?")));
 }
 
 IndexingPolicy::IndexingPolicy(
 	const bool automatic,
 	const IndexingMode& indexing_mode,
-	const vector<shared_ptr<IndexPath>>& included_paths,
+	const vector<shared_ptr<Index>>& included_paths,
 	const vector<string_t>& excluded_paths)
 	: automatic_(automatic)
 	, indexing_mode_(indexing_mode)
@@ -77,12 +79,10 @@ IndexingPolicy IndexingPolicy::FromJson(
 		throw DocumentDBRuntimeException(_XPLATSTR("Unsupported indexing policy: ") + indexing_mode_str);
 	}
 
-	vector<shared_ptr<IndexPath>> included_paths;
-	auto included_paths_json = json_payload.at(RESPONSE_INDEXING_POLICY_INCLUDED_PATHS).as_array();
-	for (auto jsonIncludePath : included_paths_json)
-	{
-		included_paths.push_back(IndexPath::FromJson(jsonIncludePath));
-	}
+	vector<shared_ptr<Index>> included_paths;
+
+	included_paths.push_back(make_shared<Index>(IndexType::HASH, -1, 3, _XPLATSTR("/*")));
+	included_paths.push_back(make_shared<Index>(IndexType::RANGE, -1, 3, _XPLATSTR("/*")));
 
 	vector<string_t> excluded_paths;
 	auto excluded_paths_json = json_payload.at(RESPONSE_INDEXING_POLICY_EXCLUDED_PATHS).as_array();

@@ -23,7 +23,9 @@
 ***/
 
 #include <assert.h>
+#include <chrono>
 #include <cpprest/http_client.h>
+#include <thread>
 
 #include "DocumentIterator.h"
 #include "Collection.h"
@@ -37,6 +39,9 @@ using namespace utility;
 using namespace web::http;
 using namespace web::json;
 using namespace web::http::client;
+
+
+
 
 DocumentIterator::DocumentIterator(
 		const shared_ptr<const Collection>& collection,
@@ -81,21 +86,34 @@ bool DocumentIterator::HasMore()
 		continuation_id_);
 	request.set_request_uri(original_request_uri_);
 
-	http_response response = collection_->document_db_configuration()->http_client().request(request).get();
-	value json_response = response.extract_json().get();
+	
+	http_response response;
+	value json_response;
+	for (size_t i = 0; i < MAX_QUERY_RETRY_CNT; ++i) {
+		response = collection_->document_db_configuration()->http_client().request(request).get();
+		json_response = response.extract_json().get();
 
-	if (response.status_code() == status_codes::OK)
-	{
-		string_t new_continuation_id = response.headers()[HEADER_MS_CONTINUATION];
-		int count = stoi(response.headers()[HEADER_MS_MAX_ITEM_COUNT]);
+		if (response.status_code() == status_codes::OK)
+		{
+			string_t new_continuation_id = response.headers()[HEADER_MS_CONTINUATION];
+			int count = stoi(response.headers()[HEADER_MS_MAX_ITEM_COUNT]);
 
-		buffer_ = json_response.at(RESPONSE_QUERY_DOCUMENTS);
-		continuation_id_ = new_continuation_id;
-		current_ = 0;
-		return count > 0;
+			buffer_ = json_response.at(RESPONSE_QUERY_DOCUMENTS);
+			continuation_id_ = new_continuation_id;
+			current_ = 0;
+			return count > 0;
+		}
+		else if (429 == response.status_code()) {
+			string_t timeMs = response.headers()[L"x-ms-retry-after-ms"];
+			std::this_thread::sleep_for(std::chrono::milliseconds(std::stoi(timeMs)));
+			continue;
+		}
+
+		ThrowExceptionFromResponse(response.status_code(), json_response);
+		return false;
 	}
-
 	ThrowExceptionFromResponse(response.status_code(), json_response);
+	return false;
 }
 
 shared_ptr<Document> DocumentIterator::Next()
